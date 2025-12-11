@@ -1,0 +1,1 @@
+setCCompilerEnv.cmd && code .
