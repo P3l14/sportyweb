@@ -21,11 +21,6 @@ defmodule SportywebWeb.ContactLive.FormComponent do
           phx-change="validate"
           phx-submit="save"
         >
-          <div class="hidden">
-          <!-- added id and name attribute so the stored value is delivered to the server and can be wrote back, so the correct form in case of organization is displayed after the validate event -->
-            <input name="contact[type]" id="contact_type" value={@form[:type].value} field={@form[:type].value} type="hidden" readonly />
-          </div>
-
           <.input_grids>
             <%= if @step == 1 do %>
               <.input_grid>
@@ -42,6 +37,17 @@ defmodule SportywebWeb.ContactLive.FormComponent do
             <% end %>
 
             <%= if @step == 2 do %>
+              <div class="hidden">
+                <!-- added id and name attribute so the stored value is delivered to the server and can be wrote back, so the correct form in case of organization is displayed after the validate event -->
+                <input
+                  name="contact[type]"
+                  id="contact_type"
+                  value={@form[:type].value}
+                  field={@form[:type].value}
+                  type="hidden"
+                  readonly
+                />
+              </div>
 
               <%= if @contact_type == "organization" do %>
                 <.input_grid>
