@@ -11,6 +11,7 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
       foreign_key: :invoice_recipient_postal_address_id,
       references: :id
 
+    field :type, :string, default: "residence"
     field :street, :string, default: ""
     field :street_number, :string, default: ""
     field :street_additional_information, :string, default: ""
@@ -30,6 +31,14 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
     ]
   end
 
+  def get_valid_types do
+    [
+      [key: "Wohnsitz", value: "residence"],
+      [key: "abweichende Rechnungsadresse", value: "billing"],
+      [key: "Firmensitz", value: "company headquarters"],
+      [key: "abweichende Anschrift", value: "alternative"],
+    ]
+  end
 
   def is_form_with_multiples?(form_id) do
     form_id in [

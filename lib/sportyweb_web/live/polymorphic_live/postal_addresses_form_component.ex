@@ -19,6 +19,9 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
             sort_param={PostalAddress.get_changeset_sort_param()}
             element={postal_address}
           />
+          <div class="col-span-12 md:col-span-12">
+            <.input field={postal_address[:type]} type="select" label="Art" options={PostalAddress.get_valid_types()} />
+          </div>
           <div class="col-span-12 md:col-span-8">
             <.input field={postal_address[:street]} type="text" label="Straße" />
           </div>
