@@ -7,6 +7,10 @@ defmodule SportywebWeb.PolymorphicLive.PhonesFormComponent do
 
   def render(assigns) do
     ~H"""
+    <.header level="2" class="col-span-12 md:col-span-12">
+      Telefonnummern
+    </.header>
+
     <.inputs_for :let={phone} field={@form[:phones]}>
       <.element_index_field
         :if={Phone.is_form_with_multiples?(@form.id)}

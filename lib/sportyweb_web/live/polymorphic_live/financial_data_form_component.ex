@@ -9,6 +9,10 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
     ~H"""
     <div class="col-span-12">
       <.input_grid>
+        <.header level="2" class="col-span-12 md:col-span-12">
+          Zahlungsdaten
+        </.header>
+
         <.inputs_for :let={financial_data} field={@form[:financial_data]}>
           <div class="col-span-12">
             <.input
