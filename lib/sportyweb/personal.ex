@@ -8,6 +8,8 @@ defmodule Sportyweb.Personal do
 
   alias Sportyweb.Legal.Contract
   alias Sportyweb.Personal.Contact
+  alias Sportyweb.Personal.ContactGroup
+  alias Sportyweb.Personal.ContactGroupContact
 
   @doc """
   Returns the list of contacts.
@@ -20,6 +22,31 @@ defmodule Sportyweb.Personal do
   """
   def list_contacts(club_id) do
     query = from(c in Contact, where: c.club_id == ^club_id, order_by: c.name)
+    Repo.all(query)
+  end
+
+  @doc """
+  Returns the list of contacts.
+
+  ## Examples
+
+      iex> list_contacts(1)
+      [%Contact{}, ...]
+
+  """
+  def list_contacts_for_contact_group_selection(club_id, contact_ids_of_group \\ []) do
+    contacts_already_assigend_to_a_group =
+      from(cgc in ContactGroupContact, select: cgc.contact_id)
+
+    query =
+      from(c in Contact,
+        where:
+          c.club_id == ^club_id and
+            (c.id not in subquery(contacts_already_assigend_to_a_group) or
+               c.id in ^contact_ids_of_group),
+        order_by: c.name
+      )
+
     Repo.all(query)
   end
 
@@ -184,8 +211,9 @@ defmodule Sportyweb.Personal do
       [%ContactGroup{}, ...]
 
   """
-  def list_contact_groups do
-    Repo.all(ContactGroup)
+  def list_contact_groups(club_id) do
+    query = from(cg in ContactGroup, where: cg.club_id == ^club_id)
+    Repo.all(query)
   end
 
   @doc """
@@ -204,6 +232,12 @@ defmodule Sportyweb.Personal do
   """
   def get_contact_group!(id), do: Repo.get!(ContactGroup, id)
 
+  def get_contact_group!(id, preloads) do
+    ContactGroup
+    |> Repo.get!(id)
+    |> Repo.preload(preloads)
+  end
+
   @doc """
   Creates a contact_group.
 
@@ -220,6 +254,95 @@ defmodule Sportyweb.Personal do
     %ContactGroup{}
     |> ContactGroup.changeset(attrs)
     |> Repo.insert()
+  end
+
+  def create_contact_group_for_form(attrs \\ %{}) do
+    contact_group_cs =
+      %ContactGroup{}
+      |> ContactGroup.changeset(attrs)
+
+    {:ok, contact_group} = Repo.insert(contact_group_cs)
+
+    attrs
+    |> Map.get("contacts")
+    |> Map.values()
+    |> Enum.map(fn contact ->
+      Enum.into(contact, %{
+        "contact_group_id" => contact_group.id,
+        "contact_id" => Map.get(contact, "id")
+      })
+    end)
+    |> Enum.each(fn contact ->
+      %ContactGroupContact{}
+      |> ContactGroupContact.changeset(contact)
+      |> Repo.insert()
+    end)
+  end
+
+  def create_contact_group_for_form2(attrs \\ %{}) do
+    %ContactGroup{}
+    |> ContactGroup.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def create_contact_group_contacts(attrs \\ %{}) do
+    %ContactGroupContact{}
+    |> ContactGroupContact.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def create_contact_group_for_form3(attrs \\ %{}) do
+    multi =
+      Ecto.Multi.new()
+      |> Ecto.Multi.insert(
+        :contact_group,
+        %ContactGroup{}
+        |> ContactGroup.changeset(attrs)
+      )
+
+    multi =
+      attrs
+      |> Map.get("contacts")
+      |> Map.values()
+      |> Enum.reduce(multi, fn contact, acc_multi ->
+        Ecto.Multi.insert(acc_multi, {:contact_group_contact, Map.get(contact, "id")}, fn %{
+                                                                                            contact_group:
+                                                                                              contact_group
+                                                                                          } ->
+          %ContactGroupContact{}
+          |> ContactGroupContact.changeset(%{
+            contact_group_id: contact_group.id,
+            contact_id: Map.get(contact, "id")
+          })
+        end)
+      end)
+
+    Repo.transaction(multi)
+  end
+
+  def create_contact_group_for_form4(attrs \\ %{}) do
+    Repo.transaction(fn ->
+      contact_group_cs =
+        %ContactGroup{}
+        |> ContactGroup.changeset(attrs)
+
+      contact_group = Repo.insert!(contact_group_cs)
+
+      attrs
+      |> Map.get("contacts")
+      |> Map.values()
+      |> Enum.map(fn contact ->
+        Enum.into(contact, %{
+          "contact_group_id" => contact_group.id,
+          "contact_id" => Map.get(contact, "id")
+        })
+      end)
+      |> Enum.each(fn contact ->
+        %ContactGroupContact{}
+        |> ContactGroupContact.changeset(contact)
+        |> Repo.insert!()
+      end)
+    end)
   end
 
   @doc """
@@ -240,6 +363,10 @@ defmodule Sportyweb.Personal do
     |> Repo.update()
   end
 
+  def update_contact_group_contacts(%ContactGroup{} = contact_group, attrs) do
+    contact_group |> ContactGroup.changeset_for_form(attrs) |> Repo.update()
+  end
+
   @doc """
   Deletes a contact_group.
 
@@ -256,6 +383,16 @@ defmodule Sportyweb.Personal do
     Repo.delete(contact_group)
   end
 
+  def delete_contact_group_contacts(contact_Ids) do
+    query =
+      from(
+        gc in ContactGroupContact,
+        where: gc.contact_id in ^contact_Ids
+      )
+
+    Repo.delete_all(query)
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking contact_group changes.
 
@@ -267,5 +404,9 @@ defmodule Sportyweb.Personal do
   """
   def change_contact_group(%ContactGroup{} = contact_group, attrs \\ %{}) do
     ContactGroup.changeset(contact_group, attrs)
+  end
+
+  def change_contact_group_for_form(%ContactGroup{} = contact_group, attrs \\ %{}) do
+    ContactGroup.changeset_for_form(contact_group, attrs)
   end
 end

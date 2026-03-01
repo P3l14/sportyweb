@@ -1,0 +1,32 @@
+<.header>
+  {@page_title}
+  <:actions>
+    <.link navigate={~p"/clubs/#{@club}/contact_groups/new"}>
+      <.button>Kontaktgruppe erstellen</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.card>
+  <%= if Enum.any?(@streams.contact_groups.inserts) do %>
+    <.table
+      id="contact_groups"
+      rows={@streams.contact_groups}
+      row_click={fn {_id, contact_group} -> JS.navigate(~p"/contact_groups/#{contact_group}") end}
+    >
+      <:col :let={{_id, contact_group}} label="Name">
+        {format_string_field(contact_group.name)}
+      </:col>
+      <:col :let={{_id, contact_group}} label="Art">
+        {get_key_for_value(ContactGroup.get_valid_types(), contact_group.type)}
+      </:col>
+      <:action :let={{_id, contact_group}}>
+        <.link navigate={~p"/contact_groups/#{contact_group}"}>Anzeigen</.link>
+      </:action>
+    </.table>
+  <% else %>
+    <p>
+      Bisher wurde noch keine Kontaktgruppe erstellt.
+    </p>
+  <% end %>
+</.card>

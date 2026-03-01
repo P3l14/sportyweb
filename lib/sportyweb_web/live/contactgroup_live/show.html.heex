@@ -1,0 +1,22 @@
+<.header>
+  {@page_title}
+  <:actions>
+    <.link navigate={~p"/contact_groups/#{@contact_group}/edit"}>
+      <.button>Kontaktgruppe bearbeiten</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.card>
+  <.list>
+    <:item title="Name">
+      {format_string_field(@contact_group.name)}
+    </:item>
+    <:item title="Art">
+      {get_key_for_value(ContactGroup.get_valid_types(), @contact_group.type)}
+    </:item>
+    <:item title="Kontakte">
+      {format_struct_list(@contact_group.contacts, :name)}
+    </:item>
+  </.list>
+</.card>

@@ -536,6 +536,55 @@ defmodule SportywebWeb.CoreComponents do
     """
   end
 
+  attr :form_id, :string, required: true
+  attr :sort_param, :string, required: true
+  attr :element, Phoenix.HTML.Form, required: true
+
+  def element_index_field(assigns) do
+    ~H"""
+    <input type="hidden" name={"#{@form_id}[#{@sort_param}][]"} value={@element.index} />
+    """
+  end
+
+  attr :form_id, :string, required: true
+  attr :drop_param, :string, required: true
+  attr :class, :string, required: true
+  attr :element, Phoenix.HTML.Form, required: true
+
+  def element_delete_button(assigns) do
+    ~H"""
+    <div class={@class}>
+      <button
+        type="button"
+        name={"#{@form_id}[#{@drop_param}][]"}
+        value={@element.index}
+        phx-click={JS.dispatch("change")}
+      >
+        <.icon name="hero-trash-solid" class="bg-rose-700 hover:bg-rose-800" />
+      </button>
+    </div>
+    """
+  end
+
+  attr :form_id, :string, required: true
+  attr :sort_param, :string, required: true
+  attr :class, :string, required: true
+
+  def element_add_button(assigns) do
+    ~H"""
+    <div class={@class}>
+      <button
+        type="button"
+        name={"#{@form_id}[#{@sort_param}][]"}
+        value="new"
+        phx-click={JS.dispatch("change")}
+      >
+        <.icon name="hero-plus-circle-solid" class="bg-zinc-900 hover:bg-zinc-700" />
+      </button>
+    </div>
+    """
+  end
+
   @doc """
   Renders a header with title.
 
