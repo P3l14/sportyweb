@@ -24,11 +24,11 @@ defmodule Sportyweb.Personal.Contact do
     belongs_to :club, Club
     has_many :contracts, Contract
     many_to_many :contact_groups, ContactGroup, join_through: ContactGroupContact
-    many_to_many :emails, Email, join_through: ContactEmail
+    many_to_many :emails, Email, join_through: ContactEmail, on_replace: :delete
     many_to_many :financial_data, FinancialData, join_through: ContactFinancialData
     many_to_many :notes, Note, join_through: ContactNote
-    many_to_many :phones, Phone, join_through: ContactPhone
-    many_to_many :postal_addresses, PostalAddress, join_through: ContactPostalAddress
+    many_to_many :phones, Phone, join_through: ContactPhone, on_replace: :delete
+    many_to_many :postal_addresses, PostalAddress, join_through: ContactPostalAddress, on_replace: :delete
 
     field :type, :string, default: "person"
     field :name, :string, default: ""
@@ -121,11 +121,11 @@ defmodule Sportyweb.Personal.Contact do
       empty_values: ["", nil]
     )
     |> cast_assoc(:contact_groups, required: false)
-    |> cast_assoc(:emails, required: true)
+    |> cast_assoc(:emails, required: true, sort_param: Email.get_changeset_sort_param, drop_param: Email.get_changeset_drop_param)
     |> cast_assoc(:financial_data, required: true)
     |> cast_assoc(:notes, required: true)
-    |> cast_assoc(:phones, required: true)
-    |> cast_assoc(:postal_addresses, required: true)
+    |> cast_assoc(:phones, required: true, sort_param: Phone.get_changeset_sort_param, drop_param: Phone.get_changeset_drop_param)
+    |> cast_assoc(:postal_addresses, required: true, sort_param: PostalAddress.get_changeset_sort_param, drop_param: PostalAddress.get_changeset_drop_param)
     |> validate_required([:type])
     |> update_change(:organization_name, &String.trim/1)
     |> update_change(:person_last_name, &String.trim/1)

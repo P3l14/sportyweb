@@ -7,16 +7,33 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
 
   def render(assigns) do
     ~H"""
+    <.header level="2" class="col-span-12 md:col-span-12">
+      Straßenadressen
+    </.header>
     <div class="col-span-12">
       <.input_grid>
         <.inputs_for :let={postal_address} field={@form[:postal_addresses]}>
+          <.element_index_field
+            :if={PostalAddress.is_form_with_multiples?(@form.id)}
+            form_id={@form.id}
+            sort_param={PostalAddress.get_changeset_sort_param()}
+            element={postal_address}
+          />
           <div class="col-span-12 md:col-span-8">
             <.input field={postal_address[:street]} type="text" label="Straße" />
           </div>
 
-          <div class="col-span-12 md:col-span-4">
+          <div class="col-span-12 md:col-span-3">
             <.input field={postal_address[:street_number]} type="text" label="Hausnummer" />
           </div>
+
+          <.element_delete_button
+            :if={PostalAddress.is_form_with_multiples?(@form.id)}
+            form_id={@form.id}
+            drop_param={PostalAddress.get_changeset_drop_param()}
+            class="col-span-12 md:col-span-1 mt-9"
+            element={postal_address}
+          />
 
           <div class="col-span-12">
             <.input
@@ -44,6 +61,12 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
             />
           </div>
         </.inputs_for>
+        <.element_add_button
+          :if={PostalAddress.is_form_with_multiples?(@form.id)}
+          form_id={@form.id}
+          sort_param={PostalAddress.get_changeset_sort_param()}
+          class="col-span-12"
+        />
       </.input_grid>
     </div>
     """
