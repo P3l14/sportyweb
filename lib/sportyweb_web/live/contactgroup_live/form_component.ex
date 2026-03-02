@@ -1,9 +1,9 @@
 defmodule SportywebWeb.ContactGroupLive.FormComponent do
-  require IEx
   use SportywebWeb, :live_component
 
-  alias Sportyweb.Personal.ContactGroup
   alias Sportyweb.Personal
+  alias Sportyweb.Personal.ContactGroup
+  alias SportywebWeb.ContactGroupLive.ContactGroupForm
 
   @impl true
   def render(assigns) do
@@ -20,47 +20,40 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
         phx-submit="save"
       >
         <.card>
-          <.simple_form
-            for={@form}
-            id="contact-form"
-            phx-target={@myself}
-            phx-change="validate"
-            phx-submit="save"
-          >
-          </.simple_form>
-
           <.input_grids>
-            <.input_grid>
-              <div class="col-span-12 md:col-span-12">
-                <.input field={@form[:name]} type="text" label="Gruppenname" />
-              </div>
-              <div class="col-span-12 md:col-span-12">
-                <.input
-                  field={@form[:type]}
-                  type="select"
-                  label="Art"
-                  options={ContactGroup.get_valid_types()}
-                />
-              </div>
-            </.input_grid>
+            <.inputs_for :let={contact_group} field={@form[:contact_group]}>
+              <.input_grid>
+                <div class="col-span-12 md:col-span-12">
+                  <.input field={contact_group[:name]} type="text" label="Gruppenname" />
+                </div>
+                <div class="col-span-12 md:col-span-12">
+                  <.input
+                    field={contact_group[:type]}
+                    type="select"
+                    label="Art"
+                    options={ContactGroup.get_valid_types()}
+                  />
+                </div>
+              </.input_grid>
+            </.inputs_for>
             <.header level="2" class="col-span-12 md:col-span-12">
               Mitglieder der Kontaktgruppe
             </.header>
             <.input_grid>
-              <.inputs_for :let={contact} field={@form[:contacts]}>
+              <.inputs_for :let={contact} field={@form[:contact_group_contacts]}>
                 <.element_index_field
                   form_id={@form.id}
                   sort_param={ContactGroup.get_changeset_sort_param()}
                   element={contact}
                 />
-                <input
+                <%!-- <input
                   type="hidden"
                   name={"contact_group[contacts][#{contact.index}][club_id]"}
                   value={@contact_group.club_id}
-                />
+                /> --%>
                 <div class="col-span-12 md:col-span-11">
                   <.input
-                    field={contact[:id]}
+                    field={contact[:contact_id]}
                     type="select"
                     label="Kontakt"
                     options={@contact_options}
@@ -88,9 +81,9 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
             <.cancel_button navigate={@navigate}>Abbrechen</.cancel_button>
           </div>
           <.button
-            :if={@contact_group.id}
+            :if={@contact_group_form.contact_group.id}
             class="bg-rose-700 hover:bg-rose-800"
-            phx-click={JS.push("delete", value: %{id: @contact_group.id})}
+            phx-click={JS.push("delete", value: %{id: @contact_group_form.contact_group.id})}
             data-confirm="Unwiderruflich löschen?"
           >
             Löschen
@@ -102,13 +95,14 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
   end
 
   @impl true
-  def update(%{contact_group: contact_group} = assigns, socket) do
-    changeset = Personal.change_contact_group_for_form(contact_group)
+  def update(%{contact_group_form: contact_group_form} = assigns, socket) do
+    changeset = ContactGroupForm.changeset(contact_group_form)
 
     contact_options =
       Personal.list_contacts_for_contact_group_selection(
-        contact_group.club_id,
-        contact_group.contacts |> Enum.map(fn contact -> contact.id end)
+        contact_group_form.contact_group.club_id,
+        contact_group_form.contact_group_contacts
+        |> Enum.map(fn contact_group_contacts -> contact_group_contacts.contact_id end)
       )
 
     {:ok,
@@ -126,14 +120,14 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
   @impl true
   def handle_event(
         "validate",
-        %{"contact_group" => contact_group_params},
+        %{"contact_group_form" => contact_group_form_params},
         %{assigns: %{contact_options: contact_options}} = socket
       ) do
     changeset =
-      Personal.change_contact_group_for_form(socket.assigns.contact_group, contact_group_params)
+      ContactGroupForm.changeset(socket.assigns.contact_group_form, contact_group_form_params)
 
     # tried to exclude currently selected contacts from selection but lead to removal of the selected values
-    # current_selected_contacts = contact_group_params
+    # current_selected_contacts = contact_group_form_params
     # |>Map.get("contacts")
     # |>Map.values()
     # |>Enum.map(fn contact -> contact|>Map.get("id") end)
@@ -145,25 +139,30 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
      |> assign(:contact_options, contact_options)}
   end
 
-  def handle_event("save", %{"contact_group" => contact_group_params}, socket) do
-    save_contact(socket, socket.assigns.action, contact_group_params)
+  def handle_event("save", %{"contact_group_form" => contact_group_form_params}, socket) do
+    save_contact_group(socket, socket.assigns.action, contact_group_form_params)
   end
 
-  defp save_contact(
-         %{assigns: %{contact_group: contact_group}} = socket,
+  defp save_contact_group(
+         %{assigns: %{contact_group_form: contact_group_form}} = socket,
          :edit,
-         contact_group_params
+         %{
+           "contact_group" => contact_group_params,
+           "contact_group_contacts" => contact_group_contact_params
+         }
        ) do
-    case Personal.update_contact_group(contact_group, contact_group_params) do
+    case Personal.update_contact_group(contact_group_form.contact_group, contact_group_params) do
       {:ok, _contact_group} ->
         actual_contact_group_contacts =
-          contact_group_params
-          |> Map.get("contacts")
+          contact_group_contact_params
           |> Map.values()
-          |> Enum.map(fn contact -> Map.get(contact, "id") end)
+          |> Enum.map(fn contact_group_contact ->
+            Map.get(contact_group_contact, "contact_id")
+          end)
 
         previous_contact_group_contacts =
-          contact_group.contacts |> Enum.map(fn contact -> contact.id end)
+          contact_group_form.contact_group_contacts
+          |> Enum.map(fn contact_group_contact -> contact_group_contact.contact_id end)
 
         not_anymore_in_contact_group =
           previous_contact_group_contacts
@@ -178,8 +177,12 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
         # TODO Fehler auswerten
         results =
           added_to_contact_group
-          |> Enum.map(fn id -> %{"contact_id" => id, "contact_group_id" => contact_group.id} end)
-          |> Enum.map(fn contact -> contact |> Personal.create_contact_group_contacts() end)
+          |> Enum.map(fn id ->
+            %{"contact_id" => id, "contact_group_id" => contact_group_form.contact_group.id}
+          end)
+          |> Enum.map(fn contact_group_contact ->
+            contact_group_contact |> Personal.create_contact_group_contact()
+          end)
 
         {:noreply,
          socket
@@ -191,26 +194,27 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
     end
   end
 
-  defp save_contact(socket, :new, contact_group_params) do
+  defp save_contact_group(%{assigns: %{contact_group_form: contact_group_form}} = socket, :new, %{
+         "contact_group" => contact_group_params,
+         "contact_group_contacts" => contact_group_contact_params
+       }) do
     contact_group_params =
       Enum.into(contact_group_params, %{
-        "club_id" => socket.assigns.contact_group.club_id
+        "club_id" => contact_group_form.contact_group.club_id
       })
 
-    case Personal.create_contact_group_for_form2(contact_group_params) do
+    case Personal.create_contact_group(contact_group_params) do
       {:ok, contact_group} ->
         # TODO Fehlerprüfung
         result =
-          contact_group_params
-          |> Map.get("contacts")
+          contact_group_contact_params
           |> Map.values()
-          |> Enum.map(fn contact ->
-            Enum.into(contact, %{
-              "contact_group_id" => contact_group.id,
-              "contact_id" => Map.get(contact, "id")
+          |> Enum.map(fn contact_group_contact ->
+            Enum.into(contact_group_contact, %{
+              "contact_group_id" => contact_group.id
             })
           end)
-          |> Enum.map(fn contact -> contact |> Personal.create_contact_group_contacts() end)
+          |> Enum.map(fn contact -> contact |> Personal.create_contact_group_contact() end)
 
         # TODO: Fehlerbehandlung. Idee Meldungen konkatinieren und auf Formular darstellen
         {:noreply,

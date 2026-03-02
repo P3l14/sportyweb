@@ -238,6 +238,15 @@ defmodule Sportyweb.Personal do
     |> Repo.preload(preloads)
   end
 
+  def get_contact_group_contacts!(contact_group_id) do
+    Repo.all(
+      from(
+        cgc in ContactGroupContact,
+        where: cgc.contact_group_id == ^contact_group_id
+      )
+    )
+  end
+
   @doc """
   Creates a contact_group.
 
@@ -256,93 +265,10 @@ defmodule Sportyweb.Personal do
     |> Repo.insert()
   end
 
-  def create_contact_group_for_form(attrs \\ %{}) do
-    contact_group_cs =
-      %ContactGroup{}
-      |> ContactGroup.changeset(attrs)
-
-    {:ok, contact_group} = Repo.insert(contact_group_cs)
-
-    attrs
-    |> Map.get("contacts")
-    |> Map.values()
-    |> Enum.map(fn contact ->
-      Enum.into(contact, %{
-        "contact_group_id" => contact_group.id,
-        "contact_id" => Map.get(contact, "id")
-      })
-    end)
-    |> Enum.each(fn contact ->
-      %ContactGroupContact{}
-      |> ContactGroupContact.changeset(contact)
-      |> Repo.insert()
-    end)
-  end
-
-  def create_contact_group_for_form2(attrs \\ %{}) do
-    %ContactGroup{}
-    |> ContactGroup.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  def create_contact_group_contacts(attrs \\ %{}) do
+  def create_contact_group_contact(attrs \\ %{}) do
     %ContactGroupContact{}
     |> ContactGroupContact.changeset(attrs)
     |> Repo.insert()
-  end
-
-  def create_contact_group_for_form3(attrs \\ %{}) do
-    multi =
-      Ecto.Multi.new()
-      |> Ecto.Multi.insert(
-        :contact_group,
-        %ContactGroup{}
-        |> ContactGroup.changeset(attrs)
-      )
-
-    multi =
-      attrs
-      |> Map.get("contacts")
-      |> Map.values()
-      |> Enum.reduce(multi, fn contact, acc_multi ->
-        Ecto.Multi.insert(acc_multi, {:contact_group_contact, Map.get(contact, "id")}, fn %{
-                                                                                            contact_group:
-                                                                                              contact_group
-                                                                                          } ->
-          %ContactGroupContact{}
-          |> ContactGroupContact.changeset(%{
-            contact_group_id: contact_group.id,
-            contact_id: Map.get(contact, "id")
-          })
-        end)
-      end)
-
-    Repo.transaction(multi)
-  end
-
-  def create_contact_group_for_form4(attrs \\ %{}) do
-    Repo.transaction(fn ->
-      contact_group_cs =
-        %ContactGroup{}
-        |> ContactGroup.changeset(attrs)
-
-      contact_group = Repo.insert!(contact_group_cs)
-
-      attrs
-      |> Map.get("contacts")
-      |> Map.values()
-      |> Enum.map(fn contact ->
-        Enum.into(contact, %{
-          "contact_group_id" => contact_group.id,
-          "contact_id" => Map.get(contact, "id")
-        })
-      end)
-      |> Enum.each(fn contact ->
-        %ContactGroupContact{}
-        |> ContactGroupContact.changeset(contact)
-        |> Repo.insert!()
-      end)
-    end)
   end
 
   @doc """
@@ -361,10 +287,6 @@ defmodule Sportyweb.Personal do
     contact_group
     |> ContactGroup.changeset(attrs)
     |> Repo.update()
-  end
-
-  def update_contact_group_contacts(%ContactGroup{} = contact_group, attrs) do
-    contact_group |> ContactGroup.changeset_for_form(attrs) |> Repo.update()
   end
 
   @doc """
@@ -406,7 +328,4 @@ defmodule Sportyweb.Personal do
     ContactGroup.changeset(contact_group, attrs)
   end
 
-  def change_contact_group_for_form(%ContactGroup{} = contact_group, attrs \\ %{}) do
-    ContactGroup.changeset_for_form(contact_group, attrs)
-  end
 end

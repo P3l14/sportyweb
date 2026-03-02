@@ -165,6 +165,7 @@ defmodule Sportyweb.PersonalTest do
 
       valid_attrs = %{
         club_id: club.id,
+        name: "Familie Müller",
         contact_id: contact.id
       }
 
@@ -200,6 +201,42 @@ defmodule Sportyweb.PersonalTest do
     test "change_contact_group/1 returns a contact_group changeset" do
       contact_group = contact_group_fixture()
       assert %Ecto.Changeset{} = Personal.change_contact_group(contact_group)
+    end
+  end
+
+  describe "contact_groups_contacts" do
+    alias Sportyweb.Personal.ContactGroupContact
+
+    import Sportyweb.PersonalFixtures
+    import Sportyweb.OrganizationFixtures
+
+    @invalid_attrs %{contact_group_id: nil}
+
+    test "get_contact_group_contacts!/1 returns all contact_groups_contacts for given contact_group" do
+      contact_group_contact = contact_group_contact_fixture()
+      assert Personal.get_contact_group_contacts!(contact_group_contact.contact_group_id) == [contact_group_contact]
+    end
+
+    test "create_contact_group_contact/1 with valid data creates a contact_group" do
+    contact_group = contact_group_fixture()
+    contact = contact_fixture()
+
+      valid_attrs = %{
+        contact_group_id: contact_group.id,
+        contact_id: contact.id
+      }
+
+      assert {:ok, %ContactGroupContact{}} = Personal.create_contact_group_contact(valid_attrs)
+    end
+
+    test "create_contact_group_contact/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Personal.create_contact_group_contact(@invalid_attrs)
+    end
+
+    test "delete_contact_group_contacts/1 deletes the contact_group" do
+      contact_group_contact = contact_group_contact_fixture()
+      assert {1, nil} = Personal.delete_contact_group_contacts([contact_group_contact.contact_id])
+      assert [] = Personal.get_contact_group_contacts!(contact_group_contact.contact_group_id)
     end
   end
 end

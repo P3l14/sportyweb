@@ -1,9 +1,11 @@
 defmodule SportywebWeb.ContactGroupLive.NewEdit do
+  alias SportywebWeb.ContactGroupLive.ContactGroupForm
   use SportywebWeb, :live_view
 
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Personal.ContactGroup
+  alias Sportyweb.Personal.ContactGroupContact
   alias Sportyweb.Organization
 
   @impl true
@@ -15,10 +17,10 @@ defmodule SportywebWeb.ContactGroupLive.NewEdit do
         id={:new}
         title={@page_title}
         action={@live_action}
-        contact_group={@contact_group}
+        contact_group_form={@contact_group_form}
         navigate={
-          if @contact_group.id,
-            do: ~p"/contact_groups/#{@contact_group}",
+          if @contact_group_form.contact_group.id,
+            do: ~p"/contact_groups/#{@contact_group_form.contact_group}",
             else: ~p"/clubs/#{@club}/contact_groups"
         }
       />
@@ -38,11 +40,15 @@ defmodule SportywebWeb.ContactGroupLive.NewEdit do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     contact_group = Personal.get_contact_group!(id, [:contacts, :club])
+    contact_group_contacts = Personal.get_contact_group_contacts!(contact_group.id)
 
     socket
     |> assign(:page_title, "Kontaktgruppe bearbeiten")
-    |> assign(:contact_group, contact_group)
     |> assign(:club, contact_group.club)
+    |> assign(:contact_group_form, %ContactGroupForm{
+      contact_group: contact_group,
+      contact_group_contacts: contact_group_contacts
+    })
   end
 
   defp apply_action(socket, :new, %{"club_id" => club_id}) do
@@ -51,9 +57,9 @@ defmodule SportywebWeb.ContactGroupLive.NewEdit do
     socket
     |> assign(:page_title, "Kontaktgruppe erstellen")
     |> assign(:club, club)
-    |> assign(:contact_group, %ContactGroup{
-      club_id: club.id,
-      contacts: [%Contact{}]
+    |> assign(:contact_group_form, %ContactGroupForm{
+      contact_group: %ContactGroup{club_id: club.id},
+      contact_group_contacts: [%ContactGroupContact{}]
     })
   end
 
