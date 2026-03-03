@@ -209,17 +209,21 @@ defmodule Sportyweb.PersonalTest do
 
     import Sportyweb.PersonalFixtures
     import Sportyweb.OrganizationFixtures
+    import Sportyweb.PolymorphicFixtures
 
     @invalid_attrs %{contact_group_id: nil}
 
     test "get_contact_group_contacts!/1 returns all contact_groups_contacts for given contact_group" do
       contact_group_contact = contact_group_contact_fixture()
-      assert Personal.get_contact_group_contacts!(contact_group_contact.contact_group_id) == [contact_group_contact]
+
+      assert Personal.get_contact_group_contacts!(contact_group_contact.contact_group_id) == [
+               contact_group_contact
+             ]
     end
 
     test "create_contact_group_contact/1 with valid data creates a contact_group" do
-    contact_group = contact_group_fixture()
-    contact = contact_fixture()
+      contact_group = contact_group_fixture()
+      contact = contact_fixture()
 
       valid_attrs = %{
         contact_group_id: contact_group.id,
@@ -237,6 +241,54 @@ defmodule Sportyweb.PersonalTest do
       contact_group_contact = contact_group_contact_fixture()
       assert {1, nil} = Personal.delete_contact_group_contacts([contact_group_contact.contact_id])
       assert [] = Personal.get_contact_group_contacts!(contact_group_contact.contact_group_id)
+    end
+
+    test "list_contacts_for_contact_group_selection/2 only show contact not assigned to a group" do
+      club = club_fixture()
+      contact_group_contact = contact_group_contact_fixture()
+      contact_1 =
+        Personal.create_contact(%{
+          club_id: club.id,
+          person_first_name_1: "Max",
+          person_last_name: "Mustermann",
+          person_gender: "male",
+          person_birthday: ~D[2023-02-16],
+          emails: [email_attrs()],
+          financial_data: [financial_data_attrs()],
+          notes: [note_attrs()],
+          phones: [phone_attrs()],
+          postal_addresses: [postal_address_attrs()]
+        })
+
+      contact_2 =
+        Personal.create_contact(%{
+          club_id: club.id,
+          person_first_name_1: "Maria",
+          person_last_name: "Mustermann",
+          person_gender: "female",
+          person_birthday: ~D[2023-02-16],
+          emails: [email_attrs()],
+          financial_data: [financial_data_attrs()],
+          notes: [note_attrs()],
+          phones: [phone_attrs()],
+          postal_addresses: [postal_address_attrs()]
+        })
+
+      assert 2 = length(Personal.list_contacts_for_contact_group_selection(club.id))
+
+      Personal.create_contact_group_contact(%{
+        contact_group_id: contact_group_contact.id,
+        contact_id: contact_1.id
+      })
+
+      assert 1 = length(Personal.list_contacts_for_contact_group_selection(club.id))
+
+      Personal.create_contact_group_contact(%{
+        contact_group_id: contact_group_contact.id,
+        contact_id: contact_2.id
+      })
+
+      assert 0 = length(Personal.list_contacts_for_contact_group_selection(club.id))
     end
   end
 end
