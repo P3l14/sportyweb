@@ -44,6 +44,17 @@ defmodule SportywebWeb.CommonHelper do
     end
   end
 
+  def format_date_time_field_dmy_hms(date_time) do
+    if !is_nil(date_time) && date_time do
+      # Germany, Austria and Switzerland have the same timezones. Timezone should be read from a config value
+      # when needed in other functions
+      europe_berlin_zoned_date_time = DateTime.shift_zone!(date_time, "Europe/Berlin")
+      Calendar.strftime(europe_berlin_zoned_date_time, "%d.%m.%Y %H:%M:%S")
+    else
+      "-"
+    end
+  end
+
   @doc """
   Takes a list of structs and returns a comma separated list of one attribute.
   If the list is empty, the function returns a string containg a hyphen.

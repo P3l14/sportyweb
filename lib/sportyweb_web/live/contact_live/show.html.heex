@@ -46,6 +46,12 @@
     <:item :if={Contact.has_active_membership_contract?(@contact)} title="Aktives Mitglied">
       <.icon name="hero-check-badge" class="inline-block w-[20px] text-green-800" />
     </:item>
+    <:item title="Angelegt am">
+        {format_date_time_field_dmy_hms(@contact.inserted_at)} 
+    </:item>
+    <:item title="Zuletzt geändert am">
+        {format_date_time_field_dmy_hms(@contact.updated_at)}
+    </:item>
   </.list>
 </.card>
 
