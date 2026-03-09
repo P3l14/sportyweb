@@ -4,8 +4,8 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
   alias Sportyweb.Polymorphic.PostalAddress
 
   attr :form, :map, required: true
-  attr :zipcode_proposals, :list, default: []
-  attr :street_proposals, :list, default: []
+  attr :zipcode_proposals, :list, required: false, default: []
+  attr :street_proposals, :list, required: false, default: []
 
   def render(assigns) do
     ~H"""
