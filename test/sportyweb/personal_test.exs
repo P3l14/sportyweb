@@ -245,9 +245,10 @@ defmodule Sportyweb.PersonalTest do
 
     test "list_contacts_for_contact_group_selection/2 only show contact not assigned to a group" do
       club = club_fixture()
-      contact_group_contact = contact_group_contact_fixture()
+      contact_group = contact_group_fixture(name: "Familie Mayer")
+
       contact_1 =
-        Personal.create_contact(%{
+        contact_fixture(%{
           club_id: club.id,
           person_first_name_1: "Max",
           person_last_name: "Mustermann",
@@ -261,7 +262,7 @@ defmodule Sportyweb.PersonalTest do
         })
 
       contact_2 =
-        Personal.create_contact(%{
+        contact_fixture(%{
           club_id: club.id,
           person_first_name_1: "Maria",
           person_last_name: "Mustermann",
@@ -275,16 +276,15 @@ defmodule Sportyweb.PersonalTest do
         })
 
       assert 2 = length(Personal.list_contacts_for_contact_group_selection(club.id))
-
       Personal.create_contact_group_contact(%{
-        contact_group_id: contact_group_contact.id,
+        contact_group_id: contact_group.id,
         contact_id: contact_1.id
       })
 
       assert 1 = length(Personal.list_contacts_for_contact_group_selection(club.id))
 
       Personal.create_contact_group_contact(%{
-        contact_group_id: contact_group_contact.id,
+        contact_group_id: contact_group.id,
         contact_id: contact_2.id
       })
 
