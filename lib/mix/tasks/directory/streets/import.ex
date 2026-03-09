@@ -68,8 +68,6 @@ defmodule Mix.Tasks.Directory.Streets.Import do
 
     {microseconds, rows} =
       :timer.tc(fn ->
-        Enum.each(chunks, fn batch -> Repo.insert_all(Street, batch) end)
-
         Enum.reduce(chunks, 0, fn batch, imported_rows ->
           {added, _} = Repo.insert_all(Street, batch)
           imported_rows + added
