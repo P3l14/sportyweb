@@ -129,4 +129,125 @@ defmodule Sportyweb.DirectoryTest do
       assert ["Hauptstraße", "Seitenstraße"] == Directory.get_streets("DEU", "47117")
     end
   end
+
+  describe "banks" do
+    alias Sportyweb.Directory.Bank
+
+    import Sportyweb.DirectoryFixtures
+
+    @invalid_attrs %{name: nil, bankcode: nil, bic: nil, shortname: nil}
+
+    test "list_banks/0 returns all banks" do
+      bank = bank_fixture()
+      assert Directory.list_banks() == [bank]
+    end
+
+    test "get_bank!/1 returns the bank with given id" do
+      bank = bank_fixture()
+      assert Directory.get_bank!(bank.id) == bank
+    end
+
+    test "create_bank/1 with valid data creates a bank" do
+      valid_attrs = %{
+        countrycode: "XX",
+        name: "some name",
+        bankcode: "some bankcode",
+        bic: "some bic",
+        shortname: "some shortname"
+      }
+
+      assert {:ok, %Bank{} = bank} = Directory.create_bank(valid_attrs)
+      assert bank.countrycode == "XX"
+      assert bank.name == "some name"
+      assert bank.bankcode == "some bankcode"
+      assert bank.bic == "some bic"
+      assert bank.shortname == "some shortname"
+    end
+
+    test "create_bank/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Directory.create_bank(@invalid_attrs)
+    end
+
+    test "update_bank/2 with valid data updates the bank" do
+      bank = bank_fixture()
+
+      update_attrs = %{
+        name: "some updated name",
+        bankcode: "some updated bankcode",
+        bic: "some updated bic",
+        shortname: "some updated shortname"
+      }
+
+      assert {:ok, %Bank{} = bank} = Directory.update_bank(bank, update_attrs)
+      assert bank.name == "some updated name"
+      assert bank.bankcode == "some updated bankcode"
+      assert bank.bic == "some updated bic"
+      assert bank.shortname == "some updated shortname"
+    end
+
+    test "update_bank/2 with invalid data returns error changeset" do
+      bank = bank_fixture()
+      assert {:error, %Ecto.Changeset{}} = Directory.update_bank(bank, @invalid_attrs)
+      assert bank == Directory.get_bank!(bank.id)
+    end
+
+    test "delete_bank/1 deletes the bank" do
+      bank = bank_fixture()
+      assert {:ok, %Bank{}} = Directory.delete_bank(bank)
+      assert_raise Ecto.NoResultsError, fn -> Directory.get_bank!(bank.id) end
+    end
+
+    test "change_bank/1 returns a bank changeset" do
+      bank = bank_fixture()
+      assert %Ecto.Changeset{} = Directory.change_bank(bank)
+    end
+
+    test "get_bank_name/2 returns a bankname" do
+      bank = bank_fixture()
+      assert "GigaHyperMega-Bank" = Directory.get_institute("DE", "47111337")
+    end
+
+    test "get_bank_name/2 returns no bankname" do
+      bank = bank_fixture()
+      assert is_nil(Directory.get_institute("DE", "13374711"))
+    end
+
+    test "get_bank_name/1 returns bankname form extracted bankcode" do
+      bank = bank_fixture()
+      assert "GigaHyperMega-Bank" = Directory.get_institute("DE55471113370987654321")
+    end
+
+    test "get_bank_name/1 returns no bankname form extracted bankcode" do
+      bank = bank_fixture()
+      assert is_nil(Directory.get_institute("DE55991113370987654321"))
+    end
+
+    test "can_propose_institute/1 returns false when min length for iban is not met or country is not handled" do
+      assert not Directory.can_propose_institute?("XX99123456721212")
+      assert not Directory.can_propose_institute?("DE991234567")
+    end
+
+    test "can_propose_institute/1 returns true when min length for iban is met for handled country" do
+      assert Directory.can_propose_institute?("DE9912345678")
+      assert Directory.can_propose_institute?("DE99123456789012345")
+    end
+
+    test "check_iban/1 returns no check for iban of unhandled country" do
+      assert {:no_check, ""} == Directory.check_iban("XX99123456721212")
+    end
+
+    test "check_iban/1 returns invalid for iban with wrong length for handled country" do
+      assert {:invalid, "IBAN mit DE muss genau 22 Stellen haben."} ==
+               Directory.check_iban("DE1888866655444433339955")
+    end
+
+    test "check_iban/1 returns invalid for iban with wrong checkdigit" do
+      assert {:invalid, "Die Prüfziffer der IBAN stimmt nicht."} ==
+               Directory.check_iban("DE18888666554444333399")
+    end
+
+    test "check_iban/1 returns invvalidalid for iban with correct checkdigit" do
+      assert {:valid, ""} == Directory.check_iban("DE18888666554444333322")
+    end
+  end
 end

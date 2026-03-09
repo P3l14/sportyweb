@@ -118,7 +118,10 @@ defmodule SportywebWeb.ContactLive.FormComponent do
               </.input_grid>
 
               <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render form={@form} />
+                <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render
+                  form={@form}
+                  warnings={@warnings}
+                />
               </.input_grid>
 
               <.input_grid class="pt-6">
@@ -177,6 +180,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
      socket
      |> assign(zipcode_proposals: [])
      |> assign(street_proposals: [])
+     |> assign(warnings: %{})
      |> assign(assigns)
      |> assign(:step, step)
      |> assign(:contact_type, contact.type)
@@ -195,6 +199,49 @@ defmodule SportywebWeb.ContactLive.FormComponent do
   #    |> assignForm(contact_params)
   #   }
   # end
+
+  @impl true
+  def handle_event(
+        "validate",
+        %{
+          "contact" => contact_params,
+          "_target" => ["contact", "financial_data", index, "direct_debit_iban"]
+        },
+        socket
+      ) do
+    iban = get_in(contact_params, ["financial_data", index, "direct_debit_iban"])
+
+    warnings =
+      case Directory.check_iban(iban) do
+        {:invalid, warning_message} -> %{direct_debit_iban: warning_message}
+        _ -> %{}
+      end
+
+    socket = assign(socket, warnings: warnings)
+
+    if Directory.can_propose_institute?(iban) do
+      proposed_institute = Directory.get_institute(iban)
+
+      contact_params =
+        if is_nil(proposed_institute) do
+          contact_params
+        else
+          put_in(
+            contact_params,
+            ["financial_data", index, "direct_debit_institute"],
+            proposed_institute
+          )
+        end
+
+      {:noreply,
+       socket
+       |> assignForm(contact_params)}
+    else
+      {:noreply,
+       socket
+       |> assignForm(contact_params)}
+    end
+  end
 
   @impl true
   def handle_event(
@@ -253,7 +300,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
      |> assignForm(contact_params)}
   end
 
-  def assignorm(socket, contact_params) do
+  def assignForm(socket, contact_params) do
     changeset = Personal.change_contact(socket.assigns.contact, contact_params)
 
     socket

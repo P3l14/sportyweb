@@ -4,6 +4,7 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
   alias Sportyweb.Polymorphic.FinancialData
 
   attr :form, :map, required: true
+  attr :warnings, :map, required: false, default: %{}
 
   def render(assigns) do
     ~H"""
@@ -34,6 +35,9 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
 
             <div class="col-span-12 md:col-span-5">
               <.input field={financial_data[:direct_debit_iban]} type="text" label="IBAN" />
+              <.warning :if={@warnings[:direct_debit_iban]}>
+                {@warnings[:direct_debit_iban]}
+              </.warning>
             </div>
 
             <div class="col-span-12">
