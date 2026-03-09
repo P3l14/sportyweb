@@ -124,7 +124,17 @@ defmodule Sportyweb.MixProject do
       # TimeZoneDatabase for DateTime (which per default only supports UTC)
       # https://hexdocs.pm/tzdata/readme.html
       # https://github.com/lau/tzdata
-      {:tzdata, "~> 1.1"}
+      {:tzdata, "~> 1.1"},
+
+      # Parser for csv files
+      # https://hexdocs.pm/nimble_csv/NimbleCSV.html
+      # https://github.com/dashbitco/nimble_csv
+      {:nimble_csv, "~> 1.3", only: [:dev, :test], runtime: false},
+
+      # Library for http calls. Used to download files in mix task
+      # https://hexdocs.pm/req/readme.html
+      # https://github.com/wojtekmach/req
+      {:req, "~> 0.5.0", only: [:dev, :test], runtime: false}
     ]
   end
 

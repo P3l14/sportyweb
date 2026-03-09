@@ -1,9 +1,11 @@
 defmodule SportywebWeb.ContactLive.FormComponent do
+  require IEx
   use SportywebWeb, :live_component
   import Ecto.Changeset
 
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
+  alias Sportyweb.Directory
 
   @impl true
   def render(assigns) do
@@ -100,7 +102,11 @@ defmodule SportywebWeb.ContactLive.FormComponent do
               <% end %>
 
               <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render form={@form} />
+                <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
+                  form={@form}
+                  zipcode_proposals={@zipcode_proposals}
+                  street_proposals={@street_proposals}
+                />
               </.input_grid>
 
               <.input_grid class="pt-6">
@@ -169,6 +175,8 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
     {:ok,
      socket
+     |> assign(zipcode_proposals: [])
+     |> assign(street_proposals: [])
      |> assign(assigns)
      |> assign(:step, step)
      |> assign(:contact_type, contact.type)
@@ -177,14 +185,80 @@ defmodule SportywebWeb.ContactLive.FormComponent do
      end)}
   end
 
+  # @impl true
+  # def handle_event("validate", %{"contact" => contact_params, "_target" => ["contact", "postal_addresses", index, "country"]}, socket) do
+  #   country = get_in(contact_params,["postal_addresses", index, "country"])
+  #   zipcodes = Directory.get_zipcodes(country)
+  #   {:noreply,
+  #    socket
+  #    |> assign(zipcode_proposals: zipcodes)
+  #    |> assignForm(contact_params)
+  #   }
+  # end
+
+  @impl true
+  def handle_event(
+        "validate",
+        %{
+          "contact" => contact_params,
+          "_target" => ["contact", "postal_addresses", index, "zipcode"]
+        },
+        socket
+      ) do
+    %{"country" => country, "zipcode" => zipcode} =
+      get_in(contact_params, ["postal_addresses", index])
+
+    if String.length(zipcode) == 1 do
+      zipcodes = Directory.get_zipcodes(country, zipcode)
+
+      {:noreply,
+       socket
+       |> assign(zipcode_proposals: zipcodes)
+       |> assignForm(contact_params)}
+    else
+      proposed_city =
+        if socket.assigns[:zipcode_proposals] do
+          find_city(socket.assigns[:zipcode_proposals], zipcode)
+        else
+          nil
+        end
+
+      contact_params =
+        if is_nil(proposed_city) do
+          contact_params
+        else
+          put_in(contact_params, ["postal_addresses", index, "city"], proposed_city)
+        end
+
+      streets = Directory.get_streets(country, zipcode)
+
+      {:noreply,
+       socket
+       |> assign(street_proposals: streets)
+       |> assignForm(contact_params)}
+    end
+  end
+
+  defp find_city(zipcode_proposals, zipcode) do
+    zipcode_proposals
+    |> Enum.find_value(fn entry ->
+      if entry |> hd == zipcode, do: entry |> Enum.at(1)
+    end)
+  end
+
   @impl true
   def handle_event("validate", %{"contact" => contact_params}, socket) do
-    changeset = Personal.change_contact(socket.assigns.contact, contact_params)
-
     {:noreply,
      socket
-     |> assign(:contact_type, get_field(changeset, :type))
-     |> assign(form: to_form(changeset, action: :validate))}
+     |> assignForm(contact_params)}
+  end
+
+  def assignorm(socket, contact_params) do
+    changeset = Personal.change_contact(socket.assigns.contact, contact_params)
+
+    socket
+    |> assign(:contact_type, get_field(changeset, :type))
+    |> assign(form: to_form(changeset, action: :validate))
   end
 
   def handle_event("save", %{"contact" => contact_params}, socket) do

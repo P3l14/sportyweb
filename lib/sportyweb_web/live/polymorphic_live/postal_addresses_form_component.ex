@@ -4,12 +4,24 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
   alias Sportyweb.Polymorphic.PostalAddress
 
   attr :form, :map, required: true
+  attr :zipcode_proposals, :list, default: []
+  attr :street_proposals, :list, default: []
 
   def render(assigns) do
     ~H"""
     <.header level="2" class="col-span-12 md:col-span-12">
       Straßenadressen
     </.header>
+    <datalist :if={@zipcode_proposals} id="zipcode_proposals">
+      <option :for={zipcode_proposal <- @zipcode_proposals} value={zipcode_proposal |> hd}>
+        {Enum.join(zipcode_proposal, " ")}
+      </option>
+    </datalist>
+    <datalist :if={@street_proposals} id="street_proposals">
+      <option :for={street_proposal <- @street_proposals} value={street_proposal}>
+        {street_proposal}
+      </option>
+    </datalist>
     <div class="col-span-12">
       <.input_grid>
         <.inputs_for :let={postal_address} field={@form[:postal_addresses]}>
@@ -27,8 +39,37 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
               options={PostalAddress.get_valid_types()}
             />
           </div>
+
+          <div class="col-span-12">
+            <.input
+              field={postal_address[:country]}
+              type="select"
+              label="Land"
+              options={PostalAddress.get_valid_countries()}
+              prompt="Bitte auswählen"
+            />
+          </div>
+
+          <div class="col-span-12 md:col-span-4">
+            <.input
+              field={postal_address[:zipcode]}
+              type="text"
+              label="Postleitzahl"
+              list="zipcode_proposals"
+            />
+          </div>
+
           <div class="col-span-12 md:col-span-8">
-            <.input field={postal_address[:street]} type="text" label="Straße" />
+            <.input field={postal_address[:city]} type="text" label="Ort" />
+          </div>
+
+          <div class="col-span-12 md:col-span-8">
+            <.input
+              field={postal_address[:street]}
+              type="text"
+              label="Straße"
+              list="street_proposals"
+            />
           </div>
 
           <div class="col-span-12 md:col-span-3">
@@ -48,24 +89,6 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
               field={postal_address[:street_additional_information]}
               type="text"
               label="Anschrift - Zusatzinformationen (optional)"
-            />
-          </div>
-
-          <div class="col-span-12 md:col-span-4">
-            <.input field={postal_address[:zipcode]} type="text" label="Postleitzahl" />
-          </div>
-
-          <div class="col-span-12 md:col-span-8">
-            <.input field={postal_address[:city]} type="text" label="Stadt" />
-          </div>
-
-          <div class="col-span-12">
-            <.input
-              field={postal_address[:country]}
-              type="select"
-              label="Land"
-              options={PostalAddress.get_valid_countries()}
-              prompt="Bitte auswählen"
             />
           </div>
         </.inputs_for>
