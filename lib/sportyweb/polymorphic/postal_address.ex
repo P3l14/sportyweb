@@ -91,5 +91,9 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
       :country,
       get_valid_countries() |> Enum.map(fn country -> country[:value] end)
     )
+    |> validate_inclusion(
+      :type,
+      get_valid_types() |> Enum.map(fn type -> type[:value] end)
+    )
   end
 end
