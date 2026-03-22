@@ -37,5 +37,4 @@ defmodule Sportyweb.Personal.ContactGroup do
     |> cast(attrs, [:club_id, :name, :type])
     |> validate_required([:club_id, :name, :type])
   end
-
 end
