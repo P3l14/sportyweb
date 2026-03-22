@@ -3,7 +3,6 @@ defmodule SportywebWeb.ContactGroupLive.NewEdit do
   use SportywebWeb, :live_view
 
   alias Sportyweb.Personal
-  alias Sportyweb.Personal.Contact
   alias Sportyweb.Personal.ContactGroup
   alias Sportyweb.Personal.ContactGroupContact
   alias Sportyweb.Organization

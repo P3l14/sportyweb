@@ -175,14 +175,13 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
           |> Enum.filter(fn id -> id not in previous_contact_group_contacts end)
 
         # TODO Fehler auswerten
-        results =
-          added_to_contact_group
-          |> Enum.map(fn id ->
-            %{"contact_id" => id, "contact_group_id" => contact_group_form.contact_group.id}
-          end)
-          |> Enum.map(fn contact_group_contact ->
-            contact_group_contact |> Personal.create_contact_group_contact()
-          end)
+        added_to_contact_group
+        |> Enum.map(fn id ->
+          %{"contact_id" => id, "contact_group_id" => contact_group_form.contact_group.id}
+        end)
+        |> Enum.each(fn contact_group_contact ->
+          contact_group_contact |> Personal.create_contact_group_contact()
+        end)
 
         {:noreply,
          socket
@@ -206,15 +205,14 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
     case Personal.create_contact_group(contact_group_params) do
       {:ok, contact_group} ->
         # TODO Fehlerprüfung
-        result =
-          contact_group_contact_params
-          |> Map.values()
-          |> Enum.map(fn contact_group_contact ->
-            Enum.into(contact_group_contact, %{
-              "contact_group_id" => contact_group.id
-            })
-          end)
-          |> Enum.map(fn contact -> contact |> Personal.create_contact_group_contact() end)
+        contact_group_contact_params
+        |> Map.values()
+        |> Enum.map(fn contact_group_contact ->
+          Enum.into(contact_group_contact, %{
+            "contact_group_id" => contact_group.id
+          })
+        end)
+        |> Enum.each(fn contact -> contact |> Personal.create_contact_group_contact() end)
 
         # TODO: Fehlerbehandlung. Idee Meldungen konkatinieren und auf Formular darstellen
         {:noreply,
