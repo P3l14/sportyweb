@@ -12,6 +12,7 @@ defmodule Sportyweb.Personal.Contact do
   alias Sportyweb.Personal.ContactNote
   alias Sportyweb.Personal.ContactPhone
   alias Sportyweb.Personal.ContactPostalAddress
+  alias Sportyweb.Personal.ContactRole
   alias Sportyweb.Polymorphic.Email
   alias Sportyweb.Polymorphic.FinancialData
   alias Sportyweb.Polymorphic.Note
@@ -23,12 +24,16 @@ defmodule Sportyweb.Personal.Contact do
   schema "contacts" do
     belongs_to :club, Club
     has_many :contracts, Contract
+    has_many :roles, ContactRole
     many_to_many :contact_groups, ContactGroup, join_through: ContactGroupContact
     many_to_many :emails, Email, join_through: ContactEmail, on_replace: :delete
     many_to_many :financial_data, FinancialData, join_through: ContactFinancialData
     many_to_many :notes, Note, join_through: ContactNote
     many_to_many :phones, Phone, join_through: ContactPhone, on_replace: :delete
-    many_to_many :postal_addresses, PostalAddress, join_through: ContactPostalAddress, on_replace: :delete
+
+    many_to_many :postal_addresses, PostalAddress,
+      join_through: ContactPostalAddress,
+      on_replace: :delete
 
     field :type, :string, default: "person"
     field :name, :string, default: ""
@@ -121,11 +126,23 @@ defmodule Sportyweb.Personal.Contact do
       empty_values: ["", nil]
     )
     |> cast_assoc(:contact_groups, required: false)
-    |> cast_assoc(:emails, required: true, sort_param: Email.get_changeset_sort_param, drop_param: Email.get_changeset_drop_param)
+    |> cast_assoc(:emails,
+      required: true,
+      sort_param: Email.get_changeset_sort_param(),
+      drop_param: Email.get_changeset_drop_param()
+    )
     |> cast_assoc(:financial_data, required: true)
     |> cast_assoc(:notes, required: true)
-    |> cast_assoc(:phones, required: true, sort_param: Phone.get_changeset_sort_param, drop_param: Phone.get_changeset_drop_param)
-    |> cast_assoc(:postal_addresses, required: true, sort_param: PostalAddress.get_changeset_sort_param, drop_param: PostalAddress.get_changeset_drop_param)
+    |> cast_assoc(:phones,
+      required: true,
+      sort_param: Phone.get_changeset_sort_param(),
+      drop_param: Phone.get_changeset_drop_param()
+    )
+    |> cast_assoc(:postal_addresses,
+      required: true,
+      sort_param: PostalAddress.get_changeset_sort_param(),
+      drop_param: PostalAddress.get_changeset_drop_param()
+    )
     |> validate_required([:type])
     |> update_change(:organization_name, &String.trim/1)
     |> update_change(:person_last_name, &String.trim/1)
@@ -150,6 +167,73 @@ defmodule Sportyweb.Personal.Contact do
     )
     |> validate_required_type_condition()
     |> set_name()
+  end
+
+  @doc false
+  def changeset_short_contact(contact, attrs) do
+    contact
+    |> cast(
+      attrs,
+      [
+        :club_id,
+        :type,
+        :organization_name,
+        :organization_type,
+        :person_last_name,
+        :person_first_name_1,
+        :person_first_name_2,
+        :person_gender,
+        :person_birthday
+      ],
+      empty_values: ["", nil]
+    )
+    |> validate_required([:type])
+    |> update_change(:organization_name, &String.trim/1)
+    |> update_change(:person_last_name, &String.trim/1)
+    |> update_change(:person_first_name_1, &String.trim/1)
+    |> update_change(:person_first_name_2, &String.trim/1)
+    |> validate_length(:organization_name, max: 250)
+    |> validate_length(:person_last_name, max: 100)
+    |> validate_length(:person_first_name_1, max: 75)
+    |> validate_length(:person_first_name_2, max: 75)
+    |> validate_inclusion(
+      :type,
+      get_valid_types() |> Enum.map(fn type -> type[:value] end)
+    )
+    |> validate_inclusion(
+      :organization_type,
+      get_valid_organization_types()
+      |> Enum.map(fn organization_type -> organization_type[:value] end)
+    )
+    |> validate_inclusion(
+      :person_gender,
+      get_valid_genders() |> Enum.map(fn gender -> gender[:value] end)
+    )
+    |> validate_short_required_type_condition()
+    |> cast_assoc(:roles,
+      required: true,
+      sort_param: ContactRole.get_changeset_sort_param(),
+      drop_param: ContactRole.get_changeset_drop_param()
+    )
+    |> set_name()
+  end
+
+  defp validate_short_required_type_condition(%Ecto.Changeset{} = changeset) do
+    # Some fields are only required if the type has a certain value.
+    case get_field(changeset, :type) do
+      "organization" ->
+        changeset |> validate_required([:organization_name, :organization_type])
+
+      "person" ->
+        changeset
+        |> validate_required([
+          :person_last_name,
+          :person_first_name_1
+        ])
+
+      _ ->
+        changeset
+    end
   end
 
   defp validate_required_type_condition(%Ecto.Changeset{} = changeset) do

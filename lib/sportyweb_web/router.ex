@@ -90,6 +90,8 @@ defmodule SportywebWeb.Router do
       live "/clubs/:id/contracts", ClubLive.ContractNew, :index
       live "/clubs/:id/contracts/new", ClubLive.ContractNew, :new
 
+      live "/clubs/:club_id/contracts/new_membership", ClubLive.MembershipContract, :new
+
       # Events (Each belongs to a club)
 
       live "/events", EventLive.Index, :index_root
@@ -139,8 +141,10 @@ defmodule SportywebWeb.Router do
 
       live "/contacts", ContactLive.Index, :index_root
       live "/clubs/:club_id/contacts", ContactLive.Index, :index
+      live "/clubs/:club_id/members", ContactLive.Index, :index_member
 
       live "/clubs/:club_id/contacts/new", ContactLive.NewEdit, :new
+      live "/clubs/:club_id/contacts/new_short", ContactLive.NewEditShort, :new
       live "/contacts/:id/edit", ContactLive.NewEdit, :edit
 
       live "/contacts/:id", ContactLive.Show, :show
@@ -152,6 +156,7 @@ defmodule SportywebWeb.Router do
       live "/clubs/:club_id/contact_groups/new", ContactGroupLive.NewEdit, :new
       live "/contact_groups/:id/edit", ContactGroupLive.NewEdit, :edit
       live "/contact_groups/:id", ContactGroupLive.Show, :show
+      live "/clubs/:club_id/simplecontacts/new", SimpleContactLive.NewEdit, :new
 
       # Locations (Each belongs to a club)
 

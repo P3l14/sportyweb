@@ -28,7 +28,7 @@ defmodule SportywebWeb.ContactLive.NewEdit do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :club_navigation_current_item, :contacts)}
+    {:ok, assign(socket, :club_navigation_current_item, :members)}
   end
 
   @impl true

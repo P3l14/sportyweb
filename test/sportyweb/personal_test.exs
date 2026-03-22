@@ -276,6 +276,7 @@ defmodule Sportyweb.PersonalTest do
         })
 
       assert 2 = length(Personal.list_contacts_for_contact_group_selection(club.id))
+
       Personal.create_contact_group_contact(%{
         contact_group_id: contact_group.id,
         contact_id: contact_1.id
@@ -289,6 +290,101 @@ defmodule Sportyweb.PersonalTest do
       })
 
       assert 0 = length(Personal.list_contacts_for_contact_group_selection(club.id))
+    end
+  end
+
+  describe "contact_roles" do
+    alias Sportyweb.Personal.ContactRole
+
+    import Sportyweb.PersonalFixtures
+
+    @invalid_attrs %{valid_from: nil, valid_until: nil}
+
+    test "list_contact_roles/0 returns all contact_roles" do
+      contact_role = contact_role_fixture()
+      assert Personal.list_contact_roles() == [contact_role]
+    end
+
+    test "get_contact_role!/1 returns the contact_role with given id" do
+      contact_role = contact_role_fixture()
+      assert Personal.get_contact_role!(contact_role.id) == contact_role
+    end
+
+    test "create_contact_role/1 with valid data creates a contact_role" do
+      valid_attrs = %{
+        valid_from: ~D[2026-03-14],
+        valid_until: ~D[2026-03-14],
+        name: "interested",
+        contact_id: contact_fixture().id
+      }
+
+      assert {:ok, %ContactRole{} = contact_role} = Personal.create_contact_role(valid_attrs)
+      assert contact_role.valid_from == ~D[2026-03-14]
+      assert contact_role.valid_until == ~D[2026-03-14]
+    end
+
+    test "create_contact_role/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Personal.create_contact_role(@invalid_attrs)
+    end
+
+    test "update_contact_role/2 with valid data updates the contact_role" do
+      contact_role = contact_role_fixture()
+      update_attrs = %{valid_from: ~D[2026-03-15], valid_until: ~D[2026-03-15]}
+
+      assert {:ok, %ContactRole{} = contact_role} =
+               Personal.update_contact_role(contact_role, update_attrs)
+
+      assert contact_role.valid_from == ~D[2026-03-15]
+      assert contact_role.valid_until == ~D[2026-03-15]
+    end
+
+    test "update_contact_role/2 with invalid data returns error changeset" do
+      contact_role = contact_role_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Personal.update_contact_role(contact_role, @invalid_attrs)
+
+      assert contact_role == Personal.get_contact_role!(contact_role.id)
+    end
+
+    test "delete_contact_role/1 deletes the contact_role" do
+      contact_role = contact_role_fixture()
+      assert {:ok, %ContactRole{}} = Personal.delete_contact_role(contact_role)
+      assert_raise Ecto.NoResultsError, fn -> Personal.get_contact_role!(contact_role.id) end
+    end
+
+    test "change_contact_role/1 returns a contact_role changeset" do
+      contact_role = contact_role_fixture()
+      assert %Ecto.Changeset{} = Personal.change_contact_role(contact_role)
+    end
+  end
+
+  describe "contact_short" do
+    alias Sportyweb.Personal.Contact
+    alias Sportyweb.Personal.ContactRole
+
+    import Sportyweb.PersonalFixtures
+    import Sportyweb.OrganizationFixtures
+
+    @invalid_attrs %{type: nil, club_id: nil}
+
+    test "create_short_contact/1 with valid data creates a short contact with minimal personal data" do
+      valid_attrs = %{
+        type: "person",
+        club_id: club_fixture().id,
+        person_last_name: "Schmidt",
+        person_first_name_1: "Sebastian",
+        roles: [%{valid_from: ~D[2026-03-14], valid_until: ~D[2026-03-14], name: "interested"}]
+      }
+
+      assert {:ok, %Contact{} = contact} = Personal.create_short_contact(valid_attrs)
+      assert contact.person_last_name == "Schmidt"
+      assert contact.person_first_name_1 == "Sebastian"
+      assert List.first(contact.roles).name == "interested"
+    end
+
+    test "create_short_contact/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Personal.create_short_contact(@invalid_attrs)
     end
   end
 end

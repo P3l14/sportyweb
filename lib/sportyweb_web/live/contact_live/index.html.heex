@@ -1,12 +1,22 @@
 <.header>
   {@page_title}
   <:actions>
-    <.link navigate={~p"/clubs/#{@club}/contracts/new"}>
-      <.button>Vereinsmitglied erstellen</.button>
-    </.link>
-    <.link navigate={~p"/clubs/#{@club}/contacts/new"}>
-      <.button>Kontakt erstellen</.button>
-    </.link>
+    <%= if @live_action == :index do %>
+      <.link navigate={~p"/clubs/#{@club}/contacts/new_short"}>
+        <.button>Kontakt erstellen</.button>
+      </.link>
+    <% end %>
+    <%= if @live_action == :index_member do %>
+      <.link navigate={~p"/clubs/#{@club}/contracts/new_membership"}>
+        <.button>Mitgliedsantrag erfassen</.button>
+      </.link>
+      <.link navigate={~p"/clubs/#{@club}/contracts/new"}>
+        <.button>Vereinsmitglied erstellen</.button>
+      </.link>
+      <.link navigate={~p"/clubs/#{@club}/contacts/new"}>
+        <.button>Kontakt erstellen</.button>
+      </.link>
+    <% end %>
   </:actions>
 </.header>
 
@@ -27,6 +37,12 @@
         {get_key_for_value(Contact.get_valid_types(), contact.type)}
       </:col>
 
+      <:col :let={{_id, contact}} :if={@live_action == :index} label="Rollen">
+        {format_struct_list(contact.roles, :name, fn value ->
+          get_key_for_value(ContactRole.get_valid_names(), value)
+        end)}
+      </:col>
+
       <:action :let={{_id, contact}}>
         <.link navigate={~p"/contacts/#{contact}"}>Anzeigen</.link>
       </:action>
@@ -38,6 +54,6 @@
   <% end %>
 </.card>
 
-<div class="mt-4 flex align-middle">
+<div :if={@live_action == :index_member} class="mt-4 flex align-middle">
   <.icon name="hero-check-badge" class="mr-1 inline-block w-[20px] text-green-800" /> Mitglied
 </div>

@@ -286,26 +286,11 @@ defmodule SportywebWeb.ContactLive.FormComponent do
     end
   end
 
-  defp find_city(zipcode_proposals, zipcode) do
-    zipcode_proposals
-    |> Enum.find_value(fn entry ->
-      if entry |> hd == zipcode, do: entry |> Enum.at(1)
-    end)
-  end
-
   @impl true
   def handle_event("validate", %{"contact" => contact_params}, socket) do
     {:noreply,
      socket
      |> assignForm(contact_params)}
-  end
-
-  def assignForm(socket, contact_params) do
-    changeset = Personal.change_contact(socket.assigns.contact, contact_params)
-
-    socket
-    |> assign(:contact_type, get_field(changeset, :type))
-    |> assign(form: to_form(changeset, action: :validate))
   end
 
   def handle_event("save", %{"contact" => contact_params}, socket) do
@@ -315,6 +300,21 @@ defmodule SportywebWeb.ContactLive.FormComponent do
   @impl true
   def handle_event("update_step", %{"step" => step}, socket) do
     {:noreply, assign(socket, :step, step)}
+  end
+
+  defp find_city(zipcode_proposals, zipcode) do
+    zipcode_proposals
+    |> Enum.find_value(fn entry ->
+      if entry |> hd == zipcode, do: entry |> Enum.at(1)
+    end)
+  end
+
+  def assignForm(socket, contact_params) do
+    changeset = Personal.change_contact(socket.assigns.contact, contact_params)
+
+    socket
+    |> assign(:contact_type, get_field(changeset, :type))
+    |> assign(form: to_form(changeset, action: :validate))
   end
 
   defp save_contact(socket, :edit, contact_params) do

@@ -3,6 +3,7 @@ defmodule SportywebWeb.ContactLive.Index do
 
   alias Sportyweb.Organization
   alias Sportyweb.Personal.Contact
+  alias Sportyweb.Personal.ContactRole
 
   @impl true
   def mount(_params, _session, socket) do
@@ -20,11 +21,30 @@ defmodule SportywebWeb.ContactLive.Index do
   end
 
   defp apply_action(socket, :index, %{"club_id" => club_id}) do
-    club = Organization.get_club!(club_id, contacts: :contracts)
+    club = Organization.get_club!(club_id, contacts: [:contracts, :roles])
+
+    contacts =
+      club.contacts
+      |> Enum.filter(fn contact -> Enum.empty?(contact.contracts) end)
 
     socket
-    |> assign(:page_title, "Kontakte & Mitglieder")
+    |> assign(:page_title, "Kontakte")
+    |> assign(:club_navigation_current_item, :contacts)
     |> assign(:club, club)
-    |> stream(:contacts, club.contacts)
+    |> stream(:contacts, contacts)
+  end
+
+  defp apply_action(socket, :index_member, %{"club_id" => club_id}) do
+    club = Organization.get_club!(club_id, contacts: :contracts)
+    # A member is a person with a contract. The contract must not be active.
+    contacts =
+      club.contacts
+      |> Enum.filter(fn contact -> !Enum.empty?(contact.contracts) end)
+
+    socket
+    |> assign(:page_title, "Mitglieder")
+    |> assign(:club_navigation_current_item, :members)
+    |> assign(:club, club)
+    |> stream(:contacts, contacts)
   end
 end

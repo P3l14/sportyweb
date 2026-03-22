@@ -58,6 +58,7 @@ defmodule SportywebWeb.CommonHelper do
   @doc """
   Takes a list of structs and returns a comma separated list of one attribute.
   If the list is empty, the function returns a string containg a hyphen.
+  A formatter function can be passed as an optional parameter to format the retrieved value from the list.
 
   ## Examples
 
@@ -68,14 +69,17 @@ defmodule SportywebWeb.CommonHelper do
       "-"
 
   """
-  def format_struct_list(list, attribute) do
+  def format_struct_list(list, attribute, attribute_formatter \\ fn value -> value end) do
     csv =
       list
       |> Enum.filter(fn element ->
         value = Map.get(element, attribute)
         !is_nil(value) && value != ""
       end)
-      |> Enum.map_join(", ", fn element -> Map.get(element, attribute) end)
+      |> Enum.map_join(", ", fn element ->
+        value = Map.get(element, attribute)
+        attribute_formatter.(value)
+      end)
 
     if String.trim(csv) != "" do
       csv

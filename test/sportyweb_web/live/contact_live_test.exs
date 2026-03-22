@@ -188,4 +188,62 @@ defmodule SportywebWeb.ContactLiveTest do
       assert html =~ contact.name
     end
   end
+
+  describe "New/Edit short contact" do
+    @create_attrs %{
+      person_first_name_1: "some person_first_name_1",
+      person_last_name: "some person_last_name",
+      roles: %{
+        "0" => %{
+          name: "interested",
+          valid_from: ~D[2026-03-14],
+          valid_until: ~D[2026-03-14]
+        }
+      }
+    }
+    @invalid_attrs %{
+      person_first_name_1: nil,
+      person_last_name: nil,
+      roles: %{}
+    }
+
+    setup [:create_contact]
+
+    test "saves new short contact", %{conn: conn, user: user} do
+      club = club_fixture()
+
+      {:error, _} = live(conn, ~p"/clubs/#{club}/contacts/new_short")
+
+      conn = conn |> log_in_user(user)
+      {:ok, new_live, html} = live(conn, ~p"/clubs/#{club}/contacts/new_short")
+
+      assert html =~ "Kontaktschnellerfassung"
+
+      assert new_live
+             |> form("#contact-form", contact: @invalid_attrs)
+             |> render_change() =~ "can&#39;t be blank"
+
+      {:ok, _, html} =
+        new_live
+        |> form("#contact-form", contact: @create_attrs)
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/contacts")
+
+      assert html =~ "Kontakt erfolgreich erstellt"
+      assert html =~ "some person_last_name, some person_first_name_1"
+    end
+
+    test "cancels save new contact", %{conn: conn, user: user} do
+      club = club_fixture()
+
+      conn = conn |> log_in_user(user)
+      {:ok, new_live, _html} = live(conn, ~p"/clubs/#{club}/contacts/new_short")
+
+      {:ok, _, _html} =
+        new_live
+        |> element("#contact-form a", "Abbrechen")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/contacts")
+    end
+  end
 end

@@ -153,6 +153,13 @@ defmodule Sportyweb.Personal do
     |> Repo.insert()
   end
 
+  def create_short_contact(attrs \\ %{}) do
+    %Contact{}
+    |> Contact.changeset_short_contact(attrs)
+    |> Repo.insert()
+  end
+
+
   @doc """
   Updates a contact.
 
@@ -200,7 +207,10 @@ defmodule Sportyweb.Personal do
     Contact.changeset(contact, attrs)
   end
 
-  alias Sportyweb.Personal.ContactGroup
+  def change_short_contact(%Contact{} = contact, attrs \\ %{}) do
+    Contact.changeset_short_contact(contact, attrs)
+  end
+
 
   @doc """
   Returns the list of contact_groups.
@@ -328,4 +338,99 @@ defmodule Sportyweb.Personal do
     ContactGroup.changeset(contact_group, attrs)
   end
 
+  alias Sportyweb.Personal.ContactRole
+
+  @doc """
+  Returns the list of contact_roles.
+
+  ## Examples
+
+      iex> list_contact_roles()
+      [%ContactRole{}, ...]
+
+  """
+  def list_contact_roles do
+    Repo.all(ContactRole)
+  end
+
+  @doc """
+  Gets a single contact_role.
+
+  Raises `Ecto.NoResultsError` if the Contact role does not exist.
+
+  ## Examples
+
+      iex> get_contact_role!(123)
+      %ContactRole{}
+
+      iex> get_contact_role!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_contact_role!(id), do: Repo.get!(ContactRole, id)
+
+  @doc """
+  Creates a contact_role.
+
+  ## Examples
+
+      iex> create_contact_role(%{field: value})
+      {:ok, %ContactRole{}}
+
+      iex> create_contact_role(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_contact_role(attrs \\ %{}) do
+    %ContactRole{}
+    |> ContactRole.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a contact_role.
+
+  ## Examples
+
+      iex> update_contact_role(contact_role, %{field: new_value})
+      {:ok, %ContactRole{}}
+
+      iex> update_contact_role(contact_role, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_contact_role(%ContactRole{} = contact_role, attrs) do
+    contact_role
+    |> ContactRole.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a contact_role.
+
+  ## Examples
+
+      iex> delete_contact_role(contact_role)
+      {:ok, %ContactRole{}}
+
+      iex> delete_contact_role(contact_role)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_contact_role(%ContactRole{} = contact_role) do
+    Repo.delete(contact_role)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking contact_role changes.
+
+  ## Examples
+
+      iex> change_contact_role(contact_role)
+      %Ecto.Changeset{data: %ContactRole{}}
+
+  """
+  def change_contact_role(%ContactRole{} = contact_role, attrs \\ %{}) do
+    ContactRole.changeset(contact_role, attrs)
+  end
 end
