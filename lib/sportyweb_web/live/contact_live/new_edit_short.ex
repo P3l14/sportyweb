@@ -70,7 +70,10 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
               </.input_grid>
             <% end %>
             <.input_grid class="pt-6">
-              <SportywebWeb.ContactLive.ContactRoleFormComponent.render form={@form} />
+              <SportywebWeb.ContactLive.ContactRoleFormComponent.render
+                form={@form}
+                allow_multiple={true}
+              />
             </.input_grid>
           </.input_grids>
 

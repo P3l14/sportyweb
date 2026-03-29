@@ -40,12 +40,6 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
     ]
   end
 
-  def is_form_with_multiples?(form_id) do
-    form_id in [
-      "contact"
-    ]
-  end
-
   def get_changeset_sort_param do
     :postal_adresses_sort
   end

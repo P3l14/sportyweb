@@ -3,6 +3,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
   use SportywebWeb, :html
 
   attr :form, :map, required: true
+  attr :allow_multiple, :boolean, required: false, default: false
 
   def render(assigns) do
     ~H"""
@@ -12,7 +13,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
 
     <.inputs_for :let={contact_role} field={@form[:roles]}>
       <.element_index_field
-        :if={ContactRole.is_form_with_multiples?(@form.id)}
+        :if={@allow_multiple}
         form_id={@form.id}
         sort_param={ContactRole.get_changeset_sort_param()}
         element={contact_role}
@@ -36,7 +37,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
       </div>
 
       <.element_delete_button
-        :if={ContactRole.is_form_with_multiples?(@form.id)}
+        :if={@allow_multiple}
         form_id={@form.id}
         drop_param={ContactRole.get_changeset_drop_param()}
         class="col-span-12 md:col-span-1 mt-9"
@@ -45,7 +46,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
     </.inputs_for>
 
     <.element_add_button
-      :if={ContactRole.is_form_with_multiples?(@form.id)}
+      :if={@allow_multiple}
       form_id={@form.id}
       sort_param={ContactRole.get_changeset_sort_param()}
       class="col-span-12"

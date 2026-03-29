@@ -4,6 +4,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
   alias Sportyweb.Polymorphic.PostalAddress
 
   attr :form, :map, required: true
+  attr :allow_multiple, :boolean, required: false, default: false
   attr :zipcode_proposals, :list, required: false, default: []
   attr :street_proposals, :list, required: false, default: []
 
@@ -26,7 +27,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
       <.input_grid>
         <.inputs_for :let={postal_address} field={@form[:postal_addresses]}>
           <.element_index_field
-            :if={PostalAddress.is_form_with_multiples?(@form.id)}
+            :if={@allow_multiple}
             form_id={@form.id}
             sort_param={PostalAddress.get_changeset_sort_param()}
             element={postal_address}
@@ -77,7 +78,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
           </div>
 
           <.element_delete_button
-            :if={PostalAddress.is_form_with_multiples?(@form.id)}
+            :if={@allow_multiple}
             form_id={@form.id}
             drop_param={PostalAddress.get_changeset_drop_param()}
             class="col-span-12 md:col-span-1 mt-9"
@@ -93,7 +94,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
           </div>
         </.inputs_for>
         <.element_add_button
-          :if={PostalAddress.is_form_with_multiples?(@form.id)}
+          :if={@allow_multiple}
           form_id={@form.id}
           sort_param={PostalAddress.get_changeset_sort_param()}
           class="col-span-12"

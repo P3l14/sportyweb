@@ -25,12 +25,6 @@ defmodule Sportyweb.Polymorphic.Phone do
     ]
   end
 
-  def is_form_with_multiples?(form_id) do
-    form_id in [
-      "contact"
-    ]
-  end
-
   def get_changeset_sort_param do
     :phones_sort
   end

@@ -91,15 +91,24 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
               <% end %>
 
               <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render form={contact} />
+                <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
+                  form={contact}
+                  allow_multiple={true}
+                />
               </.input_grid>
 
               <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.EmailsFormComponent.render form={contact} />
+                <SportywebWeb.PolymorphicLive.EmailsFormComponent.render
+                  form={contact}
+                  allow_multiple={true}
+                />
               </.input_grid>
 
               <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.PhonesFormComponent.render form={contact} />
+                <SportywebWeb.PolymorphicLive.PhonesFormComponent.render
+                  form={contact}
+                  allow_multiple={true}
+                />
               </.input_grid>
 
               <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
