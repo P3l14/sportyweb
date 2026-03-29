@@ -86,9 +86,12 @@ defmodule Sportyweb.Personal.Contact do
   end
 
   def age_in_years(%Contact{} = contact) do
-    # Based on: https://stackoverflow.com/a/71043385
-
     birthday = contact.person_birthday
+    age_in_years(birthday)
+  end
+
+  def age_in_years(%Date{} = birthday) do
+    # Based on: https://stackoverflow.com/a/71043385
     today = Date.utc_today()
 
     years_diff = today.year - birthday.year
@@ -99,6 +102,26 @@ defmodule Sportyweb.Personal.Contact do
     else
       years_diff
     end
+  end
+
+  def age_in_years(nil) do
+    nil
+  end
+
+  def underage_person?(%Contact{} = contact) do
+    age_in_years(contact.person_birthday) < 18
+  end
+
+  def underage_person?(%Date{} = birthday) do
+    age_in_years(birthday) < 18
+  end
+
+  def underage_person?("") do
+    false
+  end
+
+  def underage_person?(nil) do
+    false
   end
 
   def has_active_membership_contract?(%Contact{} = contact) do
@@ -276,5 +299,51 @@ defmodule Sportyweb.Personal.Contact do
       end
 
     changeset |> Ecto.Changeset.change(name: String.trim(name))
+  end
+
+  def contact_for_membership_changeset(contact, attrs) do
+    contact
+    |> cast(
+      attrs,
+      [
+        :club_id,
+        :type,
+        :organization_name,
+        :organization_type,
+        :person_last_name,
+        :person_first_name_1,
+        :person_first_name_2,
+        :person_gender,
+        :person_birthday
+      ],
+      empty_values: ["", nil]
+    )
+    |> validate_required([:type])
+    |> cast_assoc(:financial_data, required: false)
+    |> cast_assoc(:emails,
+      required: true,
+      sort_param: Email.get_changeset_sort_param(),
+      drop_param: Email.get_changeset_drop_param()
+    )
+    |> cast_assoc(:phones,
+      required: true,
+      sort_param: Phone.get_changeset_sort_param(),
+      drop_param: Phone.get_changeset_drop_param()
+    )
+    |> cast_assoc(:postal_addresses,
+      required: true,
+      sort_param: PostalAddress.get_changeset_sort_param(),
+      drop_param: PostalAddress.get_changeset_drop_param()
+    )
+    |> update_change(:organization_name, &String.trim/1)
+    |> update_change(:person_last_name, &String.trim/1)
+    |> update_change(:person_first_name_1, &String.trim/1)
+    |> update_change(:person_first_name_2, &String.trim/1)
+    |> validate_length(:organization_name, max: 250)
+    |> validate_length(:person_last_name, max: 100)
+    |> validate_length(:person_first_name_1, max: 75)
+    |> validate_length(:person_first_name_2, max: 75)
+    |> validate_required_type_condition()
+    |> set_name()
   end
 end

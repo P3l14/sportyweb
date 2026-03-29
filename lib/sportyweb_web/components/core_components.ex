@@ -373,7 +373,7 @@ defmodule SportywebWeb.CoreComponents do
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file month number password
-               range search select tel text textarea time url week)
+               range search select tel text textarea time url week hidden)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -415,7 +415,10 @@ defmodule SportywebWeb.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
+          class={[
+            "rounded border-zinc-300 text-zinc-900 focus:ring-0",
+            disabled_classes()
+          ]}
           {@rest}
         />
         {@label}
@@ -432,7 +435,10 @@ defmodule SportywebWeb.CoreComponents do
       <select
         id={@id}
         name={@name}
-        class="mt-2 py-2.5 block w-full rounded-md border border-zinc-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class={[
+          "mt-2 py-2.5 block w-full rounded-md border border-zinc-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0",
+          disabled_classes()
+        ]}
         multiple={@multiple}
         {@rest}
       >
@@ -483,6 +489,10 @@ defmodule SportywebWeb.CoreComponents do
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
+  end
+
+  def disabled_classes do
+    "disabled:bg-gray-100 disabled:cursor-not-allowed"
   end
 
   @doc """

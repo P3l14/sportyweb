@@ -48,6 +48,18 @@ defmodule Sportyweb.Finance do
     Repo.preload(list_general_fees(club_id, type), preloads)
   end
 
+  def list_club_fees(club_id) do
+    query =
+      from(
+        f in Fee,
+        where: f.club_id == ^club_id,
+        where: f.type == "club",
+        order_by: f.name
+      )
+
+    Repo.all(query)
+  end
+
   @doc """
   Returns a list of fees that are possible successors for the given fee.
   The selection is based on a set of different criteria.

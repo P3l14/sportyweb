@@ -1,9 +1,11 @@
 defmodule SportywebWeb.ContactLiveTest do
+  alias Sportyweb.Organization
   use SportywebWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
   import Sportyweb.AccountsFixtures
   import Sportyweb.OrganizationFixtures
+  import Sportyweb.FinanceFixtures
   import Sportyweb.PersonalFixtures
   import Sportyweb.PolymorphicFixtures
   import Sportyweb.RBAC.RoleFixtures
@@ -189,7 +191,7 @@ defmodule SportywebWeb.ContactLiveTest do
     end
   end
 
-  describe "New/Edit short contact" do
+  describe "New short contact" do
     @create_attrs %{
       person_first_name_1: "some person_first_name_1",
       person_last_name: "some person_last_name",
@@ -242,6 +244,155 @@ defmodule SportywebWeb.ContactLiveTest do
       {:ok, _, _html} =
         new_live
         |> element("#contact-form a", "Abbrechen")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/contacts")
+    end
+  end
+
+  describe "New membership contract" do
+    @invalid_attrs %{
+      contact: %{
+        person_first_name_1: nil,
+        person_last_name: nil
+      }
+    }
+
+    defp create_club(_) do
+      club = club_fixture()
+      %{club: club}
+    end
+
+    defp prepare_create_data(%{club: club}) do
+      fee = fee_fixture(%{club_id: club.id, club: [club]})
+      department = department_fixture(%{club_id: club.id})
+
+      department_fee =
+        fee_fixture(%{club_id: club.id, type: "department", departments: [department]})
+
+      Organization.create_department_fee(department, department_fee)
+
+      %{
+        membership_contract_form_1: %{
+          "club_fee_id" => fee.id,
+          "contact" => %{
+            "financial_data" => %{
+              "0" => %{
+                "direct_debit_account_holder" => "Mustermann, Max",
+                "direct_debit_iban" => "DE47870979879",
+                "direct_debit_institute" => "Sparkasse Muster",
+                "type" => "direct_debit"
+              }
+            },
+            "person_birthday" => "1999-04-01",
+            "person_first_name_1" => "Max",
+            "person_first_name_2" => "",
+            "person_gender" => "male",
+            "person_last_name" => "Mustermann",
+            "postal_addresses" => %{
+              "0" => %{
+                "city" => "Berlin",
+                "country" => "DEU",
+                "street" => "Hauptstraße",
+                "street_additional_information" => "",
+                "street_number" => "5",
+                "type" => "residence",
+                "zipcode" => "12345"
+              }
+            },
+            "type" => "person"
+          },
+          "department_selections" => %{
+            "0" => %{
+              "checked" => "true",
+              "id" => department.id
+            }
+          },
+          "signing_date" => "2026-03-29",
+          "start_date" => "2026-03-29"
+        },
+        membership_contract_form_2: %{
+          "club_fee_id" => fee.id,
+          "contact" => %{
+            "financial_data" => %{
+              "0" => %{
+                "direct_debit_account_holder" => "Mustermann, Max",
+                "direct_debit_iban" => "DE47870979879",
+                "direct_debit_institute" => "Sparkasse Muster",
+                "type" => "direct_debit"
+              }
+            },
+            "person_birthday" => "1999-04-01",
+            "person_first_name_1" => "Max",
+            "person_first_name_2" => "",
+            "person_gender" => "male",
+            "person_last_name" => "Mustermann",
+            "postal_addresses" => %{
+              "0" => %{
+                "city" => "Berlin",
+                "country" => "DEU",
+                "street" => "Hauptstraße",
+                "street_additional_information" => "",
+                "street_number" => "5",
+                "type" => "residence",
+                "zipcode" => "12345"
+              }
+            },
+            "type" => "person"
+          },
+          "department_selections" => %{
+            "0" => %{
+              "checked" => "true",
+              "fee_id" => department_fee.id,
+              "id" => department.id
+            }
+          },
+          "signing_date" => "2026-03-29",
+          "start_date" => "2026-03-29"
+        }
+      }
+    end
+
+    setup [:create_club, :prepare_create_data]
+
+    test "saves new membership contract", %{
+      conn: conn,
+      user: user,
+      club: club,
+      membership_contract_form_1: membership_contract_form_1,
+      membership_contract_form_2: membership_contract_form_2
+    } do
+      {:error, _} = live(conn, ~p"/clubs/#{club}/contracts/new_membership")
+
+      conn = conn |> log_in_user(user)
+      {:ok, new_live, html} = live(conn, ~p"/clubs/#{club}/contracts/new_membership")
+
+      assert html =~ "Aufnahmeantragserfassung"
+
+      assert new_live
+             |> form("#membership-form", membership_contract_form: @invalid_attrs)
+             |> render_change() =~ "can&#39;t be blank"
+
+      # send data with checked department selection to enable fee selection in form submission
+      new_live
+      |> form("#membership-form", membership_contract_form: membership_contract_form_1)
+      |> render_change()
+
+      {:ok, _, html} =
+        new_live
+        |> form("#membership-form", membership_contract_form: membership_contract_form_2)
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/members")
+
+      assert html =~ "Aufnahmeantrag erfolgreich erfasst."
+    end
+
+    test "cancels save new contact", %{conn: conn, user: user, club: club} do
+      conn = conn |> log_in_user(user)
+      {:ok, new_live, _html} = live(conn, ~p"/clubs/#{club}/contracts/new_membership")
+
+      {:ok, _, _html} =
+        new_live
+        |> element("#membership-form a", "Abbrechen")
         |> render_click()
         |> follow_redirect(conn, ~p"/clubs/#{club}/contacts")
     end

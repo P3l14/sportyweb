@@ -191,4 +191,12 @@ defmodule Sportyweb.Legal do
   def change_contract(%Contract{} = contract, attrs \\ %{}) do
     Contract.changeset(contract, attrs)
   end
+
+  @doc """
+  Saves an internally created and already validated contract to the database
+
+  """
+  def create_contract_internal(%Contract{} = contract) do
+    Repo.insert(contract)
+  end
 end

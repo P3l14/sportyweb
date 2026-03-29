@@ -159,7 +159,6 @@ defmodule Sportyweb.Personal do
     |> Repo.insert()
   end
 
-
   @doc """
   Updates a contact.
 
@@ -210,7 +209,6 @@ defmodule Sportyweb.Personal do
   def change_short_contact(%Contact{} = contact, attrs \\ %{}) do
     Contact.changeset_short_contact(contact, attrs)
   end
-
 
   @doc """
   Returns the list of contact_groups.
@@ -432,5 +430,13 @@ defmodule Sportyweb.Personal do
   """
   def change_contact_role(%ContactRole{} = contact_role, attrs \\ %{}) do
     ContactRole.changeset(contact_role, attrs)
+  end
+
+  @doc """
+  Saves an internally created and already validated contact to the database
+
+  """
+  def create_contact_internal(%Contact{} = contact) do
+    Repo.insert(contact)
   end
 end
