@@ -196,7 +196,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
   #   {:noreply,
   #    socket
   #    |> assign(zipcode_proposals: zipcodes)
-  #    |> assignForm(contact_params)
+  #    |> assign_form(contact_params)
   #   }
   # end
 
@@ -235,11 +235,11 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
       {:noreply,
        socket
-       |> assignForm(contact_params)}
+       |> assign_form(contact_params)}
     else
       {:noreply,
        socket
-       |> assignForm(contact_params)}
+       |> assign_form(contact_params)}
     end
   end
 
@@ -261,7 +261,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
       {:noreply,
        socket
        |> assign(zipcode_proposals: zipcodes)
-       |> assignForm(contact_params)}
+       |> assign_form(contact_params)}
     else
       proposed_city =
         if socket.assigns[:zipcode_proposals] do
@@ -282,7 +282,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
       {:noreply,
        socket
        |> assign(street_proposals: streets)
-       |> assignForm(contact_params)}
+       |> assign_form(contact_params)}
     end
   end
 
@@ -290,7 +290,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
   def handle_event("validate", %{"contact" => contact_params}, socket) do
     {:noreply,
      socket
-     |> assignForm(contact_params)}
+     |> assign_form(contact_params)}
   end
 
   def handle_event("save", %{"contact" => contact_params}, socket) do
@@ -309,7 +309,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
     end)
   end
 
-  def assignForm(socket, contact_params) do
+  def assign_form(socket, contact_params) do
     changeset = Personal.change_contact(socket.assigns.contact, contact_params)
 
     socket
