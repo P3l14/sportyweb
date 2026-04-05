@@ -24,7 +24,7 @@ defmodule Mix.Tasks.Directory.Banks.Import do
       csv_download_url =
         "https://www.bundesbank.de/resource/blob/926192/0747aff499cd9f6f4c14d625fd7c643c/472B63F073F071307366337C94F8C870/blz-aktuell-csv-data.csv"
 
-      file_stream = File.stream!(file_name, encoding: :ansi)
+      file_stream = File.stream!(file_name)
       Req.get!(csv_download_url, into: file_stream)
       Mix.shell().info("File #{file_name} successfully downloaded")
     end
