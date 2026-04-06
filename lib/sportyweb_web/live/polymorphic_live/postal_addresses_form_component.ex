@@ -2,6 +2,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
   use SportywebWeb, :html
 
   alias Sportyweb.Polymorphic.PostalAddress
+  alias Sportyweb.Directory
 
   attr :form, :map, required: true
   attr :allow_multiple, :boolean, required: false, default: false
@@ -102,5 +103,85 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
       </.input_grid>
     </div>
     """
+  end
+
+  @doc """
+
+  Adds necessary structs to the socket to activate the city and street proposal of the component.
+  This function can only be called after the form has been assigned to the socket so that the form name can be derived.
+
+
+  """
+  def setup_validation_and_proposal_event_hook(
+        %{assigns: %{form: %{name: form_name}}} = socket,
+        assign_form_function
+      )
+      when is_function(assign_form_function, 2) do
+    socket
+    |> Phoenix.LiveView.Lifecycle.attach_hook(
+      :zipcode_check_and_proposal,
+      :handle_event,
+      fn
+        "validate",
+        %{
+          ^form_name => params,
+          "_target" => [^form_name, "postal_addresses", index, "zipcode"]
+        },
+        %{assigns: %{assign_form_function: _assign_form_function}} = socket ->
+          handle_event_zipcode_input(params, index, socket)
+
+        _event, _params, socket ->
+          {:cont, socket}
+      end
+    )
+    |> assign(:assign_form_function, assign_form_function)
+    |> assign(zipcode_proposals: [])
+    |> assign(street_proposals: [])
+  end
+
+  def handle_event_zipcode_input(
+        params,
+        index,
+        %{assigns: %{assign_form_function: assign_form_function}} = socket
+      ) do
+    %{"country" => country, "zipcode" => zipcode} =
+      get_in(params, ["postal_addresses", index])
+
+    if String.length(zipcode) == 1 do
+      zipcodes = Directory.get_zipcodes(country, zipcode)
+
+      {:halt,
+       socket
+       |> assign(zipcode_proposals: zipcodes)
+       |> assign_form_function.(params)}
+    else
+      proposed_city =
+        if socket.assigns[:zipcode_proposals] do
+          find_city(socket.assigns[:zipcode_proposals], zipcode)
+        else
+          nil
+        end
+
+      params =
+        if is_nil(proposed_city) do
+          params
+        else
+          put_in(params, ["postal_addresses", index, "city"], proposed_city)
+        end
+
+      streets = Directory.get_streets(country, zipcode)
+
+      {:halt,
+       socket
+       |> assign(street_proposals: streets)
+       |> assign_form_function.(params)}
+    end
+  end
+
+  defp find_city(zipcode_proposals, zipcode) do
+    zipcode_proposals
+    |> Enum.find_value(fn entry ->
+      if entry |> hd == zipcode, do: entry |> Enum.at(1)
+    end)
   end
 end

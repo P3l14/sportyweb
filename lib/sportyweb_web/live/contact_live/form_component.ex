@@ -5,7 +5,6 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
-  alias Sportyweb.Directory
 
   @impl true
   def render(assigns) do
@@ -185,112 +184,18 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
     {:ok,
      socket
-     |> assign(zipcode_proposals: [])
-     |> assign(street_proposals: [])
-     |> assign(warnings: %{})
      |> assign(assigns)
      |> assign(:step, step)
      |> assign(:contact_type, contact.type)
      |> assign_new(:form, fn ->
        to_form(changeset)
-     end)}
-  end
-
-  # @impl true
-  # def handle_event("validate", %{"contact" => contact_params, "_target" => ["contact", "postal_addresses", index, "country"]}, socket) do
-  #   country = get_in(contact_params,["postal_addresses", index, "country"])
-  #   zipcodes = Directory.get_zipcodes(country)
-  #   {:noreply,
-  #    socket
-  #    |> assign(zipcode_proposals: zipcodes)
-  #    |> assign_form(contact_params)
-  #   }
-  # end
-
-  @impl true
-  def handle_event(
-        "validate",
-        %{
-          "contact" => contact_params,
-          "_target" => ["contact", "financial_data", index, "direct_debit_iban"]
-        },
-        socket
-      ) do
-    iban = get_in(contact_params, ["financial_data", index, "direct_debit_iban"])
-
-    warnings =
-      case Directory.check_iban(iban) do
-        {:invalid, warning_message} -> %{direct_debit_iban: warning_message}
-        _ -> %{}
-      end
-
-    socket = assign(socket, warnings: warnings)
-
-    if Directory.can_propose_institute?(iban) do
-      proposed_institute = Directory.get_institute(iban)
-
-      contact_params =
-        if is_nil(proposed_institute) do
-          contact_params
-        else
-          put_in(
-            contact_params,
-            ["financial_data", index, "direct_debit_institute"],
-            proposed_institute
-          )
-        end
-
-      {:noreply,
-       socket
-       |> assign_form(contact_params)}
-    else
-      {:noreply,
-       socket
-       |> assign_form(contact_params)}
-    end
-  end
-
-  @impl true
-  def handle_event(
-        "validate",
-        %{
-          "contact" => contact_params,
-          "_target" => ["contact", "postal_addresses", index, "zipcode"]
-        },
-        socket
-      ) do
-    %{"country" => country, "zipcode" => zipcode} =
-      get_in(contact_params, ["postal_addresses", index])
-
-    if String.length(zipcode) == 1 do
-      zipcodes = Directory.get_zipcodes(country, zipcode)
-
-      {:noreply,
-       socket
-       |> assign(zipcode_proposals: zipcodes)
-       |> assign_form(contact_params)}
-    else
-      proposed_city =
-        if socket.assigns[:zipcode_proposals] do
-          find_city(socket.assigns[:zipcode_proposals], zipcode)
-        else
-          nil
-        end
-
-      contact_params =
-        if is_nil(proposed_city) do
-          contact_params
-        else
-          put_in(contact_params, ["postal_addresses", index, "city"], proposed_city)
-        end
-
-      streets = Directory.get_streets(country, zipcode)
-
-      {:noreply,
-       socket
-       |> assign(street_proposals: streets)
-       |> assign_form(contact_params)}
-    end
+     end)
+     |> SportywebWeb.PolymorphicLive.FinancialDataFormComponent.setup_validation_and_proposal_event_hook(
+       &assign_form/2
+     )
+     |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
+       &assign_form/2
+     )}
   end
 
   @impl true
@@ -307,13 +212,6 @@ defmodule SportywebWeb.ContactLive.FormComponent do
   @impl true
   def handle_event("update_step", %{"step" => step}, socket) do
     {:noreply, assign(socket, :step, step)}
-  end
-
-  defp find_city(zipcode_proposals, zipcode) do
-    zipcode_proposals
-    |> Enum.find_value(fn entry ->
-      if entry |> hd == zipcode, do: entry |> Enum.at(1)
-    end)
   end
 
   def assign_form(socket, contact_params) do
