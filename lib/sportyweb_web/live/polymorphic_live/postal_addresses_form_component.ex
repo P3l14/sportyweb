@@ -33,7 +33,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
             sort_param={PostalAddress.get_changeset_sort_param()}
             element={postal_address}
           />
-          <div class="col-span-12 md:col-span-12">
+          <div class="col-span-12 md:col-span-11">
             <.input
               field={postal_address[:type]}
               type="select"
@@ -41,6 +41,14 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
               options={PostalAddress.get_valid_types()}
             />
           </div>
+
+          <.element_delete_button
+            :if={@allow_multiple}
+            form_id={@form.id}
+            drop_param={PostalAddress.get_changeset_drop_param()}
+            class="col-span-12 md:col-span-1 mt-9"
+            element={postal_address}
+          />
 
           <div class="col-span-12">
             <.input
@@ -74,17 +82,9 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
             />
           </div>
 
-          <div class="col-span-12 md:col-span-3">
+          <div class="col-span-12 md:col-span-4">
             <.input field={postal_address[:street_number]} type="text" label="Hausnummer" />
           </div>
-
-          <.element_delete_button
-            :if={@allow_multiple}
-            form_id={@form.id}
-            drop_param={PostalAddress.get_changeset_drop_param()}
-            class="col-span-12 md:col-span-1 mt-9"
-            element={postal_address}
-          />
 
           <div class="col-span-12">
             <.input
