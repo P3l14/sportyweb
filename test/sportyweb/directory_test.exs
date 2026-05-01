@@ -233,11 +233,11 @@ defmodule Sportyweb.DirectoryTest do
     end
 
     test "check_iban/1 returns no check for iban of unhandled country" do
-      assert {:no_check, ""} == Directory.check_iban("XX99123456721212")
+      assert {:invalid, "Das eingebene Länderkürzel ist ungültig."} == Directory.check_iban("XX99123456721212")
     end
 
     test "check_iban/1 returns invalid for iban with wrong length for handled country" do
-      assert {:invalid, "IBAN mit DE muss genau 22 Stellen haben."} ==
+      assert {:invalid, "Die Länge der IBAN stimmt nicht."} ==
                Directory.check_iban("DE1888866655444433339955")
     end
 
@@ -246,7 +246,7 @@ defmodule Sportyweb.DirectoryTest do
                Directory.check_iban("DE18888666554444333399")
     end
 
-    test "check_iban/1 returns invvalidalid for iban with correct checkdigit" do
+    test "check_iban/1 returns invalid for iban with correct checkdigit" do
       assert {:valid, ""} == Directory.check_iban("DE18888666554444333322")
     end
   end

@@ -276,56 +276,13 @@ defmodule Sportyweb.Directory do
   end
 
   def check_iban(iban) when is_binary(iban) do
-    iban = String.trim(iban)
-    countrycode = String.slice(iban, 0, 2)
-
-    valid_length =
-      case countrycode do
-        "DE" -> 22
-        "AT" -> 20
-        "CH" -> 21
-        _ -> 99
-      end
-
-    if String.length(iban) == valid_length do
-      # vgl. https://www.hettwer-beratung.de/sepa-spezialwissen/sepa-kontoverbindungsdaten/iban-pr%C3%BCfziffer-berechnung/
-      tranformed_iban_for_check = String.slice(iban, 4, 99) <> String.slice(iban, 0, 2) <> "00"
-
-      tranformed_iban_for_check =
-        tranformed_iban_for_check
-        |> String.upcase()
-        |> String.codepoints()
-        |> Enum.reduce(
-          "",
-          fn char, result ->
-            <<code::utf8>> = char
-            # convert letters to numbers starting with A=10
-            value =
-              if code in ?A..?Z do
-                Integer.to_string(code - 55)
-              else
-                char
-              end
-
-            result <> value
-          end
-        )
-
-      {tranformed_iban_for_check_as_integer, _} = Integer.parse(tranformed_iban_for_check)
-      remainder = Integer.mod(tranformed_iban_for_check_as_integer, 97)
-      check_digit = 98 - remainder
-
-      if Integer.to_string(check_digit) == String.slice(iban, 2, 2) do
-        {:valid, ""}
-      else
-        {:invalid, "Die Prüfziffer der IBAN stimmt nicht."}
-      end
-    else
-      if countrycode in ["DE", "CH", "AT"] do
-        {:invalid, "IBAN mit #{countrycode} muss genau #{valid_length} Stellen haben."}
-      else
-        {:no_check, ""}
-      end
+    case Bankster.iban_validate(iban) do
+      {:ok, _} -> {:valid, ""}
+      {:error, :invalid_format} -> {:invalid, "Die Eingabeformat der IBAN stimmt nicht."}
+      {:error, :invalid_country} -> {:invalid, "Das eingebene Länderkürzel ist ungültig."}
+      {:error, :invalid_length} -> {:invalid, "Die Länge der IBAN stimmt nicht."}
+      {:error, :invalid_format} -> {:invalid, "Die Eingabeformat der IBAN passt nicht zum Länderkürzel der IBAN."}
+      {:error, :invalid_checksum} -> {:invalid, "Die Prüfziffer der IBAN stimmt nicht."}
     end
   end
 end
