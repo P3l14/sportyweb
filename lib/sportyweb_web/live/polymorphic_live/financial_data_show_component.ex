@@ -3,6 +3,7 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataShowComponent do
   import SportywebWeb.CommonHelper
 
   alias Sportyweb.Polymorphic.FinancialData
+  alias Sportyweb.Directory
 
   attr :financial_data, :list, required: true
 
@@ -26,11 +27,20 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataShowComponent do
                   )}
                 </li>
                 <li>IBAN: {format_string_field(financial_data_single.direct_debit_iban)}</li>
-                <li>
-                  Name des Instituts: {format_string_field(
-                    financial_data_single.direct_debit_institute
-                  )}
-                </li>
+                <%= if Directory.get_institute(financial_data_single.direct_debit_iban) do %>
+                  <li>
+                    BIC: {format_string_field(
+                      Directory.get_institute(financial_data_single.direct_debit_iban).bic
+                    )}
+                  </li>
+                  <li>
+                    Name: {format_string_field(
+                      Directory.get_institute(financial_data_single.direct_debit_iban).name
+                    )}
+                  </li>
+                <% else %>
+                  Zur IBAN konnte keine BIC und kein Name ermittelt werden!
+                <% end %>
               <% else %>
                 <li>
                   Rechnungsempfänger: {format_string_field(financial_data_single.invoice_recipient)}
