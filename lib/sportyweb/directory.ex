@@ -281,7 +281,6 @@ defmodule Sportyweb.Directory do
       {:error, :invalid_format} -> {:invalid, "Die Eingabeformat der IBAN stimmt nicht."}
       {:error, :invalid_country} -> {:invalid, "Das eingebene Länderkürzel ist ungültig."}
       {:error, :invalid_length} -> {:invalid, "Die Länge der IBAN stimmt nicht."}
-      {:error, :invalid_format} -> {:invalid, "Die Eingabeformat der IBAN passt nicht zum Länderkürzel der IBAN."}
       {:error, :invalid_checksum} -> {:invalid, "Die Prüfziffer der IBAN stimmt nicht."}
     end
   end
