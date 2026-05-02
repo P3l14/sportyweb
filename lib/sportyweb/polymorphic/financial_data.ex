@@ -3,6 +3,7 @@ defmodule Sportyweb.Polymorphic.FinancialData do
   import Ecto.Changeset
 
   alias Sportyweb.Polymorphic.PostalAddress
+  alias Sportyweb.Directory
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -52,8 +53,8 @@ defmodule Sportyweb.Polymorphic.FinancialData do
     |> update_change(:direct_debit_institute, &String.trim/1)
     |> update_change(:invoice_recipient, &String.trim/1)
     |> update_change(:invoice_additional_information, &String.trim/1)
+    |> validate_iban()
     |> validate_length(:direct_debit_account_holder, max: 250)
-    |> validate_length(:direct_debit_iban, max: 250)
     |> validate_length(:direct_debit_institute, max: 250)
     |> validate_length(:invoice_recipient, max: 250)
     |> validate_length(:invoice_additional_information, max: 250)
@@ -62,6 +63,16 @@ defmodule Sportyweb.Polymorphic.FinancialData do
       get_valid_types() |> Enum.map(fn type -> type[:value] end)
     )
     |> validate_required_type_condition()
+  end
+
+  defp validate_iban(%Ecto.Changeset{} = changeset) do
+    changeset
+    |> validate_change(:direct_debit_iban, fn :direct_debit_iban, iban ->
+      case Directory.check_iban(iban) do
+        {:invalid, message} -> [direct_debit_iban: message]
+        _ -> []
+      end
+    end)
   end
 
   defp validate_required_type_condition(%Ecto.Changeset{} = changeset) do

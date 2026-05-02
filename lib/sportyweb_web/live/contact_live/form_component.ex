@@ -124,10 +124,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
               </.input_grid>
 
               <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render
-                  form={@form}
-                  warnings={@warnings}
-                />
+                <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render form={@form} />
               </.input_grid>
 
               <.input_grid class="pt-6">

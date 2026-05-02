@@ -233,7 +233,8 @@ defmodule Sportyweb.DirectoryTest do
     end
 
     test "check_iban/1 returns no check for iban of unhandled country" do
-      assert {:invalid, "Das eingebene Länderkürzel ist ungültig."} == Directory.check_iban("XX99123456721212")
+      assert {:invalid, "Das eingebene Länderkürzel ist ungültig."} ==
+               Directory.check_iban("XX99123456721212")
     end
 
     test "check_iban/1 returns invalid for iban with wrong length for handled country" do

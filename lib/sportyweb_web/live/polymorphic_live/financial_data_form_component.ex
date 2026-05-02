@@ -5,7 +5,6 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
   alias Sportyweb.Directory
 
   attr :form, :map, required: true
-  attr :warnings, :map, required: false, default: %{}
 
   def render(assigns) do
     ~H"""
@@ -36,9 +35,6 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
 
             <div class="col-span-12 md:col-span-5">
               <.input field={financial_data[:direct_debit_iban]} type="text" label="IBAN" />
-              <.warning :if={@warnings[:direct_debit_iban]}>
-                {@warnings[:direct_debit_iban]}
-              </.warning>
             </div>
 
             <div class="col-span-12">
@@ -103,7 +99,6 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
       end
     )
     |> assign(:assign_form_function, assign_form_function)
-    |> assign(warnings: %{})
   end
 
   def handle_event_iban_input(
@@ -112,14 +107,6 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
         %{assigns: %{assign_form_function: assign_form_function}} = socket
       ) do
     iban = get_in(params, ["financial_data", index, "direct_debit_iban"])
-
-    warnings =
-      case Directory.check_iban(iban) do
-        {:invalid, warning_message} -> %{direct_debit_iban: warning_message}
-        _ -> %{}
-      end
-
-    socket = assign(socket, warnings: warnings)
 
     if Directory.can_propose_institute?(iban) do
       proposed_institute = Directory.get_institute(iban)
