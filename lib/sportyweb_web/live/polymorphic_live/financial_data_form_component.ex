@@ -37,11 +37,23 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
               <.input field={financial_data[:direct_debit_iban]} type="text" label="IBAN" />
             </div>
 
-            <div class="col-span-12">
+            <div class="col-span-6">
+              <.input
+                field={financial_data[:direct_debit_bic]}
+                type="text"
+                label="BIC (nur zur Anzeige)"
+                readonly
+                class="read-only:bg-gray-100 read-only:text-gray-500 read-only:border-gray-200 cursor: not-allowed"
+              />
+            </div>
+
+            <div class="col-span-6">
               <.input
                 field={financial_data[:direct_debit_institute]}
                 type="text"
-                label="Name des Instituts"
+                label="Name des Instituts (nur zur Anzeige)"
+                readonly
+                class="read-only:bg-gray-100 read-only:text-gray-500 read-only:border-gray-200 cursor: not-allowed"
               />
             </div>
           <% end %>
@@ -113,12 +125,31 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
 
       params =
         if is_nil(proposed_institute) do
-          params
+          institut = get_in(params, ["financial_data", index, "direct_debit_institute"])
+          bic = get_in(params, ["financial_data", index, "direct_debit_bic"])
+
+          if institut != "" or bic != "" do
+            params
+            |> put_in(
+              ["financial_data", index, "direct_debit_institute"],
+              "Zur IBAN konnte kein Name ermittelt werden!"
+            )
+            |> put_in(
+              ["financial_data", index, "direct_debit_bic"],
+              "Zur IBAN konnte keine BIC ermittelt werden!"
+            )
+          else
+            params
+          end
         else
-          put_in(
-            params,
+          params
+          |> put_in(
             ["financial_data", index, "direct_debit_institute"],
-            proposed_institute
+            proposed_institute.name
+          )
+          |> put_in(
+            ["financial_data", index, "direct_debit_bic"],
+            proposed_institute.bic
           )
         end
 

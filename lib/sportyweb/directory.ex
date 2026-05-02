@@ -262,17 +262,16 @@ defmodule Sportyweb.Directory do
   end
 
   def get_institute(countrycode, bankcode) do
-    institues =
+    institutes =
       Repo.all(
         from(
           b in Bank,
           where: b.bankcode == ^bankcode and b.bic != "" and b.countrycode == ^countrycode,
-          distinct: b.bankcode,
-          select: b.name
+          distinct: b.bankcode
         )
       )
 
-    List.first(institues)
+    List.first(institutes)
   end
 
   def check_iban(iban) when is_binary(iban) do

@@ -16,6 +16,7 @@ defmodule Sportyweb.Polymorphic.FinancialData do
     field :direct_debit_account_holder, :string, default: ""
     field :direct_debit_iban, :string, default: ""
     field :direct_debit_institute, :string, default: ""
+    field :direct_debit_bic, :string, default: "", virtual: true
     field :invoice_recipient, :string, default: ""
     field :invoice_additional_information, :string, default: ""
     field :is_main, :boolean, default: false

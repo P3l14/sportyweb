@@ -204,7 +204,9 @@ defmodule Sportyweb.DirectoryTest do
 
     test "get_bank_name/2 returns a bankname" do
       bank_fixture()
-      assert "GigaHyperMega-Bank" = Directory.get_institute("DE", "47111337")
+      institute = Directory.get_institute("DE", "47111337")
+      assert "GigaHyperMega-Bank" = institute.name
+      assert "GIGABANK" = institute.bic
     end
 
     test "get_bank_name/2 returns no bankname" do
@@ -214,7 +216,9 @@ defmodule Sportyweb.DirectoryTest do
 
     test "get_bank_name/1 returns bankname form extracted bankcode" do
       bank_fixture()
-      assert "GigaHyperMega-Bank" = Directory.get_institute("DE55471113370987654321")
+      institute = Directory.get_institute("DE55471113370987654321")
+      assert "GigaHyperMega-Bank" = institute.name
+      assert "GIGABANK" = institute.bic
     end
 
     test "get_bank_name/1 returns no bankname form extracted bankcode" do
