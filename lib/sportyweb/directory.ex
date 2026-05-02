@@ -234,7 +234,7 @@ defmodule Sportyweb.Directory do
     Bank.changeset(bank, attrs)
   end
 
-  def get_institute(iban) when is_binary(iban) and byte_size(iban) > 10 do
+  def get_institute(iban) when is_binary(iban) and byte_size(iban) > 8 do
     iban = String.trim(iban)
     countrycode = String.slice(iban, 0, 2)
 

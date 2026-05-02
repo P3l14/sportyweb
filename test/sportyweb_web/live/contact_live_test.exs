@@ -279,7 +279,6 @@ defmodule SportywebWeb.ContactLiveTest do
               "0" => %{
                 "direct_debit_account_holder" => "Mustermann, Max",
                 "direct_debit_iban" => "DE47870979879",
-                "direct_debit_institute" => "Sparkasse Muster",
                 "type" => "direct_debit"
               }
             },
@@ -317,7 +316,6 @@ defmodule SportywebWeb.ContactLiveTest do
               "0" => %{
                 "direct_debit_account_holder" => "Mustermann, Max",
                 "direct_debit_iban" => "DE02500105170137075030",
-                "direct_debit_institute" => "ING-DIBA",
                 "type" => "direct_debit"
               }
             },

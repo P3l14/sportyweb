@@ -7,7 +7,6 @@ defmodule Sportyweb.Repo.Migrations.CreateFinancialData do
       add :type, :string, null: false
       add :direct_debit_account_holder, :string, null: false
       add :direct_debit_iban, :string, null: false
-      add :direct_debit_institute, :string, null: false
       add :invoice_recipient, :string, null: false
       add :invoice_additional_information, :text, null: false
       add :is_main, :boolean, null: false

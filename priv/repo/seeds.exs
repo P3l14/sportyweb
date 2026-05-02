@@ -62,8 +62,7 @@ defmodule Sportyweb.SeedHelper do
       %FinancialData{
         type: "direct_debit",
         direct_debit_account_holder: random_name,
-        direct_debit_iban: "DE06495352657836424132",
-        direct_debit_institute: "Beispielbank"
+        direct_debit_iban: "DE06495352657836424132"
       }
     else
       %FinancialData{

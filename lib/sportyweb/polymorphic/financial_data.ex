@@ -15,7 +15,7 @@ defmodule Sportyweb.Polymorphic.FinancialData do
     field :type, :string, default: "direct_debit"
     field :direct_debit_account_holder, :string, default: ""
     field :direct_debit_iban, :string, default: ""
-    field :direct_debit_institute, :string, default: ""
+    field :direct_debit_institute, :string, default: "", virtual: true
     field :direct_debit_bic, :string, default: "", virtual: true
     field :invoice_recipient, :string, default: ""
     field :invoice_additional_information, :string, default: ""
@@ -40,7 +40,6 @@ defmodule Sportyweb.Polymorphic.FinancialData do
         :type,
         :direct_debit_account_holder,
         :direct_debit_iban,
-        :direct_debit_institute,
         :invoice_recipient,
         :invoice_recipient_postal_address_id,
         :invoice_additional_information,
@@ -51,12 +50,10 @@ defmodule Sportyweb.Polymorphic.FinancialData do
     |> validate_required([:type])
     |> update_change(:direct_debit_account_holder, &String.trim/1)
     |> update_change(:direct_debit_iban, &String.trim/1)
-    |> update_change(:direct_debit_institute, &String.trim/1)
     |> update_change(:invoice_recipient, &String.trim/1)
     |> update_change(:invoice_additional_information, &String.trim/1)
     |> validate_iban()
     |> validate_length(:direct_debit_account_holder, max: 250)
-    |> validate_length(:direct_debit_institute, max: 250)
     |> validate_length(:invoice_recipient, max: 250)
     |> validate_length(:invoice_additional_information, max: 250)
     |> validate_inclusion(
@@ -83,8 +80,7 @@ defmodule Sportyweb.Polymorphic.FinancialData do
         changeset
         |> validate_required([
           :direct_debit_account_holder,
-          :direct_debit_iban,
-          :direct_debit_institute
+          :direct_debit_iban
         ])
 
       "invoice" ->
