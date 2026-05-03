@@ -7,9 +7,9 @@ defmodule Sportyweb.Personal.ContactRole do
   @foreign_key_type :binary_id
   schema "contact_roles" do
     belongs_to :contact, Contact
-    field :name, :string
-    field :valid_from, :date
-    field :valid_until, :date
+    field :name, :string, default: nil
+    field :valid_from, :date, default: nil
+    field :valid_until, :date, default: nil
 
     timestamps(type: :utc_datetime)
   end
