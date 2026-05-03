@@ -16,12 +16,13 @@ defmodule Sportyweb.Personal.ContactRole do
 
   def get_valid_names do
     [
+      [key: "Erziehungsberechtigter", value: "legal guardian"],
       [key: "Interessent", value: "interested"],
       [key: "Kursteilnehmer", value: "participants"],
-      [key: "Veranstaltungsbesucher", value: "visitor"],
       [key: "Lieferant", value: "supplier"],
       [key: "Spender", value: "donor"],
-      [key: "Sponsor", value: "sponsor"]
+      [key: "Sponsor", value: "sponsor"],
+      [key: "Veranstaltungsbesucher", value: "visitor"],
     ]
   end
 
