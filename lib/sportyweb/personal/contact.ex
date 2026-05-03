@@ -238,6 +238,21 @@ defmodule Sportyweb.Personal.Contact do
       sort_param: ContactRole.get_changeset_sort_param(),
       drop_param: ContactRole.get_changeset_drop_param()
     )
+    |> cast_assoc(:postal_addresses,
+      required: false,
+      sort_param: PostalAddress.get_changeset_sort_param(),
+      drop_param: PostalAddress.get_changeset_drop_param()
+    )
+    |> cast_assoc(:emails,
+      required: false,
+      sort_param: Email.get_changeset_sort_param(),
+      drop_param: Email.get_changeset_drop_param()
+    )
+    |> cast_assoc(:phones,
+      required: false,
+      sort_param: Phone.get_changeset_sort_param(),
+      drop_param: Phone.get_changeset_drop_param()
+    )
     |> set_name()
   end
 

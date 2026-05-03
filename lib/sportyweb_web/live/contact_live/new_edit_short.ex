@@ -22,6 +22,12 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
       <.card>
         <.simple_form for={@form} id="contact-form" phx-change="validate" phx-submit="save">
           <.input_grids>
+            <.input_grid class="pt-6">
+              <SportywebWeb.ContactLive.ContactRoleFormComponent.render
+                form={@form}
+                allow_multiple={true}
+              />
+            </.input_grid>
             <.input_grid>
               <div class="col-span-12">
                 <!-- Don't remove the id of the div, otherwise LiveView doesn't remove the input in step 2. -->
@@ -35,6 +41,9 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
             </.input_grid>
 
             <%= if @form[:type].value == "organization" do %>
+              <.header level="2" class="col-span-12 md:col-span-12">
+                Organisationsdaten
+              </.header>
               <.input_grid>
                 <div class="col-span-12 md:col-span-6">
                   <.input field={@form[:organization_name]} type="text" label="Organisationsname" />
@@ -51,6 +60,9 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
                 </div>
               </.input_grid>
             <% else %>
+              <.header level="2" class="col-span-12 md:col-span-12">
+                Personendaten
+              </.header>
               <.input_grid>
                 <div class="col-span-12 md:col-span-4">
                   <.input field={@form[:person_last_name]} type="text" label="Nachname" />
@@ -70,7 +82,23 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
               </.input_grid>
             <% end %>
             <.input_grid class="pt-6">
-              <SportywebWeb.ContactLive.ContactRoleFormComponent.render
+              <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
+                form={@form}
+                allow_multiple={true}
+                zipcode_proposals={@zipcode_proposals}
+                street_proposals={@street_proposals}
+              />
+            </.input_grid>
+
+            <.input_grid class="pt-6">
+              <SportywebWeb.PolymorphicLive.EmailsFormComponent.render
+                form={@form}
+                allow_multiple={true}
+              />
+            </.input_grid>
+
+            <.input_grid class="pt-6">
+              <SportywebWeb.PolymorphicLive.PhonesFormComponent.render
                 form={@form}
                 allow_multiple={true}
               />
@@ -96,26 +124,61 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
   end
 
   @impl true
-  def handle_params(%{"club_id" => club_id}, _url, socket) do
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :edit, %{"id" => id}) do
+    contact =
+      Personal.get_contact!(id, [
+        :club,
+        :emails,
+        :financial_data,
+        :phones,
+        :postal_addresses,
+        :notes,
+        :roles
+      ])
+
+    socket
+    |> assign(:title, "Kontakt bearbeiten")
+    |> assign(:contact, contact)
+    |> assign(:form, Phoenix.Component.to_form(Personal.change_short_contact(contact)))
+    |> assign(:club, contact.club)
+    |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
+      &assign_form/2
+    )
+  end
+
+  defp apply_action(socket, :new, %{"club_id" => club_id}) do
     club = Organization.get_club!(club_id)
 
     contact = %Contact{
       club_id: club.id,
       club: club,
       roles: [%ContactRole{}],
-      postal_addresses: [%PostalAddress{}],
-      emails: [%Email{}],
-      phones: [%Phone{}],
-      financial_data: [%FinancialData{}],
-      notes: [%Note{}]
+      postal_addresses: [],
+      emails: [],
+      phones: [],
+      financial_data: [],
+      notes: []
     }
 
-    {:noreply,
-     socket
-     |> assign(:title, "Kontaktschnellerfassung")
-     |> assign(:contact, contact)
-     |> assign(:form, Phoenix.Component.to_form(Personal.change_contact(contact)))
-     |> assign(:club, club)}
+    socket
+    |> assign(:title, "Kontaktschnellerfassung")
+    |> assign(:contact, contact)
+    |> assign(:form, Phoenix.Component.to_form(Personal.change_short_contact(contact)))
+    |> assign(:club, club)
+    |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
+      &assign_form/2
+    )
+  end
+
+  def assign_form(socket, contact_params) do
+    changeset = Personal.change_short_contact(socket.assigns.contact, contact_params)
+
+    socket
+    |> assign(form: Phoenix.Component.to_form(changeset, action: :validate))
   end
 
   @impl true
