@@ -5,11 +5,6 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Personal.ContactRole
   alias Sportyweb.Organization
-  alias Sportyweb.Polymorphic.Email
-  alias Sportyweb.Polymorphic.FinancialData
-  alias Sportyweb.Polymorphic.Note
-  alias Sportyweb.Polymorphic.Phone
-  alias Sportyweb.Polymorphic.PostalAddress
 
   @impl true
   def render(assigns) do
