@@ -42,7 +42,7 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
             <.input_grid>
               <.inputs_for :let={contact} field={@form[:contact_group_contacts]}>
                 <.element_index_field
-                  form_id={@form.id}
+                  form_name={@form.name}
                   sort_param={ContactGroup.get_changeset_sort_param()}
                   element={contact}
                 />
@@ -61,14 +61,14 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
                   />
                 </div>
                 <.element_delete_button
-                  form_id={@form.id}
+                  form_name={@form.name}
                   drop_param={ContactGroup.get_changeset_drop_param()}
                   class="col-span-12 md:col-span-1 mt-9"
                   element={contact}
                 />
               </.inputs_for>
               <.element_add_button
-                form_id={@form.id}
+                form_name={@form.name}
                 sort_param={ContactGroup.get_changeset_sort_param()}
                 class="col-span-12"
               />

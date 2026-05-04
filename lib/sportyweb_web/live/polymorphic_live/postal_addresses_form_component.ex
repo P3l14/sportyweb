@@ -29,7 +29,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
         <.inputs_for :let={postal_address} field={@form[:postal_addresses]}>
           <.element_index_field
             :if={@allow_multiple}
-            form_id={@form.id}
+            form_name={@form.name}
             sort_param={PostalAddress.get_changeset_sort_param()}
             element={postal_address}
           />
@@ -44,7 +44,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
 
           <.element_delete_button
             :if={@allow_multiple}
-            form_id={@form.id}
+            form_name={@form.name}
             drop_param={PostalAddress.get_changeset_drop_param()}
             class="col-span-12 md:col-span-1 mt-9"
             element={postal_address}
@@ -96,7 +96,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
         </.inputs_for>
         <.element_add_button
           :if={@allow_multiple}
-          form_id={@form.id}
+          form_name={@form.name}
           sort_param={PostalAddress.get_changeset_sort_param()}
           class="col-span-12"
         />

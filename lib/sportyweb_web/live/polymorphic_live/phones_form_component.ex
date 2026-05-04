@@ -15,7 +15,7 @@ defmodule SportywebWeb.PolymorphicLive.PhonesFormComponent do
     <.inputs_for :let={phone} field={@form[:phones]}>
       <.element_index_field
         :if={@allow_multiple}
-        form_id={@form.id}
+        form_name={@form.name}
         sort_param={Phone.get_changeset_sort_param()}
         element={phone}
       />
@@ -28,7 +28,7 @@ defmodule SportywebWeb.PolymorphicLive.PhonesFormComponent do
       </div>
       <.element_delete_button
         :if={@allow_multiple}
-        form_id={@form.id}
+        form_name={@form.name}
         drop_param={Phone.get_changeset_drop_param()}
         class="col-span-12 md:col-span-1 mt-9"
         element={phone}
@@ -36,7 +36,7 @@ defmodule SportywebWeb.PolymorphicLive.PhonesFormComponent do
     </.inputs_for>
     <.element_add_button
       :if={@allow_multiple}
-      form_id={@form.id}
+      form_name={@form.name}
       sort_param={Phone.get_changeset_sort_param()}
       class="col-span-12"
     />

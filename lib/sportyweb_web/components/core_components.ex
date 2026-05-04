@@ -560,17 +560,17 @@ defmodule SportywebWeb.CoreComponents do
     """
   end
 
-  attr :form_id, :string, required: true
+  attr :form_name, :string, required: true
   attr :sort_param, :string, required: true
   attr :element, Phoenix.HTML.Form, required: true
 
   def element_index_field(assigns) do
     ~H"""
-    <input type="hidden" name={"#{@form_id}[#{@sort_param}][]"} value={@element.index} />
+    <input type="hidden" name={"#{@form_name}[#{@sort_param}][]"} value={@element.index} />
     """
   end
 
-  attr :form_id, :string, required: true
+  attr :form_name, :string, required: true
   attr :drop_param, :string, required: true
   attr :class, :string, required: true
   attr :element, Phoenix.HTML.Form, required: true
@@ -580,7 +580,7 @@ defmodule SportywebWeb.CoreComponents do
     <div class={@class}>
       <button
         type="button"
-        name={"#{@form_id}[#{@drop_param}][]"}
+        name={"#{@form_name}[#{@drop_param}][]"}
         value={@element.index}
         phx-click={JS.dispatch("change")}
       >
@@ -590,7 +590,7 @@ defmodule SportywebWeb.CoreComponents do
     """
   end
 
-  attr :form_id, :string, required: true
+  attr :form_name, :string, required: true
   attr :sort_param, :string, required: true
   attr :class, :string, required: true
 
@@ -599,7 +599,7 @@ defmodule SportywebWeb.CoreComponents do
     <div class={@class}>
       <button
         type="button"
-        name={"#{@form_id}[#{@sort_param}][]"}
+        name={"#{@form_name}[#{@sort_param}][]"}
         value="new"
         phx-click={JS.dispatch("change")}
       >

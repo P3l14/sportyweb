@@ -18,7 +18,7 @@ defmodule SportywebWeb.PolymorphicLive.EmailsFormComponent do
     <.inputs_for :let={email} field={@form[:emails]}>
       <.element_index_field
         :if={@allow_multiple}
-        form_id={@form.id}
+        form_name={@form.name}
         sort_param={Email.get_changeset_sort_param()}
         element={email}
       />
@@ -31,7 +31,7 @@ defmodule SportywebWeb.PolymorphicLive.EmailsFormComponent do
       </div>
       <.element_delete_button
         :if={@allow_multiple}
-        form_id={@form.id}
+        form_name={@form.name}
         drop_param={Email.get_changeset_drop_param()}
         class="col-span-12 md:col-span-1 mt-9"
         element={email}
@@ -39,7 +39,7 @@ defmodule SportywebWeb.PolymorphicLive.EmailsFormComponent do
     </.inputs_for>
     <.element_add_button
       :if={@allow_multiple}
-      form_id={@form.id}
+      form_name={@form.name}
       sort_param={Email.get_changeset_sort_param()}
       class="col-span-12"
     />

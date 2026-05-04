@@ -19,7 +19,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleRelationFormComponent do
     <.inputs_for :let={contact_role_relation} field={@form[:contact_role_relations]}>
       <.element_index_field
         :if={@allow_multiple}
-        form_id={@form.name}
+        form_name={@form.name}
         sort_param={ContactRoleRelation.get_changeset_sort_param()}
         element={contact_role_relation}
       />
@@ -52,7 +52,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleRelationFormComponent do
 
       <.element_delete_button
         :if={@allow_multiple}
-        form_id={@form.name}
+        form_name={@form.name}
         drop_param={ContactRoleRelation.get_changeset_drop_param()}
         class="col-span-12 md:col-span-1 mt-9"
         element={contact_role_relation}
@@ -61,7 +61,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleRelationFormComponent do
 
     <.element_add_button
       :if={@allow_multiple}
-      form_id={@form.name}
+      form_name={@form.name}
       sort_param={ContactRoleRelation.get_changeset_sort_param()}
       class="col-span-12 ml-10"
     />
