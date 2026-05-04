@@ -374,17 +374,129 @@ defmodule Sportyweb.PersonalTest do
         club_id: club_fixture().id,
         person_last_name: "Schmidt",
         person_first_name_1: "Sebastian",
-        roles: [%{valid_from: ~D[2026-03-14], valid_until: ~D[2026-03-14], name: "interested"}]
+        contact_roles: [
+          %{valid_from: ~D[2026-03-14], valid_until: ~D[2026-03-14], name: "interested"}
+        ]
       }
 
       assert {:ok, %Contact{} = contact} = Personal.create_short_contact(valid_attrs)
       assert contact.person_last_name == "Schmidt"
       assert contact.person_first_name_1 == "Sebastian"
-      assert List.first(contact.roles).name == "interested"
+      assert List.first(contact.contact_roles).name == "interested"
     end
 
     test "create_short_contact/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Personal.create_short_contact(@invalid_attrs)
+    end
+  end
+
+  describe "contact_role_relations" do
+    alias Sportyweb.Personal.ContactRoleRelation
+    alias Sportyweb.Personal.ContactRole
+
+    import Sportyweb.PersonalFixtures
+
+    @invalid_attrs %{valid_from: nil, valid_until: nil}
+
+    test "list_contact_role_relations/0 returns all contact_role_relations" do
+      contact_role_relation = contact_role_relation_fixture()
+      assert Personal.list_contact_role_relations() == [contact_role_relation]
+    end
+
+    test "get_contact_role_relation!/1 returns the contact_role_relation with given id" do
+      contact_role_relation = contact_role_relation_fixture()
+
+      assert Personal.get_contact_role_relation!(contact_role_relation.id) ==
+               contact_role_relation
+    end
+
+    test "create_contact_role_relation/1 with valid data creates a contact_role_relation" do
+      contact = contact_fixture()
+      contact_role = contact_role_fixture()
+
+      valid_attrs = %{
+        contact_role_id: contact_role.id,
+        contact_id: contact.id,
+        valid_from: ~D[2026-05-02],
+        valid_until: ~D[2026-05-02]
+      }
+
+      assert {:ok, %ContactRoleRelation{} = contact_role_relation} =
+               Personal.create_contact_role_relation(valid_attrs)
+
+      assert contact_role_relation.valid_from == ~D[2026-05-02]
+      assert contact_role_relation.valid_until == ~D[2026-05-02]
+    end
+
+    test "create_contact_role_relation/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Personal.create_contact_role_relation(@invalid_attrs)
+    end
+
+    test "update_contact_role_relation/2 with valid data updates the contact_role_relation" do
+      contact_role_relation = contact_role_relation_fixture()
+      update_attrs = %{valid_from: ~D[2026-05-03], valid_until: ~D[2026-05-03]}
+
+      assert {:ok, %ContactRoleRelation{} = contact_role_relation} =
+               Personal.update_contact_role_relation(contact_role_relation, update_attrs)
+
+      assert contact_role_relation.valid_from == ~D[2026-05-03]
+      assert contact_role_relation.valid_until == ~D[2026-05-03]
+    end
+
+    test "update_contact_role_relation/2 with invalid data returns error changeset" do
+      contact_role_relation = contact_role_relation_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Personal.update_contact_role_relation(contact_role_relation, @invalid_attrs)
+
+      assert contact_role_relation ==
+               Personal.get_contact_role_relation!(contact_role_relation.id)
+    end
+
+    test "delete_contact_role_relation/1 deletes the contact_role_relation" do
+      contact_role_relation = contact_role_relation_fixture()
+
+      assert {:ok, %ContactRoleRelation{}} =
+               Personal.delete_contact_role_relation(contact_role_relation)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Personal.get_contact_role_relation!(contact_role_relation.id)
+      end
+    end
+
+    test "change_contact_role_relation/1 returns a contact_role_relation changeset" do
+      contact_role_relation = contact_role_relation_fixture()
+      assert %Ecto.Changeset{} = Personal.change_contact_role_relation(contact_role_relation)
+    end
+
+    alias Sportyweb.Personal.Contact
+    import Sportyweb.OrganizationFixtures
+
+    test "Personal.create_contact with role and relation returns contact with a role and a relation" do
+      contact = contact_fixture()
+
+      valid_attrs = %{
+        type: "person",
+        club_id: club_fixture().id,
+        person_last_name: "Schmidt",
+        person_first_name_1: "Selona",
+        contact_roles: [
+          %{
+            valid_from: ~D[2026-03-14],
+            valid_until: ~D[2026-03-14],
+            name: "legal guardian",
+            contact_role_relations: [
+              %{
+                contact_id: contact.id,
+                valid_from: ~D[2026-03-14],
+                valid_until: ~D[2026-03-14]
+              }
+            ]
+          }
+        ]
+      }
+
+      assert {:ok, %Contact{}} = Personal.create_short_contact(valid_attrs)
     end
   end
 end

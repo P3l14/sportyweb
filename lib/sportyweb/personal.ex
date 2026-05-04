@@ -51,6 +51,41 @@ defmodule Sportyweb.Personal do
   end
 
   @doc """
+  Lists all adult contacts for selection as legal guradian.
+
+
+  """
+  def list_contacts_for_contact_role_legal_gurdian_selection(club_id) do
+    eighteen_years_ago = Date.add(Date.utc_today(), -18 * 365)
+
+    query =
+      from(c in Contact,
+        where:
+          c.club_id == ^club_id and
+            c.type == "person" and
+            c.person_birthday <= ^eighteen_years_ago,
+        order_by: c.name
+      )
+
+    Repo.all(query)
+  end
+
+  def list_underage_contacts_for_contact_role_reltation_to_legal_gurdian_selection(club_id) do
+    eighteen_years_ago = Date.add(Date.utc_today(), -18 * 365)
+
+    query =
+      from(c in Contact,
+        where:
+          c.club_id == ^club_id and
+            c.type == "person" and
+            c.person_birthday > ^eighteen_years_ago,
+        order_by: c.name
+      )
+
+    Repo.all(query)
+  end
+
+  @doc """
   Returns a clubs list of contacts. Preloads associations.
 
   ## Examples
@@ -438,5 +473,101 @@ defmodule Sportyweb.Personal do
   """
   def create_contact_internal(%Contact{} = contact) do
     Repo.insert(contact)
+  end
+
+  alias Sportyweb.Personal.ContactRoleRelation
+
+  @doc """
+  Returns the list of contact_role_relations.
+
+  ## Examples
+
+      iex> list_contact_role_relations()
+      [%ContactRoleRelation{}, ...]
+
+  """
+  def list_contact_role_relations do
+    Repo.all(ContactRoleRelation)
+  end
+
+  @doc """
+  Gets a single contact_role_relation.
+
+  Raises `Ecto.NoResultsError` if the Contact role relation does not exist.
+
+  ## Examples
+
+      iex> get_contact_role_relation!(123)
+      %ContactRoleRelation{}
+
+      iex> get_contact_role_relation!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_contact_role_relation!(id), do: Repo.get!(ContactRoleRelation, id)
+
+  @doc """
+  Creates a contact_role_relation.
+
+  ## Examples
+
+      iex> create_contact_role_relation(%{field: value})
+      {:ok, %ContactRoleRelation{}}
+
+      iex> create_contact_role_relation(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_contact_role_relation(attrs \\ %{}) do
+    %ContactRoleRelation{}
+    |> ContactRoleRelation.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a contact_role_relation.
+
+  ## Examples
+
+      iex> update_contact_role_relation(contact_role_relation, %{field: new_value})
+      {:ok, %ContactRoleRelation{}}
+
+      iex> update_contact_role_relation(contact_role_relation, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_contact_role_relation(%ContactRoleRelation{} = contact_role_relation, attrs) do
+    contact_role_relation
+    |> ContactRoleRelation.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a contact_role_relation.
+
+  ## Examples
+
+      iex> delete_contact_role_relation(contact_role_relation)
+      {:ok, %ContactRoleRelation{}}
+
+      iex> delete_contact_role_relation(contact_role_relation)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_contact_role_relation(%ContactRoleRelation{} = contact_role_relation) do
+    Repo.delete(contact_role_relation)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking contact_role_relation changes.
+
+  ## Examples
+
+      iex> change_contact_role_relation(contact_role_relation)
+      %Ecto.Changeset{data: %ContactRoleRelation{}}
+
+  """
+  def change_contact_role_relation(%ContactRoleRelation{} = contact_role_relation, attrs \\ %{}) do
+    ContactRoleRelation.changeset(contact_role_relation, attrs)
   end
 end

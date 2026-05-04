@@ -38,7 +38,7 @@
       </:col>
 
       <:col :let={{_id, contact}} :if={@live_action == :index} label="Rollen">
-        {format_struct_list(contact.roles, :name, fn value ->
+        {format_struct_list(contact.contact_roles, :name, fn value ->
           get_key_for_value(ContactRole.get_valid_names(), value)
         end)}
       </:col>

@@ -8,10 +8,10 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
   def render(assigns) do
     ~H"""
     <.header level="2" class="col-span-12 md:col-span-12">
-      Rollen des Kontakts
+      Rollen
     </.header>
 
-    <.inputs_for :let={contact_role} field={@form[:roles]}>
+    <.inputs_for :let={contact_role} field={@form[:contact_roles]}>
       <.element_index_field
         :if={@allow_multiple}
         form_id={@form.id}
@@ -42,6 +42,14 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
         drop_param={ContactRole.get_changeset_drop_param()}
         class="col-span-12 md:col-span-1 mt-9"
         element={contact_role}
+      />
+
+      <SportywebWeb.ContactLive.ContactRoleRelationFormComponent.render
+        :if={contact_role[:name].value == "legal guardian"}
+        form={contact_role}
+        role_text="für"
+        club_id={@form[:club_id].value}
+        allow_multiple={true}
       />
     </.inputs_for>
 

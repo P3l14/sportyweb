@@ -100,6 +100,13 @@ defmodule SportywebWeb.ContactLive.FormComponent do
                 </.input_grid>
               <% end %>
 
+              <.input_grid>
+                <SportywebWeb.ContactLive.ContactRoleFormComponent.render
+                  form={@form}
+                  allow_multiple={true}
+                />
+              </.input_grid>
+
               <.input_grid class="pt-6">
                 <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
                   form={@form}

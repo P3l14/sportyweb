@@ -43,6 +43,11 @@
     <:item title="Notizen">
       <SportywebWeb.PolymorphicLive.NotesShowComponent.render notes={@contact.notes} />
     </:item>
+    <:item title="Rollen">
+      <SportywebWeb.ContactLive.ContactRoleShowComponent.render contact_roles={
+        @contact.contact_roles
+      } />
+    </:item>
     <:item :if={Contact.has_active_membership_contract?(@contact)} title="Aktives Mitglied">
       <.icon name="hero-check-badge" class="inline-block w-[20px] text-green-800" />
     </:item>

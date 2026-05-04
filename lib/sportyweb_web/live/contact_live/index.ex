@@ -21,7 +21,7 @@ defmodule SportywebWeb.ContactLive.Index do
   end
 
   defp apply_action(socket, :index, %{"club_id" => club_id}) do
-    club = Organization.get_club!(club_id, contacts: [:contracts, :roles])
+    club = Organization.get_club!(club_id, contacts: [:contracts, :contact_roles])
 
     contacts =
       club.contacts

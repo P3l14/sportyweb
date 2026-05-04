@@ -44,7 +44,8 @@ defmodule SportywebWeb.ContactLive.NewEdit do
         :financial_data,
         :phones,
         :postal_addresses,
-        :notes
+        :notes,
+        contact_roles: [contact_role_relations: :contact]
       ])
 
     socket

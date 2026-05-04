@@ -494,6 +494,15 @@ erDiagram
     timestamp inserted_at
     timestamp updated_at
   }
+  contact_role_relations {
+    uuid id PK
+    uuid contact_role_id
+    uuid contact_id
+    date valid_from
+    date valid_until
+    timestamp inserted_at
+    timestamp updated_at
+  }
   emails {
     uuid id PK
     varchar type
@@ -609,12 +618,14 @@ erDiagram
   clubs ||--|{ subsidies : ""
   clubs ||--|{ userclubroles : ""
   contact_groups ||--|{ contact_group_contacts : ""
+  contact_roles ||--|{ contact_role_relations : ""
   contacts ||--|{ contact_emails : ""
   contacts ||--|{ contact_financial_data : ""
   contacts ||--|{ contact_group_contacts : ""
   contacts ||--|{ contact_notes : ""
   contacts ||--|{ contact_phones : ""
   contacts ||--|{ contact_postal_addresses : ""
+  contacts ||--|{ contact_role_relations : ""
   contacts ||--|{ contact_roles : ""
   contacts ||--|{ contracts : ""
   contracts ||--|{ club_contracts : ""

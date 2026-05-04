@@ -13,6 +13,7 @@ defmodule Sportyweb.Personal.Contact do
   alias Sportyweb.Personal.ContactPhone
   alias Sportyweb.Personal.ContactPostalAddress
   alias Sportyweb.Personal.ContactRole
+  alias Sportyweb.Personal.ContactRoleRelation
   alias Sportyweb.Polymorphic.Email
   alias Sportyweb.Polymorphic.FinancialData
   alias Sportyweb.Polymorphic.Note
@@ -24,7 +25,8 @@ defmodule Sportyweb.Personal.Contact do
   schema "contacts" do
     belongs_to :club, Club
     has_many :contracts, Contract
-    has_many :roles, ContactRole
+    has_many :contact_roles, ContactRole, on_replace: :delete
+    has_many :contact_role_relations, ContactRoleRelation
     many_to_many :contact_groups, ContactGroup, join_through: ContactGroupContact
     many_to_many :emails, Email, join_through: ContactEmail, on_replace: :delete
     many_to_many :financial_data, FinancialData, join_through: ContactFinancialData
@@ -166,6 +168,14 @@ defmodule Sportyweb.Personal.Contact do
       sort_param: PostalAddress.get_changeset_sort_param(),
       drop_param: PostalAddress.get_changeset_drop_param()
     )
+    |> cast_assoc(:contact_roles,
+      required: false,
+      sort_param: ContactRole.get_changeset_sort_param(),
+      drop_param: ContactRole.get_changeset_drop_param()
+    )
+    |> cast_assoc(:contact_role_relations,
+      required: false
+    )
     |> validate_required([:type])
     |> update_change(:organization_name, &String.trim/1)
     |> update_change(:person_last_name, &String.trim/1)
@@ -233,10 +243,13 @@ defmodule Sportyweb.Personal.Contact do
       get_valid_genders() |> Enum.map(fn gender -> gender[:value] end)
     )
     |> validate_short_required_type_condition()
-    |> cast_assoc(:roles,
+    |> cast_assoc(:contact_roles,
       required: true,
       sort_param: ContactRole.get_changeset_sort_param(),
       drop_param: ContactRole.get_changeset_drop_param()
+    )
+    |> cast_assoc(:contact_role_relations,
+      required: false
     )
     |> cast_assoc(:postal_addresses,
       required: false,

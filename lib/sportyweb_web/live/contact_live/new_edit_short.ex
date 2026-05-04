@@ -4,6 +4,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Personal.ContactRole
+  alias Sportyweb.Personal.ContactRoleRelation
   alias Sportyweb.Organization
 
   @impl true
@@ -17,12 +18,6 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
       <.card>
         <.simple_form for={@form} id="contact-form" phx-change="validate" phx-submit="save">
           <.input_grids>
-            <.input_grid class="pt-6">
-              <SportywebWeb.ContactLive.ContactRoleFormComponent.render
-                form={@form}
-                allow_multiple={true}
-              />
-            </.input_grid>
             <.input_grid>
               <div class="col-span-12">
                 <!-- Don't remove the id of the div, otherwise LiveView doesn't remove the input in step 2. -->
@@ -76,6 +71,12 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
                 </div>
               </.input_grid>
             <% end %>
+            <.input_grid>
+              <SportywebWeb.ContactLive.ContactRoleFormComponent.render
+                form={@form}
+                allow_multiple={true}
+              />
+            </.input_grid>
             <.input_grid class="pt-6">
               <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
                 form={@form}
@@ -132,7 +133,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
         :phones,
         :postal_addresses,
         :notes,
-        :roles
+        :contact_roles
       ])
 
     socket
@@ -151,7 +152,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
     contact = %Contact{
       club_id: club.id,
       club: club,
-      roles: [%ContactRole{}],
+      contact_roles: [%ContactRole{contact_role_relations: [%ContactRoleRelation{}]}],
       postal_addresses: [],
       emails: [],
       phones: [],

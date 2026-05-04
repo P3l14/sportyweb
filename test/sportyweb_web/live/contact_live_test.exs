@@ -195,7 +195,7 @@ defmodule SportywebWeb.ContactLiveTest do
     @create_attrs %{
       person_first_name_1: "some person_first_name_1",
       person_last_name: "some person_last_name",
-      roles: %{
+      contact_roles: %{
         "0" => %{
           name: "interested",
           valid_from: ~D[2026-03-14],

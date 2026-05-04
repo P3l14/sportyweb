@@ -86,4 +86,24 @@ defmodule Sportyweb.PersonalFixtures do
 
     contact_role
   end
+
+  @doc """
+  Generate a contact_role_relation.
+  """
+  def contact_role_relation_fixture(attrs \\ %{}) do
+    contact = contact_fixture()
+    contact_role = contact_role_fixture()
+
+    {:ok, contact_role_relation} =
+      attrs
+      |> Enum.into(%{
+        contact_role_id: contact_role.id,
+        contact_id: contact.id,
+        valid_from: ~D[2026-05-02],
+        valid_until: ~D[2026-05-02]
+      })
+      |> Sportyweb.Personal.create_contact_role_relation()
+
+    contact_role_relation
+  end
 end
