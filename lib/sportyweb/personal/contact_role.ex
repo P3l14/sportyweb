@@ -37,6 +37,11 @@ defmodule Sportyweb.Personal.ContactRole do
     :contact_roles_drop
   end
 
+  def is_in_use?(contact_role, %Date{} = date \\ Date.utc_today()) do
+    Date.compare(date, contact_role.valid_from) != :lt &&
+      (is_nil(contact_role.valid_until) || Date.compare(date, contact_role.valid_until) == :lt)
+  end
+
   @doc false
   def changeset(contact_role, attrs) do
     contact_role

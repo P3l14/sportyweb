@@ -114,7 +114,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
               <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
                 <div class="col-span-12 md:col-span-11">
                   <.input
-                    field={contact[:erz_id]}
+                    field={contact[:legal_gurardian_id]}
                     type="select"
                     label="Erziehungsberechtigter"
                     options={@contact_options}
@@ -275,10 +275,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
     # TODO sprechenderer Bezeichner!
     contact_options =
       club.id
-      |> Personal.list_contacts()
-      |> Enum.filter(fn contact ->
-        Contact.is_person?(contact) and not Contact.underage_person?(contact)
-      end)
+      |> Personal.list_contacts_for_contact_role_legal_gurdian_selection()
       |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
 
     {:noreply,
@@ -311,7 +308,8 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
       |> MembershipContractForm.changeset(membership_contract_form)
       |> Map.put(:action, :validate)
 
-    birthday = get_in(membership_contract_form, ["contact","person_birthday"])
+    birthday = get_in(membership_contract_form, ["contact", "person_birthday"])
+
     {:noreply,
      socket
      |> assign(form: to_form(changeset, action: :validate))
@@ -337,6 +335,16 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
           {:ok, added} = Personal.create_contact_internal(membership_contract.contact)
           added
         end
+
+      legal_gurardian_id = get_in(membership_contract_form, ["contact", "legal_gurardian_id"])
+
+      if legal_gurardian_id do
+        Personal.create_legal_guardian_relation(
+          legal_gurardian_id,
+          contact.id,
+          membership_contract.signing_date
+        )
+      end
 
       club_contract = %Contract{
         club_id: club.id,

@@ -4,6 +4,7 @@ defmodule Sportyweb.Personal do
   """
 
   import Ecto.Query, warn: false
+  alias Sportyweb.Personal.ContactRoleRelation
   alias Sportyweb.Repo
 
   alias Sportyweb.Legal.Contract
@@ -418,6 +419,50 @@ defmodule Sportyweb.Personal do
     %ContactRole{}
     |> ContactRole.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Creates a role relation to a legal guradian.
+  Initially creats the role with the relation when the contact does not have the role legal guardian and
+  adds a relation to the present role otherwise.
+
+
+  """
+  def create_legal_guardian_relation(legal_guardian_contact_id, underage_contact_id, start_date) do
+    query =
+      from(
+        cr in ContactRole,
+        where: cr.contact_id == ^legal_guardian_contact_id and cr.name == "legal guardian"
+      )
+
+    legal_guradian_roles = Repo.all(query)
+
+    if not Enum.empty?(legal_guradian_roles) and
+         ContactRole.is_in_use?(List.first(legal_guradian_roles)) do
+      present_role = List.first(legal_guradian_roles)
+
+      legal_guardian_role_relation = %{
+        contact_role_id: present_role.id,
+        contact_id: underage_contact_id,
+        valid_from: start_date
+      }
+
+      create_contact_role_relation(legal_guardian_role_relation)
+    else
+      legal_guardian_role = %{
+        valid_from: start_date,
+        name: "legal guardian",
+        contact_id: legal_guardian_contact_id,
+        contact_role_relations: [
+          %{
+            contact_id: underage_contact_id,
+            valid_from: start_date
+          }
+        ]
+      }
+
+      create_contact_role(legal_guardian_role)
+    end
   end
 
   @doc """

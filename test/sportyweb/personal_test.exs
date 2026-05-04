@@ -469,6 +469,85 @@ defmodule Sportyweb.PersonalTest do
       assert %Ecto.Changeset{} = Personal.change_contact_role_relation(contact_role_relation)
     end
 
+    test "create_legal_guardian_relation/3 creates a relation and a role" do
+      legal_guardian = contact_fixture()
+      underage = contact_fixture()
+      today = Date.utc_today()
+      assert [] = Personal.list_contact_roles()
+      assert [] = Personal.list_contact_role_relations()
+      Personal.create_legal_guardian_relation(legal_guardian.id, underage.id, today)
+      assert 1 = length(Personal.list_contact_roles())
+      assert 1 = length(Personal.list_contact_role_relations())
+    end
+
+    test "create_legal_guardian_relation/3 while legal guradian role exists appends a relation to the existing role" do
+      underage_b = contact_fixture()
+      two_years_ago = Date.add(Date.utc_today(), -2 * 365)
+      two_years_in_future = Date.add(Date.utc_today(), 2 * 365)
+
+      role =
+        contact_role_fixture(%{
+          name: "legal guardian",
+          valid_from: two_years_ago,
+          valid_until: two_years_in_future,
+          contact_role_relations: [
+            %{
+              contact_id: underage_b.id,
+              valid_from: two_years_ago,
+              valid_until: two_years_in_future
+            }
+          ]
+        })
+
+      underage = contact_fixture()
+      today = Date.utc_today()
+      assert 1 = length(Personal.list_contact_roles())
+      assert 1 = length(Personal.list_contact_role_relations())
+      Personal.create_legal_guardian_relation(role.contact_id, underage.id, today)
+      assert 1 = length(Personal.list_contact_roles())
+      assert 2 = length(Personal.list_contact_role_relations())
+    end
+
+    test "is_in_use/2 valid today" do
+      two_years_ago = Date.add(Date.utc_today(), -2 * 365)
+
+      role =
+        contact_role_fixture(%{
+          name: "legal guardian",
+          valid_from: two_years_ago,
+          valid_until: nil
+        })
+
+      assert role |> ContactRole.is_in_use?()
+    end
+
+    test "is_in_use/2 valid_from future date invalid today" do
+      two_years_in_future = Date.add(Date.utc_today(), 2 * 365)
+
+      role =
+        contact_role_fixture(%{
+          name: "legal guardian",
+          valid_from: two_years_in_future,
+          valid_until: nil
+        })
+
+      assert not (role |> ContactRole.is_in_use?())
+    end
+
+    test "is_in_use/2 valid_until past invalid today" do
+      two_years_ago = Date.add(Date.utc_today(), -2 * 365)
+      one_years_ago = Date.add(Date.utc_today(), -1 * 365)
+
+      role =
+        contact_role_fixture(%{
+          name: "legal guardian",
+          valid_from: two_years_ago,
+          valid_until: one_years_ago
+        })
+
+      assert not (role |> ContactRole.is_in_use?())
+    end
+
     alias Sportyweb.Personal.Contact
     import Sportyweb.OrganizationFixtures
 
