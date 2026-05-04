@@ -311,8 +311,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
       |> MembershipContractForm.changeset(membership_contract_form)
       |> Map.put(:action, :validate)
 
-    %{"contact" => %{"person_birthday" => birthday}} = membership_contract_form
-
+    birthday = get_in(membership_contract_form, ["contact","person_birthday"])
     {:noreply,
      socket
      |> assign(form: to_form(changeset, action: :validate))
