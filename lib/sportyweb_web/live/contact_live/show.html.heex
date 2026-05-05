@@ -15,6 +15,9 @@
     <:item title="Name">
       {format_string_field(@contact.name)}
     </:item>
+    <:item title="Geburtsname">
+      {format_string_field(@contact.person_birth_name)}
+    </:item>
     <:item :if={Contact.is_organization?(@contact)} title="Organisationstyp">
       {get_key_for_value(Contact.get_valid_organization_types(), @contact.organization_type)}
     </:item>

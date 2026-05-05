@@ -63,18 +63,26 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                   </div>
 
                   <div class="col-span-12 md:col-span-4">
-                    <.input field={contact[:person_first_name_1]} type="text" label="Vorname" />
+                    <.input field={contact[:person_first_name]} type="text" label="Vorname" />
                   </div>
 
                   <div class="col-span-12 md:col-span-4">
                     <.input
-                      field={contact[:person_first_name_2]}
+                      field={contact[:person_middle_names]}
                       type="text"
-                      label="2. Vorname (optional)"
+                      label="weitere Vornamen (optional)"
                     />
                   </div>
 
-                  <div class="col-span-12 md:col-span-6">
+                  <div class="col-span-12 md:col-span-4">
+                    <.input
+                      field={contact[:person_birth_name]}
+                      type="text"
+                      label="Geburtsname (optional)"
+                    />
+                  </div>
+
+                  <div class="col-span-12 md:col-span-4">
                     <.input
                       field={contact[:person_gender]}
                       type="select"
@@ -84,7 +92,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                     />
                   </div>
 
-                  <div class="col-span-12 md:col-span-6">
+                  <div class="col-span-12 md:col-span-4">
                     <.input field={contact[:person_birthday]} type="date" label="Geburtsdatum" />
                   </div>
                 </.input_grid>

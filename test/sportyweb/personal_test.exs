@@ -14,8 +14,8 @@ defmodule Sportyweb.PersonalTest do
       organization_name: nil,
       organization_type: nil,
       person_birthday: nil,
-      person_first_name_1: nil,
-      person_first_name_2: nil,
+      person_first_name: nil,
+      person_middle_names: nil,
       person_gender: nil,
       person_last_name: nil,
       type: nil
@@ -63,8 +63,8 @@ defmodule Sportyweb.PersonalTest do
         organization_name: "some organization_name",
         organization_type: "club",
         person_birthday: ~D[2023-02-15],
-        person_first_name_1: "some person_first_name_1",
-        person_first_name_2: "some person_first_name_2",
+        person_first_name: "some person_first_name",
+        person_middle_names: "some person_middle_names",
         person_gender: "female",
         person_last_name: "some person_last_name",
         type: "person",
@@ -79,8 +79,8 @@ defmodule Sportyweb.PersonalTest do
       assert contact.organization_name == "some organization_name"
       assert contact.organization_type == "club"
       assert contact.person_birthday == ~D[2023-02-15]
-      assert contact.person_first_name_1 == "some person_first_name_1"
-      assert contact.person_first_name_2 == "some person_first_name_2"
+      assert contact.person_first_name == "some person_first_name"
+      assert contact.person_middle_names == "some person_middle_names"
       assert contact.person_gender == "female"
       assert contact.person_last_name == "some person_last_name"
       assert contact.type == "person"
@@ -97,8 +97,8 @@ defmodule Sportyweb.PersonalTest do
         organization_name: "some updated organization_name",
         organization_type: "corporation",
         person_birthday: ~D[2023-02-16],
-        person_first_name_1: "some updated person_first_name_1",
-        person_first_name_2: "some updated person_first_name_2",
+        person_first_name: "some updated person_first_name",
+        person_middle_names: "some updated person_middle_names",
         person_gender: "male",
         person_last_name: "some updated person_last_name",
         type: "organization"
@@ -108,8 +108,8 @@ defmodule Sportyweb.PersonalTest do
       assert contact.organization_name == "some updated organization_name"
       assert contact.organization_type == "corporation"
       assert contact.person_birthday == ~D[2023-02-16]
-      assert contact.person_first_name_1 == "some updated person_first_name_1"
-      assert contact.person_first_name_2 == "some updated person_first_name_2"
+      assert contact.person_first_name == "some updated person_first_name"
+      assert contact.person_middle_names == "some updated person_middle_names"
       assert contact.person_gender == "male"
       assert contact.person_last_name == "some updated person_last_name"
       assert contact.type == "organization"
@@ -250,7 +250,7 @@ defmodule Sportyweb.PersonalTest do
       contact_1 =
         contact_fixture(%{
           club_id: club.id,
-          person_first_name_1: "Max",
+          person_first_name: "Max",
           person_last_name: "Mustermann",
           person_gender: "male",
           person_birthday: ~D[2023-02-16],
@@ -264,7 +264,7 @@ defmodule Sportyweb.PersonalTest do
       contact_2 =
         contact_fixture(%{
           club_id: club.id,
-          person_first_name_1: "Maria",
+          person_first_name: "Maria",
           person_last_name: "Mustermann",
           person_gender: "female",
           person_birthday: ~D[2023-02-16],
@@ -373,7 +373,7 @@ defmodule Sportyweb.PersonalTest do
         type: "person",
         club_id: club_fixture().id,
         person_last_name: "Schmidt",
-        person_first_name_1: "Sebastian",
+        person_first_name: "Sebastian",
         contact_roles: [
           %{valid_from: ~D[2026-03-14], valid_until: ~D[2026-03-14], name: "interested"}
         ]
@@ -381,7 +381,7 @@ defmodule Sportyweb.PersonalTest do
 
       assert {:ok, %Contact{} = contact} = Personal.create_short_contact(valid_attrs)
       assert contact.person_last_name == "Schmidt"
-      assert contact.person_first_name_1 == "Sebastian"
+      assert contact.person_first_name == "Sebastian"
       assert List.first(contact.contact_roles).name == "interested"
     end
 
@@ -558,7 +558,7 @@ defmodule Sportyweb.PersonalTest do
         type: "person",
         club_id: club_fixture().id,
         person_last_name: "Schmidt",
-        person_first_name_1: "Selona",
+        person_first_name: "Selona",
         contact_roles: [
           %{
             valid_from: ~D[2026-03-14],

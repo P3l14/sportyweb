@@ -13,8 +13,8 @@ defmodule SportywebWeb.ContactLiveTest do
 
   @create_attrs %{
     person_birthday: ~D[2022-11-05],
-    person_first_name_1: "some person_first_name_1",
-    person_first_name_2: "some person_first_name_2",
+    person_first_name: "some person_first_name",
+    person_middle_names: "some person_middle_names",
     person_gender: "male",
     person_last_name: "some person_last_name",
     financial_data: %{
@@ -26,15 +26,15 @@ defmodule SportywebWeb.ContactLiveTest do
   }
   @update_attrs %{
     person_birthday: ~D[2022-11-06],
-    person_first_name_1: "some updated person_first_name_1",
-    person_first_name_2: nil,
+    person_first_name: "some updated person_first_name",
+    person_middle_names: nil,
     person_gender: "female",
     person_last_name: "some updated person_last_name"
   }
   @invalid_attrs %{
     person_birthday: nil,
-    person_first_name_1: nil,
-    person_first_name_2: nil,
+    person_first_name: nil,
+    person_middle_names: nil,
     person_gender: nil,
     person_last_name: nil
   }
@@ -109,7 +109,7 @@ defmodule SportywebWeb.ContactLiveTest do
         |> follow_redirect(conn, ~p"/clubs/#{club}/contacts")
 
       assert html =~ "Kontakt erfolgreich erstellt"
-      assert html =~ "some person_last_name, some person_first_name_1 some person_first_name_2"
+      assert html =~ "some person_last_name, some person_first_name some person_middle_names"
     end
 
     test "cancels save new contact", %{conn: conn, user: user} do
@@ -193,7 +193,7 @@ defmodule SportywebWeb.ContactLiveTest do
 
   describe "New short contact" do
     @create_attrs %{
-      person_first_name_1: "some person_first_name_1",
+      person_first_name: "some person_first_name",
       person_last_name: "some person_last_name",
       contact_roles: %{
         "0" => %{
@@ -204,7 +204,7 @@ defmodule SportywebWeb.ContactLiveTest do
       }
     }
     @invalid_attrs %{
-      person_first_name_1: nil,
+      person_first_name: nil,
       person_last_name: nil,
       roles: %{}
     }
@@ -232,7 +232,7 @@ defmodule SportywebWeb.ContactLiveTest do
         |> follow_redirect(conn, ~p"/clubs/#{club}/contacts")
 
       assert html =~ "Kontakt erfolgreich erstellt"
-      assert html =~ "some person_last_name, some person_first_name_1"
+      assert html =~ "some person_last_name, some person_first_name"
     end
 
     test "cancels save new contact", %{conn: conn, user: user} do
@@ -252,7 +252,7 @@ defmodule SportywebWeb.ContactLiveTest do
   describe "New membership contract" do
     @invalid_attrs %{
       contact: %{
-        person_first_name_1: nil,
+        person_first_name: nil,
         person_last_name: nil
       }
     }
@@ -283,8 +283,8 @@ defmodule SportywebWeb.ContactLiveTest do
               }
             },
             "person_birthday" => "1999-04-01",
-            "person_first_name_1" => "Max",
-            "person_first_name_2" => "",
+            "person_first_name" => "Max",
+            "person_middle_names" => "",
             "person_gender" => "male",
             "person_last_name" => "Mustermann",
             "postal_addresses" => %{
@@ -320,8 +320,8 @@ defmodule SportywebWeb.ContactLiveTest do
               }
             },
             "person_birthday" => "1999-04-01",
-            "person_first_name_1" => "Max",
-            "person_first_name_2" => "",
+            "person_first_name" => "Max",
+            "person_middle_names" => "",
             "person_gender" => "male",
             "person_last_name" => "Mustermann",
             "postal_addresses" => %{

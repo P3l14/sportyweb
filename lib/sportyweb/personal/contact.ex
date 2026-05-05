@@ -42,8 +42,9 @@ defmodule Sportyweb.Personal.Contact do
     field :organization_name, :string, default: ""
     field :organization_type, :string, default: ""
     field :person_last_name, :string, default: ""
-    field :person_first_name_1, :string, default: ""
-    field :person_first_name_2, :string, default: ""
+    field :person_first_name, :string, default: ""
+    field :person_middle_names, :string, default: ""
+    field :person_birth_name, :string, default: ""
     field :person_gender, :string, default: ""
     field :person_birthday, :date, default: nil
 
@@ -143,8 +144,9 @@ defmodule Sportyweb.Personal.Contact do
         :organization_name,
         :organization_type,
         :person_last_name,
-        :person_first_name_1,
-        :person_first_name_2,
+        :person_first_name,
+        :person_middle_names,
+        :person_birth_name,
         :person_gender,
         :person_birthday
       ],
@@ -179,12 +181,14 @@ defmodule Sportyweb.Personal.Contact do
     |> validate_required([:type])
     |> update_change(:organization_name, &String.trim/1)
     |> update_change(:person_last_name, &String.trim/1)
-    |> update_change(:person_first_name_1, &String.trim/1)
-    |> update_change(:person_first_name_2, &String.trim/1)
+    |> update_change(:person_first_name, &String.trim/1)
+    |> update_change(:person_middle_names, &String.trim/1)
+    |> update_change(:person_birth_name, &String.trim/1)
     |> validate_length(:organization_name, max: 250)
     |> validate_length(:person_last_name, max: 100)
-    |> validate_length(:person_first_name_1, max: 75)
-    |> validate_length(:person_first_name_2, max: 75)
+    |> validate_length(:person_first_name, max: 75)
+    |> validate_length(:person_middle_names, max: 100)
+    |> validate_length(:person_birth_name, max: 75)
     |> validate_inclusion(
       :type,
       get_valid_types() |> Enum.map(fn type -> type[:value] end)
@@ -213,8 +217,9 @@ defmodule Sportyweb.Personal.Contact do
         :organization_name,
         :organization_type,
         :person_last_name,
-        :person_first_name_1,
-        :person_first_name_2,
+        :person_first_name,
+        :person_middle_names,
+        :person_birth_name,
         :person_gender,
         :person_birthday
       ],
@@ -223,12 +228,14 @@ defmodule Sportyweb.Personal.Contact do
     |> validate_required([:type])
     |> update_change(:organization_name, &String.trim/1)
     |> update_change(:person_last_name, &String.trim/1)
-    |> update_change(:person_first_name_1, &String.trim/1)
-    |> update_change(:person_first_name_2, &String.trim/1)
+    |> update_change(:person_first_name, &String.trim/1)
+    |> update_change(:person_middle_names, &String.trim/1)
+    |> update_change(:person_birth_name, &String.trim/1)
     |> validate_length(:organization_name, max: 250)
     |> validate_length(:person_last_name, max: 100)
-    |> validate_length(:person_first_name_1, max: 75)
-    |> validate_length(:person_first_name_2, max: 75)
+    |> validate_length(:person_first_name, max: 75)
+    |> validate_length(:person_middle_names, max: 100)
+    |> validate_length(:person_birth_name, max: 75)
     |> validate_inclusion(
       :type,
       get_valid_types() |> Enum.map(fn type -> type[:value] end)
@@ -279,7 +286,7 @@ defmodule Sportyweb.Personal.Contact do
         changeset
         |> validate_required([
           :person_last_name,
-          :person_first_name_1
+          :person_first_name
         ])
 
       _ ->
@@ -297,7 +304,7 @@ defmodule Sportyweb.Personal.Contact do
         changeset
         |> validate_required([
           :person_last_name,
-          :person_first_name_1,
+          :person_first_name,
           :person_gender,
           :person_birthday
         ])
@@ -318,9 +325,9 @@ defmodule Sportyweb.Personal.Contact do
 
         "person" ->
           person_last_name = get_field(changeset, :person_last_name)
-          person_first_name_1 = get_field(changeset, :person_first_name_1)
-          person_first_name_2 = get_field(changeset, :person_first_name_2)
-          "#{person_last_name}, #{person_first_name_1} #{person_first_name_2}"
+          person_first_name = get_field(changeset, :person_first_name)
+          person_middle_names = get_field(changeset, :person_middle_names)
+          "#{person_last_name}, #{person_first_name} #{person_middle_names}"
 
         _ ->
           ""
@@ -339,8 +346,9 @@ defmodule Sportyweb.Personal.Contact do
         :organization_name,
         :organization_type,
         :person_last_name,
-        :person_first_name_1,
-        :person_first_name_2,
+        :person_first_name,
+        :person_middle_names,
+        :person_birth_name,
         :person_gender,
         :person_birthday
       ],
@@ -365,12 +373,14 @@ defmodule Sportyweb.Personal.Contact do
     )
     |> update_change(:organization_name, &String.trim/1)
     |> update_change(:person_last_name, &String.trim/1)
-    |> update_change(:person_first_name_1, &String.trim/1)
-    |> update_change(:person_first_name_2, &String.trim/1)
+    |> update_change(:person_first_name, &String.trim/1)
+    |> update_change(:person_middle_names, &String.trim/1)
+    |> update_change(:person_birth_name, &String.trim/1)
     |> validate_length(:organization_name, max: 250)
     |> validate_length(:person_last_name, max: 100)
-    |> validate_length(:person_first_name_1, max: 75)
-    |> validate_length(:person_first_name_2, max: 75)
+    |> validate_length(:person_first_name, max: 75)
+    |> validate_length(:person_middle_names, max: 100)
+    |> validate_length(:person_birth_name, max: 75)
     |> validate_required_type_condition()
     |> set_name()
   end

@@ -890,9 +890,11 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
             |> Enum.map(fn organization_type -> organization_type[:value] end)
             |> Enum.random(),
           person_last_name: Faker.Person.last_name(),
-          person_first_name_1: Faker.Person.first_name(),
-          person_first_name_2:
+          person_first_name: Faker.Person.first_name(),
+          person_middle_names:
             if(:rand.uniform() < 0.80, do: "", else: Faker.Person.first_name()),
+          person_birth_name:
+            if(:rand.uniform() < 0.40, do: "", else: Faker.Person.last_name()),
           person_gender:
             Contact.get_valid_genders()
             |> Enum.map(fn gender -> gender[:value] end)
