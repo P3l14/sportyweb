@@ -147,7 +147,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
     %{"country" => country, "zipcode" => zipcode} =
       get_in(params, ["postal_addresses", index])
 
-    if String.length(zipcode) == 1 do
+    if String.length(zipcode) == 2 do
       zipcodes = Directory.get_zipcodes(country, zipcode)
 
       {:halt,
