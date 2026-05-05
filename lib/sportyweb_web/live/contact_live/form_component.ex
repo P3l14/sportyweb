@@ -5,6 +5,8 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
+  alias Sportyweb.Polymorphic.FinancialData
+  alias Sportyweb.Polymorphic.Note
 
   @impl true
   def render(assigns) do
@@ -176,6 +178,22 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
   @impl true
   def update(%{contact: contact} = assigns, socket) do
+    # Need to initialize financial_data and notes for contacts created with create_short contact.
+    # The changes must be made before the changeset is created otherwise ecto will not recognize thet the elements are new.
+    contact =
+      if !is_nil(contact.id) and Enum.empty?(contact.financial_data) do
+        %{contact | financial_data: [%FinancialData{}]}
+      else
+        contact
+      end
+
+    contact =
+      if !is_nil(contact.id) and Enum.empty?(contact.notes) do
+        %{contact | notes: [%Note{}]}
+      else
+        contact
+      end
+
     changeset = Personal.change_contact(contact)
 
     step =

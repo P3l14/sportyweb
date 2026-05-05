@@ -3,6 +3,9 @@
   <:actions>
     <%= if @live_action == :index do %>
       <.link navigate={~p"/clubs/#{@club}/contacts/new_short"}>
+        <.button>Kontaktschnellerfassung</.button>
+      </.link>
+      <.link navigate={~p"/clubs/#{@club}/contacts/new"}>
         <.button>Kontakt erstellen</.button>
       </.link>
     <% end %>

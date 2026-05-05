@@ -510,6 +510,25 @@ defmodule SportywebWeb.CoreComponents do
   end
 
   @doc """
+  Generates error messages for a form field which belongs to a list.
+
+  """
+  attr :list_field, Phoenix.HTML.FormField,
+    doc: "a form field struct retrieved from the form, for example: @form[:email]"
+
+  def errors_for_lists(assigns) do
+    ~H"""
+    <.error :for={
+      msg <-
+        @list_field.errors
+        |> Enum.map(fn error -> SportywebWeb.CoreComponents.translate_error(error) end)
+    }>
+      {msg}
+    </.error>
+    """
+  end
+
+  @doc """
   Generates a generic error message.
   """
   slot :inner_block, required: true

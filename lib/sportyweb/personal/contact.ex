@@ -152,14 +152,14 @@ defmodule Sportyweb.Personal.Contact do
     )
     |> cast_assoc(:contact_groups, required: false)
     |> cast_assoc(:emails,
-      required: true,
+      required: false,
       sort_param: Email.get_changeset_sort_param(),
       drop_param: Email.get_changeset_drop_param()
     )
     |> cast_assoc(:financial_data, required: true)
-    |> cast_assoc(:notes, required: true)
+    |> cast_assoc(:notes, required: false)
     |> cast_assoc(:phones,
-      required: true,
+      required: false,
       sort_param: Phone.get_changeset_sort_param(),
       drop_param: Phone.get_changeset_drop_param()
     )
