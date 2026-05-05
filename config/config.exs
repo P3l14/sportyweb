@@ -46,6 +46,10 @@ config :sportyweb, Sportyweb.Scheduler,
     {"@daily", {Sportyweb.Accounting, :create_todays_transactions, []}}
   ]
 
+config :sportyweb, SportywebWeb.Gettext,
+  default_locale: "de",
+  locales: ~w(en,de)
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",

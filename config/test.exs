@@ -38,3 +38,6 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
+
+# Set locale to en because in the tests the original english messages are checked -> for example |> render_change() =~ "can&#39;t be blank"
+config :sportyweb, SportywebWeb.Gettext, default_locale: "en"

@@ -1,19 +1,22 @@
-## This is a PO Template file.
+## `msgid`s in this file come from POT (.pot) files.
 ##
-## `msgid`s here are often extracted from source code.
-## Add new translations manually only if they're dynamic
-## translations that can't be statically extracted.
+## Do not add, change, or remove `msgid`s manually here as
+## they're tied to the ones in the corresponding POT file
+## (with the same domain).
 ##
-## Run `mix gettext.extract` to bring this file up to
-## date. Leave `msgstr`s empty as changing them here has no
-## effect: edit them in PO (`.po`) files instead.
+## Use `mix gettext.extract --merge` or `mix gettext.merge`
+## to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: en\n"
+
 ## From Ecto.Changeset.cast/4
 msgid "can't be blank"
-msgstr ""
+msgstr "Darf nicht leer sein"
 
 ## From Ecto.Changeset.unique_constraint/3
 msgid "has already been taken"
-msgstr ""
+msgstr "Diese E-Mail-Adresse ist bereits vergeben."
 
 ## From Ecto.Changeset.put_change/3
 msgid "is invalid"
@@ -25,7 +28,7 @@ msgstr ""
 
 ## From Ecto.Changeset.validate_format/3
 msgid "has invalid format"
-msgstr ""
+msgstr "Hat ungültiges Format"
 
 ## From Ecto.Changeset.validate_subset/3
 msgid "has an invalid entry"
@@ -110,4 +113,4 @@ msgstr ""
 
 ## From Sportyweb.Personal.Contact.changeset
 msgid "at least one postal adress is required"
-msgstr ""
+msgstr "Es muss mindestens eine Straßenadresse erfasst werden!"
