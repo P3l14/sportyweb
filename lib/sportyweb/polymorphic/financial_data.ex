@@ -3,6 +3,7 @@ defmodule Sportyweb.Polymorphic.FinancialData do
   import Ecto.Changeset
 
   alias Sportyweb.Polymorphic.PostalAddress
+  alias Sportyweb.Personal.Contact
   alias Sportyweb.Directory
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -11,7 +12,9 @@ defmodule Sportyweb.Polymorphic.FinancialData do
     belongs_to :postal_address, PostalAddress,
       foreign_key: :invoice_recipient_postal_address_id,
       references: :id
-
+    belongs_to :direct_debit_account_holder_contact, Contact,
+      foreign_key: :direct_debit_account_holder_ref,
+      references: :id
     field :type, :string, default: "direct_debit"
     field :direct_debit_account_holder, :string, default: ""
     field :direct_debit_iban, :string, default: ""
@@ -20,7 +23,6 @@ defmodule Sportyweb.Polymorphic.FinancialData do
     field :invoice_recipient, :string, default: ""
     field :invoice_additional_information, :string, default: ""
     field :is_main, :boolean, default: false
-
     timestamps(type: :utc_datetime)
   end
 

@@ -14,6 +14,9 @@ defmodule Sportyweb.Repo.Migrations.CreateFinancialData do
       add :invoice_recipient_postal_address_id,
           references(:postal_addresses, on_delete: :nilify_all, type: :binary_id),
           null: true
+      add :direct_debit_account_holder_ref,
+          references(:contacts, on_delete: :nilify_all, type: :binary_id),
+          null: true
 
       timestamps(type: :utc_datetime)
     end

@@ -24,6 +24,9 @@ defmodule Sportyweb.Personal.Contact do
   @foreign_key_type :binary_id
   schema "contacts" do
     belongs_to :club, Club
+    has_many :debit_holder, FinancialData,
+      foreign_key: :direct_debit_account_holder_ref,
+      references: :id
     has_many :contracts, Contract
     has_many :contact_roles, ContactRole, on_replace: :delete
     has_many :contact_role_relations, ContactRoleRelation
@@ -152,6 +155,7 @@ defmodule Sportyweb.Personal.Contact do
       ],
       empty_values: ["", nil]
     )
+    |> cast_assoc(:debit_holder, required: false)
     |> cast_assoc(:contact_groups, required: false)
     |> cast_assoc(:emails,
       required: false,

@@ -578,4 +578,26 @@ defmodule Sportyweb.PersonalTest do
       assert {:ok, %Contact{}} = Personal.create_short_contact(valid_attrs)
     end
   end
+
+  describe "financial_data" do
+
+    import Sportyweb.PersonalFixtures
+    import Sportyweb.OrganizationFixtures
+    import Sportyweb.PolymorphicFixtures
+
+    test "create with owner ref" do
+      fd = financial_data_attrs()
+      c = contact_fixture(%{
+        financial_data: [fd]
+      })
+      dbg(c)
+      c = Personal.get_contact!(c.id, [:financial_data, :debit_holder, :postal_addresses, :phones, :notes, :emails])
+      dbg(c)
+      cs = Personal.change_contact(c)
+      cs = Ecto.Changeset.put_assoc(cs, :debit_holder, c.financial_data)
+      dbg(Sportyweb.Repo.update(cs))
+
+    end
+
+  end
 end
