@@ -60,7 +60,7 @@ defmodule Mix.Tasks.Directory.Streets.Import do
         }
       end)
 
-    # All rows can not be inserted at once. So the total of over 1.000.0000 entries is chunked into batches of 10.000 items
+    # All rows can not be inserted at once. So the entries are chunked into batches of 9.000 items
     Mix.shell().info("CSV File loaded.")
     chunks = Enum.chunk_every(streets, 9_000)
 
