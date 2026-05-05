@@ -84,7 +84,7 @@ if %errorlevel% equ 0 (
     :: https://hexdocs.pm/ecto_erd/Mix.Tasks.Ecto.Gen.Erd.html#module-mermaid
     call mix ecto.gen.erd --output-path=ecto_erd.mmd && mmdc -i ecto_erd.mmd -o documents/erd.pdf
     :: Remove the mermaid file
-    rm ecto_erd.mmd 
+    del ecto_erd.mmd 
 
 ) else (
     echo "  WARNING: Can't generate an ERD!"
