@@ -34,6 +34,7 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
   def get_valid_types do
     [
       [key: "Wohnsitz", value: "residence"],
+      [key: "Betriebsadresse", value: "company adress"],
       [key: "abweichende Rechnungsadresse", value: "billing"],
       [key: "Firmensitz", value: "company headquarters"],
       [key: "abweichende Anschrift", value: "alternative"]
