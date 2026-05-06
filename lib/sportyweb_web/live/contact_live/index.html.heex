@@ -24,6 +24,24 @@
 </.header>
 
 <.card>
+    <.form :let={f} for={%{}} as={:search} phx-change="search">
+    <.header level="4" class="col-span-12 md:col-span-12">
+      Filter
+    </.header>
+<.input_grids>
+  <.input_grid>
+      <div class="col-span-12 md:col-span-6 ml-10" >
+        <.input field={f[:query]} type="text" label="Name" phx-debounce="1000" />
+      </div>
+      <div class="col-span-12 md:col-span-3">
+        <.input field={f[:query1]} type="text" label="Art" phx-debounce="1000" />
+      </div>
+      <div class="col-span-12 md:col-span-3">
+        <.input field={f[:query2]} type="text" label="Rolle" phx-debounce="1000" />
+      </div>
+  </.input_grid>
+  </.input_grids>
+    </.form>
   <%= if Enum.any?(@streams.contacts.inserts) do %>
     <.table
       id="contacts"

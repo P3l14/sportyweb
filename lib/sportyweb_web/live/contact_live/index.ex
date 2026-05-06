@@ -31,6 +31,7 @@ defmodule SportywebWeb.ContactLive.Index do
     |> assign(:page_title, "Kontakte")
     |> assign(:club_navigation_current_item, :contacts)
     |> assign(:club, club)
+    |> assign(:all_contacts, contacts)
     |> stream(:contacts, contacts)
   end
 
@@ -45,6 +46,17 @@ defmodule SportywebWeb.ContactLive.Index do
     |> assign(:page_title, "Mitglieder")
     |> assign(:club_navigation_current_item, :members)
     |> assign(:club, club)
+    |> assign(:all_contacts, contacts)
     |> stream(:contacts, contacts)
+  end
+
+  @impl true
+  def handle_event("search", %{"search" => %{"query" => query}}, socket) do
+    filtered_contacts =
+      socket.assigns.all_contacts
+      |> Enum.filter(fn contact -> contact.name |> String.starts_with?(query) end)
+
+    dbg(filtered_contacts)
+    {:noreply, socket |> stream(:contacts, filtered_contacts, reset: true)}
   end
 end
