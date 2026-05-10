@@ -76,6 +76,9 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
                 form={@form}
                 allow_multiple={true}
               />
+              <div :if={has_legal_guardian_role?(@form)} class="col-span-12 md:col-span-4">
+                <.input field={@form[:person_birthday]} type="date" label="Geburtsdatum" />
+              </div>
             </.input_grid>
             <.input_grid class="pt-6">
               <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
@@ -112,6 +115,22 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
       </.card>
     </div>
     """
+  end
+
+  @doc """
+   Utiltiy function to check if role legal guardian is present on contact.
+
+  """
+  def has_legal_guardian_role?(form) do
+    contact_roles = form[:contact_roles].value || []
+
+    contact_role_names =
+      Enum.map(contact_roles, fn
+        %Ecto.Changeset{} = changeset -> Ecto.Changeset.get_field(changeset, :name)
+        %{} = contact_role -> contact_role.name
+      end)
+
+    "legal guardian" in contact_role_names
   end
 
   @impl true
