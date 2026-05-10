@@ -98,6 +98,18 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                 </.input_grid>
               <% end %>
 
+              <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
+                <div class="col-span-12 md:col-span-11">
+                  <.input
+                    field={contact[:legal_gurardian_id]}
+                    type="select"
+                    label="Erziehungsberechtigter"
+                    options={@contact_options}
+                    prompt="Bitte auswählen"
+                  />
+                </div>
+              </.input_grid>
+
               <.input_grid class="pt-6">
                 <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
                   form={contact}
