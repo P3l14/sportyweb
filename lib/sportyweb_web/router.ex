@@ -208,7 +208,7 @@ defmodule SportywebWeb.Router do
 
       live "/contracts", ContractLive.Index, :index_root
 
-      live "/contracts/:id/edit", ContractLive.NewEdit, :edit
+      live "/contracts/:id/edit", ContractLive.Edit, :edit
 
       live "/contracts/:id", ContractLive.Show, :show
 

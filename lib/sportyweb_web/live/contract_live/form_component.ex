@@ -81,7 +81,7 @@ defmodule SportywebWeb.ContractLive.FormComponent do
      |> assign_new(:form, fn ->
        to_form(Legal.change_contract(contract))
      end)
-     |> assign_fee_options(nil)}
+     |> assign_fee_options(contract.contact_id)}
   end
 
   @impl true

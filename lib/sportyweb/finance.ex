@@ -121,7 +121,7 @@ defmodule Sportyweb.Finance do
     if is_nil(contact_id) || (is_binary(contact_id) && String.trim(contact_id) == "") do
       []
     else
-      contact = Personal.get_contact!(contact_id)
+      contact = Personal.get_contact!(contact_id, :contact_groups)
       # The following code determines which type of entity the contract_object is.
       # Based on that, it returns the corresponding fee type, which will be used
       # to only select matching fees.
@@ -154,13 +154,23 @@ defmodule Sportyweb.Finance do
         if Contact.is_person?(contact) do
           contact_age_in_years = Contact.age_in_years(contact)
 
-          from(
-            f in query,
-            where:
-              is_nil(f.minimum_age_in_years) or f.minimum_age_in_years <= ^contact_age_in_years,
-            where:
-              is_nil(f.maximum_age_in_years) or f.maximum_age_in_years >= ^contact_age_in_years
-          )
+          query_with_age =
+            from(
+              f in query,
+              where:
+                is_nil(f.minimum_age_in_years) or f.minimum_age_in_years <= ^contact_age_in_years,
+              where:
+                is_nil(f.maximum_age_in_years) or f.maximum_age_in_years >= ^contact_age_in_years
+            )
+
+          if Enum.empty?(contact.contact_groups) do
+            from(
+              f in query_with_age,
+              where: not f.is_for_contact_group_contacts_only
+            )
+          else
+            query_with_age
+          end
         else
           query
         end
