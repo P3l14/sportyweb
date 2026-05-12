@@ -12,6 +12,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesShowComponent do
       <div class="divide-y divide-zinc-100">
         <%= for postal_address <- @postal_addresses do %>
           <div class="py-4 first:pt-0 last:pb-0">
+            Art: {get_key_for_value(PostalAddress.get_valid_types(), postal_address.type)}<br />
             {format_string_field(postal_address.street)}
             {format_string_field(postal_address.street_number)}<br />
             <%= if !(is_nil(postal_address.street_additional_information) ||

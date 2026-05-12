@@ -55,6 +55,7 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
     |> cast(
       attrs,
       [
+        :type,
         :street,
         :street_number,
         :street_additional_information,
@@ -66,6 +67,7 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
       empty_values: ["", nil]
     )
     |> validate_required([
+      :type,
       :street,
       :street_number,
       :zipcode,
