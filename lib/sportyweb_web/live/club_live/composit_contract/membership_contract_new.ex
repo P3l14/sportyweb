@@ -114,6 +114,8 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                 <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
                   form={contact}
                   allow_multiple={true}
+                  zipcode_proposals={@zipcode_proposals}
+                  street_proposals={@street_proposals}
                 />
               </.input_grid>
 
@@ -304,16 +306,33 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
      |> assign(:contact, contact)
      |> assign(:membership_contract_form, membership_contract_form)
      |> assign(:contact_options, contact_options)
-     #  |> assign(:form, dbg(Phoenix.Component.to_form(Personal.change_contact(contact))))
-     |> assign(
-       :form,
-       Phoenix.Component.to_form(MembershipContractForm.changeset(membership_contract_form))
-     )
+     |> assign_new(:form, fn ->
+       to_form(MembershipContractForm.changeset(membership_contract_form))
+     end)
      |> assign(:club, club)
      |> assign(:club_fees, club_fees)
      |> assign(:club_fees_for_selection, club_fees)
      |> assign(:department_id_fees_map, department_id_fees_map)
-     |> assign(:department_id_fees_map_for_selection, department_id_fees_map)}
+     |> assign(:department_id_fees_map_for_selection, department_id_fees_map)
+     |> SportywebWeb.PolymorphicLive.FinancialDataFormComponent.setup_validation_and_proposal_event_hook(
+       &assign_form/2,
+       "contact"
+     )
+     |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
+       &assign_form/2,
+       "contact"
+     )}
+  end
+
+  def assign_form(socket, membership_contract_form) do
+    changeset =
+      MembershipContractForm.changeset(
+        socket.assigns.membership_contract_form,
+        membership_contract_form
+      )
+
+    socket
+    |> assign(form: to_form(changeset, action: :validate))
   end
 
   @impl true
@@ -322,7 +341,6 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
         %{"membership_contract_form" => membership_contract_form},
         socket
       ) do
-    # changeset = Personal.change_membership_contact(socket.assigns.contact, contact_params)|> Map.put(:action, :validate)
     changeset =
       socket.assigns.membership_contract_form
       |> MembershipContractForm.changeset(membership_contract_form)

@@ -114,7 +114,8 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
   """
   def setup_validation_and_proposal_event_hook(
         %{assigns: %{form: %{name: form_name}}} = socket,
-        assign_form_function
+        assign_form_function,
+        intermediate_address_holding_form_name \\ nil
       )
       when is_function(assign_form_function, 2) do
     socket
@@ -130,6 +131,19 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
         %{assigns: %{assign_form_function: _assign_form_function}} = socket ->
           handle_event_zipcode_input(params, index, socket)
 
+        "validate",
+        %{
+          ^form_name => params,
+          "_target" => [^form_name, _, "postal_addresses", index, "zipcode"]
+        },
+        %{assigns: %{assign_form_function: _assign_form_function}} = socket ->
+          handle_event_zipcode_input(
+            params,
+            index,
+            socket,
+            intermediate_address_holding_form_name
+          )
+
         _event, _params, socket ->
           {:cont, socket}
       end
@@ -142,10 +156,21 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
   def handle_event_zipcode_input(
         params,
         index,
-        %{assigns: %{assign_form_function: assign_form_function}} = socket
+        %{assigns: %{assign_form_function: assign_form_function}} = socket,
+        intermediate_address_holding_form_name \\ nil
       ) do
-    %{"country" => country, "zipcode" => zipcode} =
-      get_in(params, ["postal_addresses", index])
+    postal_address_access_path = ["postal_addresses", index]
+
+    postal_address_access_path =
+      if intermediate_address_holding_form_name do
+        [intermediate_address_holding_form_name | postal_address_access_path]
+      else
+        postal_address_access_path
+      end
+
+    postal_address = get_in(params, postal_address_access_path)
+
+    %{"country" => country, "zipcode" => zipcode} = postal_address
 
     if String.length(zipcode) == 2 do
       zipcodes = Directory.get_zipcodes(country, zipcode)
@@ -166,7 +191,15 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
         if is_nil(proposed_city) do
           params
         else
-          put_in(params, ["postal_addresses", index, "city"], proposed_city)
+          if is_nil(intermediate_address_holding_form_name) do
+            put_in(params, ["postal_addresses", index, "city"], proposed_city)
+          else
+            put_in(
+              params,
+              [intermediate_address_holding_form_name, "postal_addresses", index, "city"],
+              proposed_city
+            )
+          end
         end
 
       streets = Directory.get_streets(country, zipcode)

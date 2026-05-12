@@ -90,7 +90,8 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
   """
   def setup_validation_and_proposal_event_hook(
         %{assigns: %{form: %{name: form_name}}} = socket,
-        assign_form_function
+        assign_form_function,
+        intermediate_financial_darta_holding_form_name \\ nil
       )
       when is_function(assign_form_function, 2) do
     socket
@@ -106,6 +107,19 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
         %{assigns: %{assign_form_function: _assign_form_function}} = socket ->
           handle_event_iban_input(params, index, socket)
 
+        "validate",
+        %{
+          ^form_name => params,
+          "_target" => [^form_name, _, "financial_data", index, "direct_debit_iban"]
+        },
+        %{assigns: %{assign_form_function: _assign_form_function}} = socket ->
+          handle_event_iban_input(
+            params,
+            index,
+            socket,
+            intermediate_financial_darta_holding_form_name
+          )
+
         _event, _params, socket ->
           {:cont, socket}
       end
@@ -116,41 +130,70 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
   def handle_event_iban_input(
         params,
         index,
-        %{assigns: %{assign_form_function: assign_form_function}} = socket
+        %{assigns: %{assign_form_function: assign_form_function}} = socket,
+        intermediate_financial_darta_holding_form_name \\ nil
       ) do
-    iban = get_in(params, ["financial_data", index, "direct_debit_iban"])
+    iban =
+      if is_nil(intermediate_financial_darta_holding_form_name) do
+        get_in(params, ["financial_data", index, "direct_debit_iban"])
+      else
+        get_in(params, [
+          intermediate_financial_darta_holding_form_name,
+          "financial_data",
+          index,
+          "direct_debit_iban"
+        ])
+      end
 
     if Directory.can_propose_institute?(iban) do
       proposed_institute = Directory.get_institute(iban)
 
+      debit_institute_access_path = ["financial_data", index, "direct_debit_institute"]
+
+      debit_institute_access_path =
+        if intermediate_financial_darta_holding_form_name do
+          [intermediate_financial_darta_holding_form_name | debit_institute_access_path]
+        else
+          debit_institute_access_path
+        end
+
+      debit_bic_access_path = ["financial_data", index, "direct_debit_bic"]
+
+      debit_bic_access_path =
+        if intermediate_financial_darta_holding_form_name do
+          [intermediate_financial_darta_holding_form_name | debit_bic_access_path]
+        else
+          debit_bic_access_path
+        end
+
       params =
-        if is_nil(proposed_institute) do
+        if proposed_institute do
+          params
+          |> put_in(
+            debit_institute_access_path,
+            proposed_institute.name
+          )
+          |> put_in(
+            debit_bic_access_path,
+            proposed_institute.bic
+          )
+        else
           institut = get_in(params, ["financial_data", index, "direct_debit_institute"])
           bic = get_in(params, ["financial_data", index, "direct_debit_bic"])
 
           if institut != "" or bic != "" do
             params
             |> put_in(
-              ["financial_data", index, "direct_debit_institute"],
+              debit_institute_access_path,
               "Zur IBAN konnte kein Name ermittelt werden!"
             )
             |> put_in(
-              ["financial_data", index, "direct_debit_bic"],
+              debit_bic_access_path,
               "Zur IBAN konnte keine BIC ermittelt werden!"
             )
           else
             params
           end
-        else
-          params
-          |> put_in(
-            ["financial_data", index, "direct_debit_institute"],
-            proposed_institute.name
-          )
-          |> put_in(
-            ["financial_data", index, "direct_debit_bic"],
-            proposed_institute.bic
-          )
         end
 
       {:halt,
