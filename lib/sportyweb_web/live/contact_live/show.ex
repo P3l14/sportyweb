@@ -5,6 +5,8 @@ defmodule SportywebWeb.ContactLive.Show do
   alias Sportyweb.Legal.Contract
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
+  alias Sportyweb.Polymorphic.Email
+  alias Sportyweb.Polymorphic.Phone
 
   @impl true
   def mount(_params, _session, socket) do

@@ -33,10 +33,19 @@
       } />
     </:item>
     <:item title="E-Mail">
-      {format_struct_list(@contact.emails, :address)}
+      <div :for={email <- @contact.emails} class="divide-y divide-zinc-100">
+        {get_key_for_value(Email.get_valid_types(), email.type)}: {format_string_field(
+          email.address
+        )}
+      </div>
+      <%!-- {format_struct_list(@contact.emails, :address)} --%>
     </:item>
     <:item title="Telefon">
-      {format_struct_list(@contact.phones, :number)}
+      <div :for={phone <- @contact.phones} class="divide-y divide-zinc-100">
+        {get_key_for_value(Phone.get_valid_types(), phone.type)}: {format_string_field(
+          phone.number
+        )}
+      </div>
     </:item>
     <:item title="Zahlungsdaten">
       <SportywebWeb.PolymorphicLive.FinancialDataShowComponent.render financial_data={
