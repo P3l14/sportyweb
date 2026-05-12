@@ -104,7 +104,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                     field={contact[:legal_gurardian_id]}
                     type="select"
                     label="Erziehungsberechtigter"
-                    options={@contact_options}
+                    options={@contact_options_for_legal_guardian}
                     prompt="Bitte auswählen"
                   />
                 </div>
@@ -132,7 +132,6 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                   allow_multiple={true}
                 />
               </.input_grid>
-
             </.inputs_for>
 
             <.input_grid>
@@ -283,8 +282,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
     department_id_fees_map =
       Map.new(club.departments, fn department -> {department.id, department.fees} end)
 
-    # TODO sprechenderer Bezeichner!
-    contact_options =
+    contact_options_for_legal_guardian =
       club.id
       |> Personal.list_contacts_for_contact_role_legal_gurdian_selection()
       |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
@@ -294,7 +292,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
      |> assign(:title, "Aufnahmeantragserfassung")
      |> assign(:contact, contact)
      |> assign(:membership_contract_form, membership_contract_form)
-     |> assign(:contact_options, contact_options)
+     |> assign(:contact_options_for_legal_guardian, contact_options_for_legal_guardian)
      |> assign_new(:form, fn ->
        to_form(MembershipContractForm.changeset(membership_contract_form))
      end)
