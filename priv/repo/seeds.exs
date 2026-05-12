@@ -893,8 +893,7 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
           person_first_name: Faker.Person.first_name(),
           person_middle_names:
             if(:rand.uniform() < 0.80, do: "", else: Faker.Person.first_name()),
-          person_birth_name:
-            if(:rand.uniform() < 0.40, do: "", else: Faker.Person.last_name()),
+          person_birth_name: if(:rand.uniform() < 0.40, do: "", else: Faker.Person.last_name()),
           person_gender:
             Contact.get_valid_genders()
             |> Enum.map(fn gender -> gender[:value] end)
