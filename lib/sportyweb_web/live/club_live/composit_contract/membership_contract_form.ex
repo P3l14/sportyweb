@@ -6,6 +6,7 @@ defmodule SportywebWeb.ClubLive.MembershipContractForm do
 
   @primary_key false
   embedded_schema do
+    field :contact_id, :string, default: nil
     field :signing_date, :date, default: nil
     field :start_date, :date, default: nil
     field :club_fee_id, :binary_id, default: nil
@@ -13,14 +14,23 @@ defmodule SportywebWeb.ClubLive.MembershipContractForm do
     embeds_many :department_selections, DepartmentSelection, on_replace: :delete
   end
 
+  @doc """
+  Value that indicates that a new contact is used in the form recorded
+
+  """
+  def new_contact_value() do
+    "new"
+  end
+
   def changeset(membership_contract_form, attrs \\ %{}) do
     membership_contract_form
     |> cast(attrs, [
+      :contact_id,
       :signing_date,
       :start_date,
       :club_fee_id
     ])
-    |> validate_required([:signing_date, :start_date, :club_fee_id])
+    |> validate_required([:contact_id, :signing_date, :start_date, :club_fee_id])
     |> cast_embed(:contact, with: &Contact.contact_for_membership_changeset/2)
     |> cast_embed(:department_selections)
   end

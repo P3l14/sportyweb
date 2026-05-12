@@ -27,7 +27,22 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
       <.card>
         <.simple_form for={@form} id="membership-form" phx-change="validate" phx-submit="save">
           <.input_grids>
-            <.inputs_for :let={contact} field={@form[:contact]}>
+            <.input_grid>
+              <div class="col-span-12 md:col-span-12">
+                <.input
+                  field={@form[:contact_id]}
+                  type="select"
+                  label="Kontakt"
+                  options={@contact_options_for_contract}
+                  prompt="Bitte auswählen"
+                />
+              </div>
+            </.input_grid>
+            <.inputs_for
+              :let={contact}
+              :if={@form[:contact_id].value == MembershipContractForm.new_contact_value()}
+              field={@form[:contact]}
+            >
               <.input_grid>
                 <div class="col-span-12">
                   <!-- Don't remove the id of the div, otherwise LiveView doesn't remove the input in step 2. -->
@@ -132,6 +147,12 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                   allow_multiple={true}
                 />
               </.input_grid>
+
+              <.inputs_for :let={contact} field={@form[:contact]}>
+                <.input_grid class="pt-6">
+                  <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render form={contact} />
+                </.input_grid>
+              </.inputs_for>
             </.inputs_for>
 
             <.input_grid>
@@ -216,11 +237,6 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                 </.inputs_for>
               </.inputs_for>
             </.input_grid>
-            <.inputs_for :let={contact} field={@form[:contact]}>
-              <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render form={contact} />
-              </.input_grid>
-            </.inputs_for>
           </.input_grids>
 
           <:actions>
@@ -243,7 +259,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
 
   @impl true
   def handle_params(%{"club_id" => club_id}, _url, socket) do
-    club = Organization.get_club!(club_id, departments: [:fees, :groups])
+    club = Organization.get_club!(club_id, [:contracts, departments: [:fees, :groups]])
     club_fees = Finance.list_club_fees(club_id)
 
     contact = %Contact{
@@ -287,12 +303,23 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
       |> Personal.list_contacts_for_contact_role_legal_gurdian_selection()
       |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
 
+    contact_options_for_contract =
+      club.id
+      |> Personal.list_contract_contact_options(club)
+      |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
+
+    contact_options_for_contract = [
+      [key: "Neuen Kontakt anlegen", value: MembershipContractForm.new_contact_value()]
+      | contact_options_for_contract
+    ]
+
     {:noreply,
      socket
      |> assign(:title, "Aufnahmeantragserfassung")
      |> assign(:contact, contact)
      |> assign(:membership_contract_form, membership_contract_form)
      |> assign(:contact_options_for_legal_guardian, contact_options_for_legal_guardian)
+     |> assign(:contact_options_for_contract, contact_options_for_contract)
      |> assign_new(:form, fn ->
        to_form(MembershipContractForm.changeset(membership_contract_form))
      end)
@@ -353,12 +380,16 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
     if changeset.valid? do
       membership_contract = Ecto.Changeset.apply_changes(changeset)
 
-      contact =
-        if membership_contract.contact.id do
-          membership_contract.contact
+      contact_id =
+        if membership_contract.contact_id == MembershipContractForm.new_contact_value() do
+          if membership_contract.contact.id do
+            membership_contract.contact.id
+          else
+            {:ok, added_contact} = Personal.create_contact_internal(membership_contract.contact)
+            added_contact.id
+          end
         else
-          {:ok, added} = Personal.create_contact_internal(membership_contract.contact)
-          added
+          membership_contract.contact_id
         end
 
       legal_gurardian_id = get_in(membership_contract_form, ["contact", "legal_gurardian_id"])
@@ -366,14 +397,14 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
       if legal_gurardian_id do
         Personal.create_legal_guardian_relation(
           legal_gurardian_id,
-          contact.id,
+          contact_id,
           membership_contract.signing_date
         )
       end
 
       club_contract = %Contract{
         club_id: club.id,
-        contact_id: contact.id,
+        contact_id: contact_id,
         fee_id: membership_contract.club_fee_id,
         signing_date: membership_contract.signing_date,
         start_date: membership_contract.start_date,
@@ -402,7 +433,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
 
         department_contract = %Contract{
           club_id: club.id,
-          contact_id: contact.id,
+          contact_id: contact_id,
           fee_id: department_selection.fee_id,
           signing_date: membership_contract.signing_date,
           start_date: membership_contract.start_date,
@@ -415,7 +446,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
         |> Enum.each(fn group_selection ->
           group_contract = %Contract{
             club_id: club.id,
-            contact_id: contact.id,
+            contact_id: contact_id,
             fee_id: group_selection.fee_id,
             signing_date: membership_contract.signing_date,
             start_date: membership_contract.start_date,

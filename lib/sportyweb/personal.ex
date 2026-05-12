@@ -114,7 +114,11 @@ defmodule Sportyweb.Personal do
       [%Contact{}, ...]
 
   """
-  def list_contract_contact_options(contract, contract_object) do
+  def list_contract_contact_options(%Contract{club_id: club_id}, contract_object) do
+    list_contract_contact_options(club_id, contract_object)
+  end
+
+  def list_contract_contact_options(club_id, contract_object) when is_binary(club_id) do
     # Get all the ids of contacts that have an active contract with the contract_object.
     # These contacts won't appear in the select input as an option for the new contract.
     exclude_contact_ids =
@@ -127,7 +131,7 @@ defmodule Sportyweb.Personal do
     query =
       from(
         c in Contact,
-        where: c.club_id == ^contract.club_id,
+        where: c.club_id == ^club_id,
         where: c.id not in ^exclude_contact_ids,
         order_by: c.name
       )

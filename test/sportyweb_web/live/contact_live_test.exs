@@ -1,4 +1,5 @@
 defmodule SportywebWeb.ContactLiveTest do
+  alias SportywebWeb.ClubLive.MembershipContractForm
   alias Sportyweb.Organization
   use SportywebWeb.ConnCase, async: true
 
@@ -251,10 +252,7 @@ defmodule SportywebWeb.ContactLiveTest do
 
   describe "New membership contract" do
     @invalid_attrs %{
-      contact: %{
-        person_first_name: nil,
-        person_last_name: nil
-      }
+      contact_id: nil
     }
 
     defp create_club(_) do
@@ -274,6 +272,11 @@ defmodule SportywebWeb.ContactLiveTest do
       %{
         membership_contract_form_1: %{
           "club_fee_id" => fee.id,
+          "contact_id" => MembershipContractForm.new_contact_value()
+        },
+        membership_contract_form_2: %{
+          "club_fee_id" => fee.id,
+          "contact_id" => MembershipContractForm.new_contact_value(),
           "contact" => %{
             "financial_data" => %{
               "0" => %{
@@ -309,8 +312,9 @@ defmodule SportywebWeb.ContactLiveTest do
           "signing_date" => "2026-03-29",
           "start_date" => "2026-03-29"
         },
-        membership_contract_form_2: %{
+        membership_contract_form_3: %{
           "club_fee_id" => fee.id,
+          "contact_id" => MembershipContractForm.new_contact_value(),
           "contact" => %{
             "financial_data" => %{
               "0" => %{
@@ -357,7 +361,8 @@ defmodule SportywebWeb.ContactLiveTest do
       user: user,
       club: club,
       membership_contract_form_1: membership_contract_form_1,
-      membership_contract_form_2: membership_contract_form_2
+      membership_contract_form_2: membership_contract_form_2,
+      membership_contract_form_3: membership_contract_form_3
     } do
       {:error, _} = live(conn, ~p"/clubs/#{club}/contracts/new_membership")
 
@@ -370,14 +375,19 @@ defmodule SportywebWeb.ContactLiveTest do
              |> form("#membership-form", membership_contract_form: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
-      # send data with checked department selection to enable fee selection in form submission
+      # send data with selected value for new contact to display input fields for contact
       new_live
       |> form("#membership-form", membership_contract_form: membership_contract_form_1)
       |> render_change()
 
+      # send data with checked department selection to enable fee selection in form submission
+      new_live
+      |> form("#membership-form", membership_contract_form: membership_contract_form_2)
+      |> render_change()
+
       {:ok, _, html} =
         new_live
-        |> form("#membership-form", membership_contract_form: membership_contract_form_2)
+        |> form("#membership-form", membership_contract_form: membership_contract_form_3)
         |> render_submit()
         |> follow_redirect(conn, ~p"/clubs/#{club}/members")
 
