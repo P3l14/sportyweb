@@ -234,6 +234,23 @@ defmodule Sportyweb.Directory do
     Bank.changeset(bank, attrs)
   end
 
+  def can_propose_institute?(iban) when is_binary(iban) do
+    iban = String.trim(iban)
+    countrycode = String.slice(iban, 0, 2)
+    length = String.length(iban)
+
+    case countrycode do
+      "DE" -> length >= 12
+      "AT" -> length >= 9
+      "CH" -> length >= 9
+      _ -> false
+    end
+  end
+
+  def get_institute("") do
+    nil
+  end
+
   def get_institute(iban) when is_binary(iban) and byte_size(iban) > 8 do
     iban = String.trim(iban)
     countrycode = String.slice(iban, 0, 2)
@@ -246,19 +263,6 @@ defmodule Sportyweb.Directory do
       end
 
     get_institute(countrycode, bankcode)
-  end
-
-  def can_propose_institute?(iban) when is_binary(iban) do
-    iban = String.trim(iban)
-    countrycode = String.slice(iban, 0, 2)
-    length = String.length(iban)
-
-    case countrycode do
-      "DE" -> length >= 12
-      "AT" -> length >= 9
-      "CH" -> length >= 9
-      _ -> false
-    end
   end
 
   def get_institute(countrycode, bankcode) do
