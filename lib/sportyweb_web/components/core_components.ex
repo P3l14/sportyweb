@@ -549,7 +549,7 @@ defmodule SportywebWeb.CoreComponents do
 
   def warning(assigns) do
     ~H"""
-    <p class="mt-2 flex gap-2 text-sm leading-6 text-yellow-600">
+    <p class="mt-2 flex gap-2 text-m leading-6 text-yellow-600">
       <.icon name="hero-exclamation-triangle-mini" class="mt-0.5 h-5 w-5 flex-none" />
       {render_slot(@inner_block)}
     </p>

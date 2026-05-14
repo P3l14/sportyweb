@@ -139,6 +139,40 @@ defmodule Sportyweb.Personal do
     Repo.all(query)
   end
 
+  def find_person_contacts(club_id, person_last_name, person_first_name, person_birthday) do
+    query =
+      from(
+        c in Contact,
+        where: c.club_id == ^club_id,
+        order_by: c.name,
+        where: c.type == "person",
+        where: like(c.person_last_name, ^person_last_name),
+        where: like(c.person_first_name, ^person_first_name)
+      )
+
+    query =
+      if person_birthday != "" do
+        query |> where([c], c.person_birthday == ^person_birthday)
+      else
+        query
+      end
+
+    Repo.all(query)
+  end
+
+  def find_organization_contacts(club_id, organization_name) do
+    query =
+      from(
+        c in Contact,
+        where: c.club_id == ^club_id,
+        order_by: c.organization_name,
+        where: c.type == "organization",
+        where: like(c.organization_name, ^organization_name)
+      )
+
+    Repo.all(query)
+  end
+
   @doc """
   Gets a single contact.
 

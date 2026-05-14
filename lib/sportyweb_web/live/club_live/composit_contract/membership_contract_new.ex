@@ -38,6 +38,26 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                 />
               </div>
             </.input_grid>
+            <%= if Enum.any?(@propably_duplicate_contacts) do %>
+              <.warning>
+                Zu den erfassten Namensdaten wurden folgende Kontakte gefunden.<br />
+                Bitte prüfen Sie ob einer dieser Kontakte identisch mit dem Kontakt ist, der gerade erfasst werden soll.
+              </.warning>
+              <div :for={contact <- @propably_duplicate_contacts} class="divide-y divide-zinc-100">
+                <.link navigate={~p"/contacts/#{contact}"} class="text-indigo-600 hover:underline">
+                  {format_string_field(contact.name)}
+                </.link>
+                <.button
+                  class="ml-4"
+                  type="button"
+                  phx-click="use_contact"
+                  phx-value-contact_id={contact.id}
+                >
+                  Kontakt verwenden
+                </.button>
+              </div>
+            <% end %>
+            <%!-- <SportywebWeb.ContactLive.IndexTableComponent.render :if={Enum.any?(@propably_duplicate_contacts)} contacts={@propably_duplicate_contacts} /> --%>
             <.inputs_for
               :let={contact}
               :if={@form[:contact_id].value == MembershipContractForm.new_contact_value()}
@@ -328,6 +348,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
      |> assign(:club_fees_for_selection, club_fees)
      |> assign(:department_id_fees_map, department_id_fees_map)
      |> assign(:department_id_fees_map_for_selection, department_id_fees_map)
+     |> assign(:propably_duplicate_contacts, [])
      |> SportywebWeb.PolymorphicLive.FinancialDataFormComponent.setup_validation_and_proposal_event_hook(
        &assign_form/2,
        "contact"
@@ -351,20 +372,38 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
 
   @impl true
   def handle_event(
-        "validate",
-        %{"membership_contract_form" => membership_contract_form},
+        "use_contact",
+        %{
+          "contact_id" => _contact_id
+        } = params,
         socket
       ) do
-    changeset =
-      socket.assigns.membership_contract_form
-      |> MembershipContractForm.changeset(membership_contract_form)
-      |> Map.put(:action, :validate)
+    {:noreply,
+     socket
+     |> assign_form(params)
+     |> assign(:propably_duplicate_contacts, [])}
+  end
 
+  @impl true
+  def handle_event(
+        "validate",
+        %{
+          "membership_contract_form" => membership_contract_form
+        } = params,
+        socket
+      ) do
+    changed = Map.get(params, "_target", [])
     birthday = get_in(membership_contract_form, ["contact", "person_birthday"])
+    # the last element in _target list is the changed field
+    name_of_changed_field = List.first(Enum.reverse(changed))
 
     {:noreply,
      socket
-     |> assign(form: to_form(changeset, action: :validate))
+     |> check_duplicates(
+       name_of_changed_field,
+       membership_contract_form["contact"]
+     )
+     |> assign_form(membership_contract_form)
      |> assign_club_fees_for_selection(birthday)}
   end
 
@@ -484,6 +523,42 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
     #   {:error, %Ecto.Changeset{} = changeset} ->
     #     {:noreply, assign(socket, form: to_form(changeset))}
     # end
+  end
+
+  def check_duplicates(socket, name_of_changed_field, %{
+        "person_birthday" => person_birthday,
+        "person_last_name" => person_last_name,
+        "person_first_name" => person_first_name
+      })
+      when name_of_changed_field in ["person_birthday", "person_last_name", "person_first_name"] and
+             byte_size(person_last_name) > 2 and
+             byte_size(person_first_name) > 2 do
+    propably_duplicate_contacts =
+      Personal.find_person_contacts(
+        socket.assigns.club.id,
+        person_last_name,
+        person_first_name,
+        person_birthday
+      )
+
+    socket
+    |> assign(:propably_duplicate_contacts, propably_duplicate_contacts)
+  end
+
+  def check_duplicates(socket, name_of_changed_field, %{"organization_name" => organization_name})
+      when name_of_changed_field == "organization_name" and byte_size(organization_name) > 2 do
+    propably_duplicate_contacts =
+      Personal.find_organization_contacts(
+        socket.assigns.club.id,
+        organization_name
+      )
+
+    socket
+    |> assign(:propably_duplicate_contacts, propably_duplicate_contacts)
+  end
+
+  def check_duplicates(socket, _name_of_changed_field, _contact) do
+    socket
   end
 
   defp assign_club_fees_for_selection(socket, birthday) do
