@@ -174,6 +174,47 @@ defmodule Sportyweb.Personal do
   end
 
   @doc """
+  Common filter method for contact list
+
+
+  """
+  def filter_contacts(club_id, name, type, role) do
+    query =
+      from(
+        c in Contact,
+        where: c.club_id == ^club_id,
+        left_join: cr in assoc(c, :contact_roles),
+        left_join: contract in assoc(c, :contracts),
+        preload: [contact_roles: cr, contracts: contract],
+        order_by: c.name
+      )
+
+    query =
+      if type != "" do
+        query |> where([c], like(c.type, ^type))
+      else
+        query
+      end
+
+    query =
+      if role != "" do
+        query |> where([c, cr, contract], cr.name == ^role)
+      else
+        query
+      end
+
+    query =
+      if name != "" do
+        name_search_term = "%#{name}%"
+        query |> where([c], like(c.name, ^name_search_term))
+      else
+        query
+      end
+
+    Repo.all(query)
+  end
+
+  @doc """
   Gets a single contact.
 
   Raises `Ecto.NoResultsError` if the Contact does not exist.

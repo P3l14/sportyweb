@@ -2,6 +2,7 @@ defmodule SportywebWeb.ContactLive.Index do
   use SportywebWeb, :live_view
 
   alias Sportyweb.Organization
+  alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Personal.ContactRole
 
@@ -31,7 +32,6 @@ defmodule SportywebWeb.ContactLive.Index do
     |> assign(:page_title, "Kontakte")
     |> assign(:club_navigation_current_item, :contacts)
     |> assign(:club, club)
-    |> assign(:all_contacts, contacts)
     |> stream(:contacts, contacts)
   end
 
@@ -46,7 +46,6 @@ defmodule SportywebWeb.ContactLive.Index do
     |> assign(:page_title, "Mitglieder")
     |> assign(:club_navigation_current_item, :members)
     |> assign(:club, club)
-    |> assign(:all_contacts, contacts)
     |> stream(:contacts, contacts)
   end
 
@@ -56,27 +55,7 @@ defmodule SportywebWeb.ContactLive.Index do
         %{"search" => %{"name" => name, "type" => type, "role" => role}},
         socket
       ) do
-    filtered_contacts = socket.assigns.all_contacts
-
-    filtered_contacts =
-      if type != "" do
-        filtered_contacts |> Enum.filter(fn contact -> contact.type == type end)
-      else
-        filtered_contacts
-      end
-
-    filtered_contacts =
-      if role != "" do
-        filtered_contacts
-        |> Enum.filter(fn contact ->
-          Enum.any?(contact.contact_roles, fn contact_role -> dbg(contact_role.name == role) end)
-        end)
-      else
-        filtered_contacts
-      end
-
-    filtered_contacts =
-      filtered_contacts |> Enum.filter(fn contact -> contact.name |> String.contains?(name) end)
+    filtered_contacts = Personal.filter_contacts(socket.assigns.club.id, name, type, role)
     {:noreply, socket |> stream(:contacts, filtered_contacts, reset: true)}
   end
 end
