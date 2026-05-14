@@ -144,7 +144,7 @@ defmodule Sportyweb.Personal do
       from(
         c in Contact,
         where: c.club_id == ^club_id,
-        order_by: c.name,
+        order_by: c.person_last_name,
         where: c.type == "person",
         where: like(c.person_last_name, ^person_last_name),
         where: like(c.person_first_name, ^person_first_name)
