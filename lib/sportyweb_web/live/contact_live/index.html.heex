@@ -24,24 +24,47 @@
 </.header>
 
 <.card>
-    <.form :let={f} for={%{}} as={:search} phx-change="search">
-    <.header level="4" class="col-span-12 md:col-span-12">
+  <details>
+    <summary>
       Filter
-    </.header>
-<.input_grids>
-  <.input_grid>
-      <div class="col-span-12 md:col-span-6 ml-10" >
-        <.input field={f[:query]} type="text" label="Name" phx-debounce="1000" />
-      </div>
-      <div class="col-span-12 md:col-span-3">
-        <.input field={f[:query1]} type="text" label="Art" phx-debounce="1000" />
-      </div>
-      <div class="col-span-12 md:col-span-3">
-        <.input field={f[:query2]} type="text" label="Rolle" phx-debounce="1000" />
-      </div>
-  </.input_grid>
-  </.input_grids>
-    </.form>
+    </summary>
+    <search>
+      <.form :let={f} for={%{}} as={:search} phx-change="search">
+        <.input_grids>
+          <.input_grid>
+            <div class="col-span-12 md:col-span-6 ml-10">
+              <.input field={f[:name]} type="search" label="Name" phx-debounce="1000" />
+            </div>
+            <div class="col-span-12 md:col-span-3">
+              <.input
+                field={f[:type]}
+                type="select"
+                label="Art"
+                options={Contact.get_valid_types()}
+                prompt="Alle"
+                phx-debounce="1000"
+              />
+            </div>
+            <div class="col-span-12 md:col-span-3">
+              <.input
+                field={f[:role]}
+                type="select"
+                label="Rolle"
+                options={ContactRole.get_valid_names()}
+                prompt="Alle"
+                phx-debounce="1000"
+              />
+            </div>
+            <div class="col-span-12 md:col-span-3 ml-10">
+              <.button type="reset">Filter zurücksetzen</.button>
+            </div>
+          </.input_grid>
+        </.input_grids>
+      </.form>
+    </search>
+  </details>
+</.card>
+<.card>
   <%= if Enum.any?(@streams.contacts.inserts) do %>
     <.table
       id="contacts"

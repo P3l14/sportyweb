@@ -51,12 +51,32 @@ defmodule SportywebWeb.ContactLive.Index do
   end
 
   @impl true
-  def handle_event("search", %{"search" => %{"query" => query}}, socket) do
-    filtered_contacts =
-      socket.assigns.all_contacts
-      |> Enum.filter(fn contact -> contact.name |> String.starts_with?(query) end)
+  def handle_event(
+        "search",
+        %{"search" => %{"name" => name, "type" => type, "role" => role}},
+        socket
+      ) do
+    filtered_contacts = socket.assigns.all_contacts
 
-    dbg(filtered_contacts)
+    filtered_contacts =
+      if type != "" do
+        filtered_contacts |> Enum.filter(fn contact -> contact.type == type end)
+      else
+        filtered_contacts
+      end
+
+    filtered_contacts =
+      if role != "" do
+        filtered_contacts
+        |> Enum.filter(fn contact ->
+          Enum.any?(contact.contact_roles, fn contact_role -> dbg(contact_role.name == role) end)
+        end)
+      else
+        filtered_contacts
+      end
+
+    filtered_contacts =
+      filtered_contacts |> Enum.filter(fn contact -> contact.name |> String.contains?(name) end)
     {:noreply, socket |> stream(:contacts, filtered_contacts, reset: true)}
   end
 end
