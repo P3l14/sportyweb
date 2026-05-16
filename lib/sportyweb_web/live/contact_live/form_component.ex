@@ -1,5 +1,4 @@
 defmodule SportywebWeb.ContactLive.FormComponent do
-  require IEx
   use SportywebWeb, :live_component
   import Ecto.Changeset
 
