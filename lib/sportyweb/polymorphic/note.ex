@@ -10,6 +10,14 @@ defmodule Sportyweb.Polymorphic.Note do
     timestamps(type: :utc_datetime)
   end
 
+  def get_changeset_sort_param do
+    :note_sort
+  end
+
+  def get_changeset_drop_param do
+    :note_drop
+  end
+
   @doc false
   def changeset(note, attrs) do
     note
