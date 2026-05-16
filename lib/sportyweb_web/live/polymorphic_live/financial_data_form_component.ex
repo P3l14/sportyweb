@@ -5,6 +5,7 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
   alias Sportyweb.Directory
 
   attr :form, :map, required: true
+  attr :allow_multiple, :boolean, required: false, default: false
   attr :contacts_for_different_holder_or_recipient, :list, required: false, default: []
 
   def render(assigns) do
@@ -16,7 +17,13 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
         </.header>
 
         <.inputs_for :let={financial_data} field={@form[:financial_data]}>
-          <div class="col-span-12">
+          <.element_index_field
+            :if={@allow_multiple}
+            form_name={@form.name}
+            sort_param={FinancialData.get_changeset_sort_param()}
+            element={financial_data}
+          />
+          <div class="col-span-12 md:col-span-11">
             <.input
               field={financial_data[:type]}
               type="select"
@@ -24,6 +31,14 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
               options={FinancialData.get_valid_types()}
             />
           </div>
+
+          <.element_delete_button
+            :if={@allow_multiple}
+            form_name={@form.name}
+            drop_param={FinancialData.get_changeset_drop_param()}
+            class="col-span-12 md:col-span-1 mt-9"
+            element={financial_data}
+          />
 
           <%= if financial_data[:type].value == "direct_debit" do %>
             <div class="col-span-12 md:col-span-12">
@@ -81,6 +96,12 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
             </div>
           <% end %>
         </.inputs_for>
+        <.element_add_button
+          :if={@allow_multiple}
+          form_name={@form.name}
+          sort_param={FinancialData.get_changeset_sort_param()}
+          class="col-span-12"
+        />
       </.input_grid>
     </div>
     """

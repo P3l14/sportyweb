@@ -33,6 +33,14 @@ defmodule Sportyweb.Polymorphic.FinancialData do
     ]
   end
 
+  def get_changeset_sort_param do
+    :financial_data_sort
+  end
+
+  def get_changeset_drop_param do
+    :financial_data_emails_drop
+  end
+
   @doc false
   def changeset(financial_data, attrs) do
     financial_data
