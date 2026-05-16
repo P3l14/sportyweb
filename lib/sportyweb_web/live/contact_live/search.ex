@@ -56,36 +56,75 @@ defmodule SportywebWeb.ContactLive.Search do
         </.simple_form>
       </search>
     </.card>
-    <.card>
+    <.card class="mt-5">
       <.header level="2" class="col-span-12 md:col-span-12">
         Suchergebnisse
       </.header>
       <%= if Enum.any?(@streams.contacts.inserts) do %>
-        <.table
-          id="contacts"
-          rows={@streams.contacts}
-          row_click={fn {_id, contact} -> JS.navigate(~p"/contacts/#{contact}") end}
-        >
-          <:col :let={{_id, contact}} label="Name">
-            {format_string_field(contact.name)}
-            <%= if Contact.has_active_membership_contract?(contact) do %>
-              <.icon name="hero-check-badge" class="ml-1 inline-block w-[20px] text-green-800" />
-            <% end %>
-          </:col>
-          <:col :let={{_id, contact}} label="Art">
-            {get_key_for_value(Contact.get_valid_types(), contact.type)}
-          </:col>
-
-          <:col :let={{_id, contact}} :if={@live_action == :index} label="Rollen">
-            {format_struct_list(contact.contact_roles, :name, fn value ->
-              get_key_for_value(ContactRole.get_valid_names(), value)
-            end)}
-          </:col>
-
-          <:action :let={{_id, contact}}>
-            <.link navigate={~p"/contacts/#{contact}"}>Anzeigen</.link>
-          </:action>
-        </.table>
+        <p>Es wurden {@hits} Kontakte gefunden</p>
+        <.card :for={{_id, contact} <- @streams.contacts} class="mt-5">
+          <.list>
+            <:item title="Art">
+              {get_key_for_value(Contact.get_valid_types(), contact.type)}
+            </:item>
+            <:item title="Name">
+              {format_string_field(contact.name)}
+            </:item>
+            <:item title="Geburtsname">
+              {format_string_field(contact.person_birth_name)}
+            </:item>
+            <:item :if={Contact.is_organization?(contact)} title="Organisationstyp">
+              {get_key_for_value(Contact.get_valid_organization_types(), contact.organization_type)}
+            </:item>
+            <:item :if={Contact.is_person?(contact)} title="Geschlecht">
+              {get_key_for_value(Contact.get_valid_genders(), contact.person_gender)}
+            </:item>
+            <:item :if={Contact.is_person?(contact)} title="Geburtsdatum">
+              {format_date_field_dmy(contact.person_birthday)} - {Contact.age_in_years(contact)} Jahre
+            </:item>
+            <%!-- <:item title="Adresse">
+              <SportywebWeb.PolymorphicLive.PostalAddressesShowComponent.render postal_addresses={
+                contact.postal_addresses
+              } />
+            </:item>
+            <:item title="E-Mail">
+              <div :for={email <- contact.emails} class="divide-y divide-zinc-100">
+                {get_key_for_value(Email.get_valid_types(), email.type)}: {format_string_field(
+                  email.address
+                )}
+              </div>
+            </:item>
+            <:item title="Telefon">
+              <div :for={phone <- contact.phones} class="divide-y divide-zinc-100">
+                {get_key_for_value(Phone.get_valid_types(), phone.type)}: {format_string_field(
+                  phone.number
+                )}
+              </div>
+            </:item>
+            <:item title="Zahlungsdaten">
+              <SportywebWeb.PolymorphicLive.FinancialDataShowComponent.render financial_data={
+                contact.financial_data
+              } />
+            </:item>
+            <:item title="Notizen">
+              <SportywebWeb.PolymorphicLive.NotesShowComponent.render notes={contact.notes} />
+            </:item>
+            <:item title="Rollen">
+              <SportywebWeb.ContactLive.ContactRoleShowComponent.render contact_roles={
+                contact.contact_roles
+              } />
+            </:item>
+            <:item :if={Contact.has_active_membership_contract?(contact)} title="Aktives Mitglied">
+              <.icon name="hero-check-badge" class="inline-block w-[20px] text-green-800" />
+            </:item>
+            <:item title="Angelegt am">
+              {format_date_time_field_dmy_hms(contact.inserted_at)}
+            </:item>
+            <:item title="Zuletzt geändert am">
+              {format_date_time_field_dmy_hms(contact.updated_at)}
+            </:item> --%>
+          </.list>
+        </.card>
       <% else %>
         <p>
           Zu den Suchkriterien wurde kein Kontakt gefunden!
@@ -127,6 +166,10 @@ defmodule SportywebWeb.ContactLive.Search do
         socket
       ) do
     filtered_contacts = Personal.filter_contacts(socket.assigns.club.id, name, type, role)
-    {:noreply, socket |> stream(:contacts, filtered_contacts, reset: true)}
+
+    {:noreply,
+     socket
+     |> assign(:hits, length(filtered_contacts))
+     |> stream(:contacts, filtered_contacts, reset: true)}
   end
 end
