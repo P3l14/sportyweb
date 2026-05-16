@@ -140,6 +140,7 @@ defmodule SportywebWeb.Router do
       # Contacts (Each belongs to a club)
 
       live "/contacts", ContactLive.Index, :index_root
+      live "/clubs/:club_id/contacts/search", ContactLive.Search, :search
       live "/clubs/:club_id/contacts", ContactLive.Index, :index
       live "/clubs/:club_id/members", ContactLive.Index, :index_member
 

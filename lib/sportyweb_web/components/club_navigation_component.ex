@@ -74,6 +74,18 @@ defmodule SportywebWeb.ClubNavigationComponent do
         <ul class={["mb-1 px-2", if(!@show_submenu_contacts, do: "hidden")]}>
           <li>
             <.link
+              navigate={~p"/clubs/#{@club}/contacts/search"}
+              class={[
+                @classes_menu_item,
+                @classes_submenu_item,
+                if(@club_navigation_current_item == :contact_search, do: @classes_menu_item_active)
+              ]}
+            >
+              <span class="truncate">Suche</span>
+            </.link>
+          </li>
+          <li>
+            <.link
               navigate={~p"/clubs/#{@club}/contacts"}
               class={[
                 @classes_menu_item,
@@ -213,7 +225,8 @@ defmodule SportywebWeb.ClubNavigationComponent do
         assigns.club_navigation_current_item == :subsidies
 
     show_submenu_contacts =
-      assigns.club_navigation_current_item == :contacts ||
+      assigns.club_navigation_current_item == :contact_search ||
+        assigns.club_navigation_current_item == :contacts ||
         assigns.club_navigation_current_item == :contact_groups ||
         assigns.club_navigation_current_item == :members
 
