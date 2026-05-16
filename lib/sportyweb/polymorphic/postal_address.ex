@@ -40,7 +40,7 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
   end
 
   def get_changeset_drop_param do
-    :postal_adresses_emails_drop
+    :postal_adresses_drop
   end
 
   @doc false
