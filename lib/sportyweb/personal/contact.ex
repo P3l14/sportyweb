@@ -38,8 +38,12 @@ defmodule Sportyweb.Personal.Contact do
     has_many :contact_role_relations, ContactRoleRelation
     many_to_many :contact_groups, ContactGroup, join_through: ContactGroupContact
     many_to_many :emails, Email, join_through: ContactEmail, on_replace: :delete
-    many_to_many :financial_data, FinancialData, join_through: ContactFinancialData
-    many_to_many :notes, Note, join_through: ContactNote
+
+    many_to_many :financial_data, FinancialData,
+      join_through: ContactFinancialData,
+      on_replace: :delete
+
+    many_to_many :notes, Note, join_through: ContactNote, on_replace: :delete
     many_to_many :phones, Phone, join_through: ContactPhone, on_replace: :delete
 
     many_to_many :postal_addresses, PostalAddress,
@@ -168,8 +172,16 @@ defmodule Sportyweb.Personal.Contact do
       sort_param: Email.get_changeset_sort_param(),
       drop_param: Email.get_changeset_drop_param()
     )
-    |> cast_assoc(:financial_data, required: true)
-    |> cast_assoc(:notes, required: false)
+    |> cast_assoc(:financial_data,
+      required: true,
+      sort_param: FinancialData.get_changeset_sort_param(),
+      drop_param: FinancialData.get_changeset_drop_param()
+    )
+    |> cast_assoc(:notes,
+      required: false,
+      sort_param: Note.get_changeset_sort_param(),
+      drop_param: Note.get_changeset_drop_param()
+    )
     |> cast_assoc(:phones,
       required: false,
       sort_param: Phone.get_changeset_sort_param(),

@@ -139,19 +139,22 @@ defmodule SportywebWeb.ContactLive.FormComponent do
                 />
               </.input_grid>
 
-              <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render
-                  form={@form}
-                  contacts_for_different_holder_or_recipient={
-                    @contacts_for_different_holder_or_recipient
-                  }
-                />
-              </.input_grid>
+            <.input_grid class="pt-6">
+              <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render
+                form={@form}
+                allow_multiple={true}
+                contacts_for_different_holder_or_recipient={
+                  @contacts_for_different_holder_or_recipient
+                }
+              />
+            </.input_grid>
 
-              <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.NotesFormComponent.render form={@form} />
-              </.input_grid>
-            <% end %>
+            <.input_grid class="pt-6">
+              <SportywebWeb.PolymorphicLive.NotesFormComponent.render
+                form={@form}
+                allow_multiple={true}
+              />
+            </.input_grid>
           </.input_grids>
 
           <:actions>
