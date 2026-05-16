@@ -92,9 +92,15 @@
       </:action>
     </.table>
   <% else %>
-    <p>
-      Bisher wurde noch kein Kontakt erstellt.
-    </p>
+    <%= if @contacts_present do %>
+      <p>
+        Es wurden keine Kontakte gefunden, die zu den Filterkriterien passen.
+      </p>
+    <% else %>
+      <p>
+        Bisher wurde noch kein Kontakt erstellt.
+      </p>
+    <% end %>
   <% end %>
 </.card>
 

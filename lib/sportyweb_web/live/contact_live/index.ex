@@ -32,6 +32,7 @@ defmodule SportywebWeb.ContactLive.Index do
     |> assign(:page_title, "Kontakte")
     |> assign(:club_navigation_current_item, :contacts)
     |> assign(:club, club)
+    |> assign(:contacts_present, Enum.any?(contacts))
     |> stream(:contacts, contacts)
   end
 
@@ -46,6 +47,7 @@ defmodule SportywebWeb.ContactLive.Index do
     |> assign(:page_title, "Mitglieder")
     |> assign(:club_navigation_current_item, :members)
     |> assign(:club, club)
+    |> assign(:contacts_present, Enum.any?(contacts))
     |> stream(:contacts, contacts)
   end
 
