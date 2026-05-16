@@ -141,7 +141,12 @@ defmodule SportywebWeb.ContactLive.FormComponent do
               </.input_grid>
 
               <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render form={@form} />
+                <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render
+                  form={@form}
+                  contacts_for_different_holder_or_recipient={
+                    @contacts_for_different_holder_or_recipient
+                  }
+                />
               </.input_grid>
 
               <.input_grid class="pt-6">
@@ -212,11 +217,20 @@ defmodule SportywebWeb.ContactLive.FormComponent do
         1
       end
 
+    contacts_for_different_holder_or_recipient =
+      assigns.contact.club_id
+      |> Personal.list_contacts()
+      |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
+
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:step, step)
      |> assign(:contact_type, contact.type)
+     |> assign(
+       :contacts_for_different_holder_or_recipient,
+       contacts_for_different_holder_or_recipient
+     )
      |> assign_new(:form, fn ->
        to_form(changeset)
      end)

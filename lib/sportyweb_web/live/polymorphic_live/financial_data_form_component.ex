@@ -5,6 +5,7 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
   alias Sportyweb.Directory
 
   attr :form, :map, required: true
+  attr :contacts_for_different_holder_or_recipient, :list, required: false, default: []
 
   def render(assigns) do
     ~H"""
@@ -25,15 +26,17 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
           </div>
 
           <%= if financial_data[:type].value == "direct_debit" do %>
-            <div class="col-span-12 md:col-span-7">
+            <div class="col-span-12 md:col-span-12">
               <.input
-                field={financial_data[:direct_debit_account_holder]}
-                type="text"
-                label="Kontoinhaber"
+                field={financial_data[:direct_debit_different_account_holder_contact_id]}
+                type="select"
+                options={@contacts_for_different_holder_or_recipient}
+                prompt="identisch mit nutzendem Kontakt - kein abweichender Bankkontoinhaber"
+                label="abweichender Bankkontoinhaber"
               />
             </div>
 
-            <div class="col-span-12 md:col-span-5">
+            <div class="col-span-12 md:col-span-12">
               <.input field={financial_data[:direct_debit_iban]} type="text" label="IBAN" />
             </div>
 
@@ -59,11 +62,13 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
           <% end %>
 
           <%= if financial_data[:type].value == "invoice" do %>
-            <div class="col-span-12">
+            <div class="col-span-12 md:col-span-12">
               <.input
-                field={financial_data[:invoice_recipient]}
-                type="text"
-                label="Rechnungsempfänger"
+                field={financial_data[:invoice_different_recipient_contact_id]}
+                type="select"
+                options={@contacts_for_different_holder_or_recipient}
+                prompt="identisch mit nutzendem Kontakt - kein abweichender Rechnungsempfänger"
+                label="abweichender Rechnungsempfänger"
               />
             </div>
 

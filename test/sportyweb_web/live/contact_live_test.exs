@@ -280,7 +280,6 @@ defmodule SportywebWeb.ContactLiveTest do
           "contact" => %{
             "financial_data" => %{
               "0" => %{
-                "direct_debit_account_holder" => "Mustermann, Max",
                 "direct_debit_iban" => "DE47870979879",
                 "type" => "direct_debit"
               }
@@ -318,7 +317,6 @@ defmodule SportywebWeb.ContactLiveTest do
           "contact" => %{
             "financial_data" => %{
               "0" => %{
-                "direct_debit_account_holder" => "Mustermann, Max",
                 "direct_debit_iban" => "DE02500105170137075030",
                 "type" => "direct_debit"
               }

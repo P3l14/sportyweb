@@ -21,11 +21,21 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataShowComponent do
                 )}
               </li>
               <%= if financial_data_single.type == "direct_debit" do %>
-                <li>
-                  Kontoinhaber: {format_string_field(
-                    financial_data_single.direct_debit_account_holder
-                  )}
-                </li>
+                <%= if financial_data_single.direct_debit_different_account_holder_contact_id do %>
+                  <li>
+                    abweichender Bankkontoinhaber:
+                    <.link
+                      navigate={
+                        ~p"/contacts/#{financial_data_single.direct_debit_different_account_holder_contact}"
+                      }
+                      class="text-indigo-600 hover:underline"
+                    >
+                      {format_string_field(
+                        financial_data_single.direct_debit_different_account_holder_contact.name
+                      )}
+                    </.link>
+                  </li>
+                <% end %>
                 <li>IBAN: {format_string_field(financial_data_single.direct_debit_iban)}</li>
                 <%= if Directory.get_institute(financial_data_single.direct_debit_iban) do %>
                   <li>
@@ -42,9 +52,21 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataShowComponent do
                   Zur IBAN konnte keine BIC und kein Name ermittelt werden!
                 <% end %>
               <% else %>
-                <li>
-                  Rechnungsempfänger: {format_string_field(financial_data_single.invoice_recipient)}
-                </li>
+                <%= if financial_data_single.invoice_different_recipient_contact_id do %>
+                  <li>
+                    abweichender Rechnungsempfänger:
+                    <.link
+                      navigate={
+                        ~p"/contacts/#{financial_data_single.invoice_different_recipient_contact}"
+                      }
+                      class="text-indigo-600 hover:underline"
+                    >
+                      {format_string_field(
+                        financial_data_single.invoice_different_recipient_contact.name
+                      )}
+                    </.link>
+                  </li>
+                <% end %>
                 <li>
                   Zusatzinformationen: {format_string_field(
                     financial_data_single.invoice_additional_information

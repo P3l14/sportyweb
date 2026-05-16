@@ -2,25 +2,25 @@ defmodule Sportyweb.Polymorphic.FinancialData do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Sportyweb.Polymorphic.PostalAddress
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Directory
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "financial_data" do
-    belongs_to :postal_address, PostalAddress,
-      foreign_key: :invoice_recipient_postal_address_id,
+    belongs_to :direct_debit_different_account_holder_contact, Contact,
+      foreign_key: :direct_debit_different_account_holder_contact_id,
       references: :id
-    belongs_to :direct_debit_account_holder_contact, Contact,
-      foreign_key: :direct_debit_account_holder_ref,
-      references: :id
+
     field :type, :string, default: "direct_debit"
-    field :direct_debit_account_holder, :string, default: ""
     field :direct_debit_iban, :string, default: ""
     field :direct_debit_institute, :string, default: "", virtual: true
     field :direct_debit_bic, :string, default: "", virtual: true
-    field :invoice_recipient, :string, default: ""
+
+    belongs_to :invoice_different_recipient_contact, Contact,
+      foreign_key: :invoice_different_recipient_contact_id,
+      references: :id
+
     field :invoice_additional_information, :string, default: ""
     field :is_main, :boolean, default: false
     timestamps(type: :utc_datetime)
@@ -40,23 +40,18 @@ defmodule Sportyweb.Polymorphic.FinancialData do
       attrs,
       [
         :type,
-        :direct_debit_account_holder,
         :direct_debit_iban,
-        :invoice_recipient,
-        :invoice_recipient_postal_address_id,
+        :direct_debit_different_account_holder_contact_id,
+        :invoice_different_recipient_contact_id,
         :invoice_additional_information,
         :is_main
       ],
       empty_values: ["", nil]
     )
     |> validate_required([:type])
-    |> update_change(:direct_debit_account_holder, &String.trim/1)
     |> update_change(:direct_debit_iban, &String.trim/1)
-    |> update_change(:invoice_recipient, &String.trim/1)
     |> update_change(:invoice_additional_information, &String.trim/1)
     |> validate_iban()
-    |> validate_length(:direct_debit_account_holder, max: 250)
-    |> validate_length(:invoice_recipient, max: 250)
     |> validate_length(:invoice_additional_information, max: 250)
     |> validate_inclusion(
       :type,
@@ -81,12 +76,11 @@ defmodule Sportyweb.Polymorphic.FinancialData do
       "direct_debit" ->
         changeset
         |> validate_required([
-          :direct_debit_account_holder,
           :direct_debit_iban
         ])
 
       "invoice" ->
-        changeset |> validate_required([:invoice_recipient])
+        changeset
 
       _ ->
         changeset

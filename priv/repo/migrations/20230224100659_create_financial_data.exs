@@ -5,22 +5,22 @@ defmodule Sportyweb.Repo.Migrations.CreateFinancialData do
     create table(:financial_data, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :type, :string, null: false
-      add :direct_debit_account_holder, :string, null: false
       add :direct_debit_iban, :string, null: false
-      add :invoice_recipient, :string, null: false
       add :invoice_additional_information, :text, null: false
       add :is_main, :boolean, null: false
 
-      add :invoice_recipient_postal_address_id,
-          references(:postal_addresses, on_delete: :nilify_all, type: :binary_id),
+      add :direct_debit_different_account_holder_contact_id,
+          references(:contacts, on_delete: :nilify_all, type: :binary_id),
           null: true
-      add :direct_debit_account_holder_ref,
+
+      add :invoice_different_recipient_contact_id,
           references(:contacts, on_delete: :nilify_all, type: :binary_id),
           null: true
 
       timestamps(type: :utc_datetime)
     end
 
-    create index(:financial_data, [:invoice_recipient_postal_address_id])
+    create index(:financial_data, [:direct_debit_different_account_holder_contact_id])
+    create index(:financial_data, [:invoice_different_recipient_contact_id])
   end
 end

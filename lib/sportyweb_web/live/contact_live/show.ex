@@ -19,10 +19,13 @@ defmodule SportywebWeb.ContactLive.Show do
       Personal.get_contact!(id, [
         :club,
         :emails,
-        :financial_data,
         :notes,
         :phones,
         :postal_addresses,
+        financial_data: [
+          :direct_debit_different_account_holder_contact,
+          :invoice_different_recipient_contact
+        ],
         contact_roles: [contact_role_relations: :contact],
         contracts: [:clubs, :departments, :groups, fee: :internal_events]
       ])

@@ -25,7 +25,9 @@ defmodule Sportyweb.Personal.ContactRole do
       [key: "Lieferant", value: "supplier"],
       [key: "Spender", value: "donor"],
       [key: "Sponsor", value: "sponsor"],
-      [key: "Veranstaltungsbesucher", value: "visitor"]
+      [key: "Veranstaltungsbesucher", value: "visitor"],
+      [key: "Bankkontoinhaber", value: "debit account holder"],
+      [key: "Rechnungsempfänger", value: "invoice recipient"]
     ]
   end
 

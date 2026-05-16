@@ -2,15 +2,9 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Sportyweb.Polymorphic.FinancialData
-
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "postal_addresses" do
-    has_many :financial_data, FinancialData,
-      foreign_key: :invoice_recipient_postal_address_id,
-      references: :id
-
     field :type, :string, default: "residence"
     field :street, :string, default: ""
     field :street_number, :string, default: ""

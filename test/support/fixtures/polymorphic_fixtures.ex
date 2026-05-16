@@ -24,7 +24,6 @@ defmodule Sportyweb.PolymorphicFixtures do
     attrs
     |> Enum.into(%{
       type: "direct_debit",
-      direct_debit_account_holder: "some name",
       direct_debit_iban: "DE06495352657836424132",
       direct_debit_institute: "some bank"
     })

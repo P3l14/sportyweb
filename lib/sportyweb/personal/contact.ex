@@ -24,9 +24,15 @@ defmodule Sportyweb.Personal.Contact do
   @foreign_key_type :binary_id
   schema "contacts" do
     belongs_to :club, Club
+
     has_many :debit_holder, FinancialData,
-      foreign_key: :direct_debit_account_holder_ref,
+      foreign_key: :direct_debit_different_account_holder_contact_id,
       references: :id
+
+    has_many :invoice_contact, FinancialData,
+      foreign_key: :invoice_different_recipient_contact_id,
+      references: :id
+
     has_many :contracts, Contract
     has_many :contact_roles, ContactRole, on_replace: :delete
     has_many :contact_role_relations, ContactRoleRelation

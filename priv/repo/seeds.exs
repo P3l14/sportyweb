@@ -61,13 +61,11 @@ defmodule Sportyweb.SeedHelper do
     if :rand.uniform() < 0.9 do
       %FinancialData{
         type: "direct_debit",
-        direct_debit_account_holder: random_name,
         direct_debit_iban: "DE06495352657836424132"
       }
     else
       %FinancialData{
         type: "invoice",
-        invoice_recipient: random_name,
         invoice_additional_information: ""
       }
     end
