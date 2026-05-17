@@ -7,6 +7,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
   alias Sportyweb.Personal.ContactRoleRelation
   alias Sportyweb.Organization
 
+  attr :propably_duplicate_contacts, :list, required: false, default: []
   @impl true
   def render(assigns) do
     ~H"""
@@ -22,6 +23,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
             contact_form_type={:short}
             zipcode_proposals={@zipcode_proposals}
             street_proposals={@street_proposals}
+            propably_duplicate_contacts={@propably_duplicate_contacts}
           />
           <:actions>
             <div>
@@ -74,6 +76,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
     |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
       &assign_form/2
     )
+    |> SportywebWeb.ContactLive.FormComponent.setup_contact_duplicate_check_event_hook()
   end
 
   defp apply_action(socket, :new, %{"club_id" => club_id}) do
@@ -101,6 +104,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
     |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
       &assign_form/2
     )
+    |> SportywebWeb.ContactLive.FormComponent.setup_contact_duplicate_check_event_hook()
   end
 
   def assign_form(socket, contact_params \\ %{}) do

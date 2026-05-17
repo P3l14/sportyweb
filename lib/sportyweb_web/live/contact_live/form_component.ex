@@ -5,8 +5,10 @@ defmodule SportywebWeb.ContactLive.FormComponent do
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Polymorphic.FinancialData
   alias Sportyweb.Polymorphic.Note
+  import SportywebWeb.CommonHelper
 
   attr :contact_form_type, :atom, required: false
+  attr :propably_duplicate_contacts, :list, required: false, default: []
   @impl true
   def render(assigns) do
     ~H"""
@@ -29,6 +31,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
             zipcode_proposals={@zipcode_proposals}
             street_proposals={@street_proposals}
             contacts_for_different_holder_or_recipient={@contacts_for_different_holder_or_recipient}
+            propably_duplicate_contacts={@propably_duplicate_contacts}
           />
 
           <:actions>
@@ -52,17 +55,37 @@ defmodule SportywebWeb.ContactLive.FormComponent do
     """
   end
 
+  @doc """
+  Provides html for the input of a contact,
+  Can be customized by various paramters
+
+
+  """
   attr :form, :map, required: true
   attr :contact_form_type, :atom, required: false
   attr :render_roles, :boolean, required: false, default: true
   attr :zipcode_proposals, :list, required: false, default: []
   attr :street_proposals, :list, required: false, default: []
   attr :contacts_for_different_holder_or_recipient, :list, required: false, default: []
+  attr :propably_duplicate_contacts, :list, required: false, default: []
 
+  slot :additional_actions_for_dupplicate_contacts, required: false
   slot :additional_personal_components, required: false
 
   def contact_grid(assigns) do
     ~H"""
+    <%= if Enum.any?(@propably_duplicate_contacts) do %>
+      <.warning>
+        Zu den erfassten Namensdaten wurden folgende Kontakte gefunden.<br />
+        Bitte prüfen Sie ob einer dieser Kontakte identisch mit dem Kontakt ist, der gerade erfasst werden soll.
+      </.warning>
+      <div :for={duplicate_contact <- @propably_duplicate_contacts} class="divide-y divide-zinc-100">
+        <.link navigate={~p"/contacts/#{duplicate_contact}"} class="text-indigo-600 hover:underline">
+          {format_string_field(duplicate_contact.name)}
+        </.link>
+        {render_slot(@additional_actions_for_dupplicate_contacts, dbg(duplicate_contact))}
+      </div>
+    <% end %>
     <.input_grids>
       <.input_grid>
         <div class="col-span-12">
@@ -228,7 +251,8 @@ defmodule SportywebWeb.ContactLive.FormComponent do
      )
      |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
        &assign_form/2
-     )}
+     )
+     |> setup_contact_duplicate_check_event_hook()}
   end
 
   @impl true
@@ -278,5 +302,86 @@ defmodule SportywebWeb.ContactLive.FormComponent do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
     end
+  end
+
+  @doc """
+  Registers a hook on the validate event to check for duplicate contacts upon enterning names for the contact.
+
+  The optional function parameter must be provided when the contact paramter data map is not below the key "contact".
+  The function parameter takes the parameter map as input und should return the map with the contact data.
+
+
+  """
+  def setup_contact_duplicate_check_event_hook(
+        socket,
+        parameter_contact_form_supplying_function \\ fn parameter -> parameter["contact"] end
+      )
+      when is_function(parameter_contact_form_supplying_function) do
+    socket
+    |> Phoenix.LiveView.Lifecycle.attach_hook(
+      :contact_duplicate_check,
+      :handle_event,
+      fn
+        "validate",
+        %{
+          "_target" => target
+        } = parameter,
+        socket ->
+          # the last element in _target list is the changed field
+          name_of_changed_field = List.first(Enum.reverse(target))
+
+          {:cont,
+           socket
+           |> check_duplicates(
+             name_of_changed_field,
+             parameter_contact_form_supplying_function.(parameter)
+           )}
+
+        _event, _params, socket ->
+          {:cont, socket}
+      end
+    )
+  end
+
+  defp check_duplicates(
+         socket,
+         name_of_changed_field,
+         %{
+           "person_last_name" => person_last_name,
+           "person_first_name" => person_first_name
+         } = parameter
+       )
+       when name_of_changed_field in ["person_birthday", "person_last_name", "person_first_name"] and
+              byte_size(person_last_name) > 2 and
+              byte_size(person_first_name) > 2 do
+    # removed person_birthday from matching because this field is missing on short contact
+    person_birthday = Map.get(parameter, "person_birthday", "")
+
+    propably_duplicate_contacts =
+      Personal.find_person_contacts(
+        socket.assigns.contact.club_id,
+        person_last_name,
+        person_first_name,
+        person_birthday
+      )
+
+    socket
+    |> assign(:propably_duplicate_contacts, propably_duplicate_contacts)
+  end
+
+  defp check_duplicates(socket, name_of_changed_field, %{"organization_name" => organization_name})
+       when name_of_changed_field == "organization_name" and byte_size(organization_name) > 2 do
+    propably_duplicate_contacts =
+      Personal.find_organization_contacts(
+        socket.assigns.contact.club_id,
+        organization_name
+      )
+
+    socket
+    |> assign(:propably_duplicate_contacts, propably_duplicate_contacts)
+  end
+
+  defp check_duplicates(socket, _name_of_changed_field, _contact) do
+    socket
   end
 end
