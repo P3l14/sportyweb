@@ -93,12 +93,7 @@ defmodule SportywebWeb.ContactLiveTest do
 
       assert html =~ "Kontakt erstellen"
 
-      # Step 1: Click the "Weiter" Button the get to step 2.
-      new_live
-      |> element("#next-button", "Weiter")
-      |> render_click()
-
-      # Step 2: Fill the form with data.
+      # Fill the form with data.
       assert new_live
              |> form("#contact-form", contact: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"

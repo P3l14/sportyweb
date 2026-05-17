@@ -17,93 +17,12 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
 
       <.card>
         <.simple_form for={@form} id="contact-form" phx-change="validate" phx-submit="save">
-          <.input_grids>
-            <.input_grid>
-              <div class="col-span-12">
-                <!-- Don't remove the id of the div, otherwise LiveView doesn't remove the input in step 2. -->
-                <.input
-                  field={@form[:type]}
-                  type="select"
-                  label="Art"
-                  options={Contact.get_valid_types()}
-                />
-              </div>
-            </.input_grid>
-
-            <%= if @form[:type].value == "organization" do %>
-              <.header level="2" class="col-span-12 md:col-span-12">
-                Organisationsdaten
-              </.header>
-              <.input_grid>
-                <div class="col-span-12 md:col-span-6">
-                  <.input field={@form[:organization_name]} type="text" label="Organisationsname" />
-                </div>
-
-                <div class="col-span-12 md:col-span-6">
-                  <.input
-                    field={@form[:organization_type]}
-                    type="select"
-                    label="Organisationstyp"
-                    options={Contact.get_valid_organization_types()}
-                    prompt="Bitte auswählen"
-                  />
-                </div>
-              </.input_grid>
-            <% else %>
-              <.header level="2" class="col-span-12 md:col-span-12">
-                Personendaten
-              </.header>
-              <.input_grid>
-                <div class="col-span-12 md:col-span-4">
-                  <.input field={@form[:person_last_name]} type="text" label="Nachname" />
-                </div>
-
-                <div class="col-span-12 md:col-span-4">
-                  <.input field={@form[:person_first_name]} type="text" label="Vorname" />
-                </div>
-
-                <div class="col-span-12 md:col-span-4">
-                  <.input
-                    field={@form[:person_middle_names]}
-                    type="text"
-                    label="weitere Vornamen (optional)"
-                  />
-                </div>
-              </.input_grid>
-            <% end %>
-            <.input_grid>
-              <SportywebWeb.ContactLive.ContactRoleFormComponent.render
-                form={@form}
-                allow_multiple={true}
-              />
-              <div :if={has_legal_guardian_role?(@form)} class="col-span-12 md:col-span-4">
-                <.input field={@form[:person_birthday]} type="date" label="Geburtsdatum" />
-              </div>
-            </.input_grid>
-            <.input_grid class="pt-6">
-              <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
-                form={@form}
-                allow_multiple={true}
-                zipcode_proposals={@zipcode_proposals}
-                street_proposals={@street_proposals}
-              />
-            </.input_grid>
-
-            <.input_grid class="pt-6">
-              <SportywebWeb.PolymorphicLive.EmailsFormComponent.render
-                form={@form}
-                allow_multiple={true}
-              />
-            </.input_grid>
-
-            <.input_grid class="pt-6">
-              <SportywebWeb.PolymorphicLive.PhonesFormComponent.render
-                form={@form}
-                allow_multiple={true}
-              />
-            </.input_grid>
-          </.input_grids>
-
+          <SportywebWeb.ContactLive.FormComponent.contact_grid
+            form={@form}
+            contact_form_type={:short}
+            zipcode_proposals={@zipcode_proposals}
+            street_proposals={@street_proposals}
+          />
           <:actions>
             <div>
               <.button phx-disable-with="Speichern...">Speichern</.button>
@@ -121,17 +40,6 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
    Utiltiy function to check if role legal guardian is present on contact.
 
   """
-  def has_legal_guardian_role?(form) do
-    contact_roles = form[:contact_roles].value || []
-
-    contact_role_names =
-      Enum.map(contact_roles, fn
-        %Ecto.Changeset{} = changeset -> Ecto.Changeset.get_field(changeset, :name)
-        %{} = contact_role -> contact_role.name
-      end)
-
-    "legal guardian" in contact_role_names
-  end
 
   @impl true
   def mount(_params, _session, socket) do
@@ -158,8 +66,11 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
     socket
     |> assign(:title, "Kontakt bearbeiten")
     |> assign(:contact, contact)
-    |> assign(:form, Phoenix.Component.to_form(Personal.change_short_contact(contact)))
+    |> assign_form()
     |> assign(:club, contact.club)
+    |> SportywebWeb.PolymorphicLive.FinancialDataFormComponent.setup_validation_and_proposal_event_hook(
+      &assign_form/2
+    )
     |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
       &assign_form/2
     )
@@ -182,14 +93,17 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
     socket
     |> assign(:title, "Kontaktschnellerfassung")
     |> assign(:contact, contact)
-    |> assign(:form, Phoenix.Component.to_form(Personal.change_short_contact(contact)))
+    |> assign_form()
     |> assign(:club, club)
+    |> SportywebWeb.PolymorphicLive.FinancialDataFormComponent.setup_validation_and_proposal_event_hook(
+      &assign_form/2
+    )
     |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
       &assign_form/2
     )
   end
 
-  def assign_form(socket, contact_params) do
+  def assign_form(socket, contact_params \\ %{}) do
     changeset = Personal.change_short_contact(socket.assigns.contact, contact_params)
 
     socket

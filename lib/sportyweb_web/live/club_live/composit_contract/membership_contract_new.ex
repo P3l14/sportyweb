@@ -63,78 +63,30 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
               :if={@form[:contact_id].value == MembershipContractForm.new_contact_value()}
               field={@form[:contact]}
             >
-              <.input_grid>
-                <div class="col-span-12">
-                  <!-- Don't remove the id of the div, otherwise LiveView doesn't remove the input in step 2. -->
-                  <.input
-                    field={contact[:type]}
-                    type="select"
-                    label="Art"
-                    options={Contact.get_valid_types()}
-                  />
-                </div>
-              </.input_grid>
-
-              <%= if contact[:type].value == "organization" do %>
-                <.input_grid>
-                  <div class="col-span-12 md:col-span-6">
-                    <.input field={contact[:organization_name]} type="text" label="Organisationsname" />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-6">
-                    <.input
-                      field={contact[:organization_type]}
-                      type="select"
-                      label="Organisationstyp"
-                      options={Contact.get_valid_organization_types()}
-                      prompt="Bitte auswählen"
-                    />
-                  </div>
-                </.input_grid>
-              <% else %>
-                <.input_grid>
-                  <div class="col-span-12 md:col-span-4">
-                    <.input field={contact[:person_last_name]} type="text" label="Nachname" />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input field={contact[:person_first_name]} type="text" label="Vorname" />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input
-                      field={contact[:person_middle_names]}
-                      type="text"
-                      label="weitere Vornamen (optional)"
-                    />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input
-                      field={contact[:person_birth_name]}
-                      type="text"
-                      label="Geburtsname (optional)"
-                    />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input
-                      field={contact[:person_gender]}
-                      type="select"
-                      label="Geschlecht"
-                      options={Contact.get_valid_genders()}
-                      prompt="Bitte auswählen"
-                    />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input field={contact[:person_birthday]} type="date" label="Geburtsdatum" />
-                  </div>
-                </.input_grid>
-              <% end %>
+              <SportywebWeb.ContactLive.FormComponent.contact_grid
+                form={contact}
+                render_roles={false}
+                contact_form_type={:full}
+                zipcode_proposals={@zipcode_proposals}
+                street_proposals={@street_proposals}
+              >
+                <:additional_personal_components>
+                  <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
+                    <div class="col-span-12 md:col-span-12">
+                      <.input
+                        field={contact[:legal_gurardian_id]}
+                        type="select"
+                        label="Erziehungsberechtigter"
+                        options={@contact_options_for_legal_guardian}
+                        prompt="Bitte auswählen"
+                      />
+                    </div>
+                  </.input_grid>
+                </:additional_personal_components>
+              </SportywebWeb.ContactLive.FormComponent.contact_grid>
 
               <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
-                <div class="col-span-12 md:col-span-11">
+                <div class="col-span-12 md:col-span-12">
                   <.input
                     field={contact[:legal_gurardian_id]}
                     type="select"
@@ -144,35 +96,6 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                   />
                 </div>
               </.input_grid>
-
-              <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
-                  form={contact}
-                  allow_multiple={true}
-                  zipcode_proposals={@zipcode_proposals}
-                  street_proposals={@street_proposals}
-                />
-              </.input_grid>
-
-              <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.EmailsFormComponent.render
-                  form={contact}
-                  allow_multiple={true}
-                />
-              </.input_grid>
-
-              <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.PhonesFormComponent.render
-                  form={contact}
-                  allow_multiple={true}
-                />
-              </.input_grid>
-
-              <.inputs_for :let={contact} field={@form[:contact]}>
-                <.input_grid class="pt-6">
-                  <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render form={contact} />
-                </.input_grid>
-              </.inputs_for>
             </.inputs_for>
 
             <.input_grid>

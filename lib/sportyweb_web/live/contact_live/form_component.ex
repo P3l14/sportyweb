@@ -1,12 +1,12 @@
 defmodule SportywebWeb.ContactLive.FormComponent do
   use SportywebWeb, :live_component
-  import Ecto.Changeset
 
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Polymorphic.FinancialData
   alias Sportyweb.Polymorphic.Note
 
+  attr :contact_form_type, :atom, required: false
   @impl true
   def render(assigns) do
     ~H"""
@@ -23,156 +23,17 @@ defmodule SportywebWeb.ContactLive.FormComponent do
           phx-change="validate"
           phx-submit="save"
         >
-          <.input_grids>
-            <%= if @step == 1 do %>
-              <.input_grid>
-                <div class="col-span-12" id="step-1-type">
-                  <!-- Don't remove the id of the div, otherwise LiveView doesn't remove the input in step 2. -->
-                  <.input
-                    field={@form[:type]}
-                    type="select"
-                    label="Art"
-                    options={Contact.get_valid_types()}
-                  />
-                </div>
-              </.input_grid>
-            <% end %>
-
-            <%= if @step == 2 do %>
-              <div class="hidden">
-                <!-- added id and name attribute so the stored value is delivered to the server and can be wrote back, so the correct form in case of organization is displayed after the validate event -->
-                <input
-                  name="contact[type]"
-                  id="contact_type"
-                  value={@form[:type].value}
-                  field={@form[:type].value}
-                  type="hidden"
-                  readonly
-                />
-              </div>
-
-              <%= if @contact_type == "organization" do %>
-                <.input_grid>
-                  <div class="col-span-12 md:col-span-6">
-                    <.input field={@form[:organization_name]} type="text" label="Organisationsname" />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-6">
-                    <.input
-                      field={@form[:organization_type]}
-                      type="select"
-                      label="Organisationstyp"
-                      options={Contact.get_valid_organization_types()}
-                      prompt="Bitte auswählen"
-                    />
-                  </div>
-                </.input_grid>
-              <% else %>
-                <.input_grid>
-                  <div class="col-span-12 md:col-span-4">
-                    <.input field={@form[:person_last_name]} type="text" label="Nachname" />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input field={@form[:person_first_name]} type="text" label="Vorname" />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input
-                      field={@form[:person_middle_names]}
-                      type="text"
-                      label="weitere Vornamen (optional)"
-                    />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input
-                      field={@form[:person_birth_name]}
-                      type="text"
-                      label="Geburtsname (optional)"
-                    />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input
-                      field={@form[:person_gender]}
-                      type="select"
-                      label="Geschlecht"
-                      options={Contact.get_valid_genders()}
-                      prompt="Bitte auswählen"
-                    />
-                  </div>
-
-                  <div class="col-span-12 md:col-span-4">
-                    <.input field={@form[:person_birthday]} type="date" label="Geburtsdatum" />
-                  </div>
-                </.input_grid>
-              <% end %>
-
-              <.input_grid>
-                <SportywebWeb.ContactLive.ContactRoleFormComponent.render
-                  form={@form}
-                  allow_multiple={true}
-                />
-              </.input_grid>
-
-              <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
-                  form={@form}
-                  allow_multiple={true}
-                  zipcode_proposals={@zipcode_proposals}
-                  street_proposals={@street_proposals}
-                />
-              </.input_grid>
-
-              <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.EmailsFormComponent.render
-                  form={@form}
-                  allow_multiple={true}
-                />
-              </.input_grid>
-
-              <.input_grid class="pt-6">
-                <SportywebWeb.PolymorphicLive.PhonesFormComponent.render
-                  form={@form}
-                  allow_multiple={true}
-                />
-              </.input_grid>
-
-            <.input_grid class="pt-6">
-              <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render
-                form={@form}
-                allow_multiple={true}
-                contacts_for_different_holder_or_recipient={
-                  @contacts_for_different_holder_or_recipient
-                }
-              />
-            </.input_grid>
-
-            <.input_grid class="pt-6">
-              <SportywebWeb.PolymorphicLive.NotesFormComponent.render
-                form={@form}
-                allow_multiple={true}
-              />
-            </.input_grid>
-          </.input_grids>
+          <.contact_grid
+            form={@form}
+            contact_form_type={@contact_form_type}
+            zipcode_proposals={@zipcode_proposals}
+            street_proposals={@street_proposals}
+            contacts_for_different_holder_or_recipient={@contacts_for_different_holder_or_recipient}
+          />
 
           <:actions>
             <div>
-              <%= if @step == 1 && @contact_type != "" do %>
-                <.button
-                  id="next-button"
-                  type="button"
-                  phx-target={@myself}
-                  phx-click={JS.push("update_step", value: %{step: 2})}
-                >
-                  Weiter
-                </.button>
-              <% end %>
-
-              <%= if @step == 2 do %>
-                <.button phx-disable-with="Speichern...">Speichern</.button>
-              <% end %>
+              <.button phx-disable-with="Speichern...">Speichern</.button>
 
               <.cancel_button navigate={@navigate}>Abbrechen</.cancel_button>
             </div>
@@ -189,6 +50,142 @@ defmodule SportywebWeb.ContactLive.FormComponent do
       </.card>
     </div>
     """
+  end
+
+  attr :form, :map, required: true
+  attr :contact_form_type, :atom, required: false
+  attr :render_roles, :boolean, required: false, default: true
+  attr :zipcode_proposals, :list, required: false, default: []
+  attr :street_proposals, :list, required: false, default: []
+  attr :contacts_for_different_holder_or_recipient, :list, required: false, default: []
+
+  slot :additional_personal_components, required: false
+
+  def contact_grid(assigns) do
+    ~H"""
+    <.input_grids>
+      <.input_grid>
+        <div class="col-span-12">
+          <!-- Don't remove the id of the div, otherwise LiveView doesn't remove the input in step 2. -->
+          <.input field={@form[:type]} type="select" label="Art" options={Contact.get_valid_types()} />
+        </div>
+      </.input_grid>
+
+      <%= if @form[:type].value == "organization" do %>
+        <.header level="2" class="col-span-12 md:col-span-12">
+          Organisationsdaten
+        </.header>
+        <.input_grid>
+          <div class="col-span-12 md:col-span-6">
+            <.input field={@form[:organization_name]} type="text" label="Organisationsname" />
+          </div>
+
+          <div class="col-span-12 md:col-span-6">
+            <.input
+              field={@form[:organization_type]}
+              type="select"
+              label="Organisationstyp"
+              options={Contact.get_valid_organization_types()}
+              prompt="Bitte auswählen"
+            />
+          </div>
+        </.input_grid>
+      <% else %>
+        <.header level="2" class="col-span-12 md:col-span-12">
+          Personendaten
+        </.header>
+        <.input_grid>
+          <div class="col-span-12 md:col-span-4">
+            <.input field={@form[:person_last_name]} type="text" label="Nachname" />
+          </div>
+
+          <div class="col-span-12 md:col-span-4">
+            <.input field={@form[:person_first_name]} type="text" label="Vorname" />
+          </div>
+
+          <div class="col-span-12 md:col-span-4">
+            <.input
+              field={@form[:person_middle_names]}
+              type="text"
+              label="weitere Vornamen (optional)"
+            />
+          </div>
+          <!-- für kurzkontakt steuerbar machen -->
+          <%= if @contact_form_type == :full do %>
+            <div class="col-span-12 md:col-span-4">
+              <.input field={@form[:person_birth_name]} type="text" label="Geburtsname (optional)" />
+            </div>
+
+            <div class="col-span-12 md:col-span-4">
+              <.input
+                field={@form[:person_gender]}
+                type="select"
+                label="Geschlecht"
+                options={Contact.get_valid_genders()}
+                prompt="Bitte auswählen"
+              />
+            </div>
+
+            <div class="col-span-12 md:col-span-4">
+              <.input field={@form[:person_birthday]} type="date" label="Geburtsdatum" />
+            </div>
+          <% end %>
+          <%= if @contact_form_type == :short do %>
+            <div :if={has_legal_guardian_role?(@form)} class="col-span-12 md:col-span-4">
+              <.input field={@form[:person_birthday]} type="date" label="Geburtsdatum" />
+            </div>
+          <% end %>
+        </.input_grid>
+      <% end %>
+
+      {render_slot(@additional_personal_components)}
+
+      <.input_grid :if={@render_roles}>
+        <SportywebWeb.ContactLive.ContactRoleFormComponent.render form={@form} allow_multiple={true} />
+      </.input_grid>
+
+      <.input_grid class="pt-6">
+        <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
+          form={@form}
+          allow_multiple={true}
+          zipcode_proposals={@zipcode_proposals}
+          street_proposals={@street_proposals}
+        />
+      </.input_grid>
+
+      <.input_grid class="pt-6">
+        <SportywebWeb.PolymorphicLive.EmailsFormComponent.render form={@form} allow_multiple={true} />
+      </.input_grid>
+
+      <.input_grid class="pt-6">
+        <SportywebWeb.PolymorphicLive.PhonesFormComponent.render form={@form} allow_multiple={true} />
+      </.input_grid>
+
+      <.input_grid class="pt-6">
+        <SportywebWeb.PolymorphicLive.FinancialDataFormComponent.render
+          form={@form}
+          allow_multiple={true}
+          contacts_for_different_holder_or_recipient={@contacts_for_different_holder_or_recipient}
+        />
+      </.input_grid>
+
+      <.input_grid class="pt-6">
+        <SportywebWeb.PolymorphicLive.NotesFormComponent.render form={@form} allow_multiple={true} />
+      </.input_grid>
+    </.input_grids>
+    """
+  end
+
+  def has_legal_guardian_role?(form) do
+    contact_roles = form[:contact_roles].value || []
+
+    contact_role_names =
+      Enum.map(contact_roles, fn
+        %Ecto.Changeset{} = changeset -> Ecto.Changeset.get_field(changeset, :name)
+        %{} = contact_role -> contact_role.name
+      end)
+
+    "legal guardian" in contact_role_names
   end
 
   @impl true
@@ -211,14 +208,6 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
     changeset = Personal.change_contact(contact)
 
-    step =
-      if !is_nil(contact.id) ||
-           (get_field(changeset, :step) == 1 && get_field(changeset, :type) != "") do
-        2
-      else
-        1
-      end
-
     contacts_for_different_holder_or_recipient =
       assigns.contact.club_id
       |> Personal.list_contacts()
@@ -227,8 +216,6 @@ defmodule SportywebWeb.ContactLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:step, step)
-     |> assign(:contact_type, contact.type)
      |> assign(
        :contacts_for_different_holder_or_recipient,
        contacts_for_different_holder_or_recipient
@@ -255,16 +242,10 @@ defmodule SportywebWeb.ContactLive.FormComponent do
     save_contact(socket, socket.assigns.action, contact_params)
   end
 
-  @impl true
-  def handle_event("update_step", %{"step" => step}, socket) do
-    {:noreply, assign(socket, :step, step)}
-  end
-
   def assign_form(socket, contact_params) do
     changeset = Personal.change_contact(socket.assigns.contact, contact_params)
 
     socket
-    |> assign(:contact_type, get_field(changeset, :type))
     |> assign(form: to_form(changeset, action: :validate))
   end
 

@@ -295,6 +295,16 @@ defmodule Sportyweb.Personal.Contact do
       sort_param: Phone.get_changeset_sort_param(),
       drop_param: Phone.get_changeset_drop_param()
     )
+    |> cast_assoc(:financial_data,
+      required: false,
+      sort_param: FinancialData.get_changeset_sort_param(),
+      drop_param: FinancialData.get_changeset_drop_param()
+    )
+    |> cast_assoc(:notes,
+      required: false,
+      sort_param: Note.get_changeset_sort_param(),
+      drop_param: Note.get_changeset_drop_param()
+    )
     |> set_name()
   end
 

@@ -20,6 +20,7 @@ defmodule SportywebWeb.ContactLive.NewEdit do
         title={@page_title}
         action={@live_action}
         contact={@contact}
+        contact_form_type={:full}
         navigate={if @contact.id, do: ~p"/contacts/#{@contact}", else: ~p"/clubs/#{@club}/contacts"}
       />
     </div>
