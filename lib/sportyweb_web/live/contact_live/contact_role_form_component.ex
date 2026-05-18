@@ -23,7 +23,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
           field={contact_role[:name]}
           type="select"
           label="Rolle"
-          options={ContactRole.get_valid_names()}
+          options={provide_contact_role_options(@form.data)}
           prompt="Bitte auswählen"
         />
       </div>
@@ -44,9 +44,19 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
         element={contact_role}
       />
 
+      <div class="col-span-12 md:col-span-12">
+        <.input
+          :if={has_custom_input?(contact_role[:name].value)}
+          field={contact_role[:custom_name]}
+          type="text"
+          label="Eigene Rollebezeichung"
+        />
+      </div>
+
       <SportywebWeb.ContactLive.ContactRoleRelationFormComponent.render
-        :if={contact_role[:name].value == "legal guardian"}
+        :if={has_relations?(contact_role[:name].value)}
         form={contact_role}
+        role_name={contact_role[:name].value}
         role_text="für"
         club_id={@form[:club_id].value}
         allow_multiple={true}
@@ -60,5 +70,27 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
       class="col-span-12"
     />
     """
+  end
+
+  defp provide_contact_role_options(contact) do
+    valid_names = ContactRole.get_valid_names(contact)
+
+    # Used Keywords as group names to preserve order of the grups (Vereinsrollen first). Order is changed when one entry gets to long.
+    valid_names
+    |> Enum.group_by(fn entry ->
+      if entry[:requires_membership] do
+        :Vereinsrollen
+      else
+        :Kontaktrollen
+      end
+    end)
+  end
+
+  defp has_relations?(role_name) do
+    ContactRole.get_role_relation_type(role_name)
+  end
+
+  defp has_custom_input?(role_name) do
+    ContactRole.get_role_relation_entry(role_name)[:custom_input]
   end
 end

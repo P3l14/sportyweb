@@ -332,6 +332,19 @@ defmodule Sportyweb.Organization do
 
   alias Sportyweb.Organization.Group
 
+  def list_all_groups_for_club(club_id) do
+    query =
+      from(
+        group in Group,
+        join: department in assoc(group, :department),
+        preload: [department: department],
+        where: department.club_id == ^club_id,
+        order_by: [department.name, group.name]
+      )
+
+    Repo.all(query)
+  end
+
   @doc """
   Returns a departments list of groups.
 

@@ -26,7 +26,7 @@ defmodule SportywebWeb.ContactLive.Show do
           :direct_debit_different_account_holder_contact,
           :invoice_different_recipient_contact
         ],
-        contact_roles: [contact_role_relations: :contact],
+        contact_roles: [contact_role_relations: [:contact, :department, :group]],
         contracts: [:clubs, :departments, :groups, fee: :internal_events]
       ])
 
