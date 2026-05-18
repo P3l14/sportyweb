@@ -26,15 +26,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleRelationFormComponent do
         sort_param={ContactRoleRelation.get_changeset_sort_param()}
         element={contact_role_relation}
       />
-      <%!-- <.realation_input
-        role_name={@role_name}
-        role_relation_type={ContactRole.get_role_relation_type(@role_name)}
-        contact_role_relation={contact_role_relation}
-        role_text={@role_text}
-        club_id={@club_id}
-      /> --%>
-
-      <.realation_input2
+      <.realation_input
         role_name={@role_name}
         role_relation_type={ContactRole.get_role_relation_type(@role_name)}
         contact_role_relation={contact_role_relation}
@@ -78,8 +70,8 @@ defmodule SportywebWeb.ContactLive.ContactRoleRelationFormComponent do
   attr :role_text, :string, required: true
   attr :club_id, :string, required: true
 
-  defp realation_input2(assigns) do
-    assigns |> xx |> render_relation_input()
+  defp realation_input(assigns) do
+    assigns |> assign_field_and_options_by_role |> render_relation_input()
   end
 
   attr :role_text, :string, required: true
@@ -100,87 +92,9 @@ defmodule SportywebWeb.ContactLive.ContactRoleRelationFormComponent do
     """
   end
 
-  attr :role_name, :string, required: true
-  attr :role_relation_type, :atom, required: true
-  attr :contact_role_relation, Phoenix.HTML.Form, required: true
-  attr :role_text, :string, required: true
-  attr :club_id, :string, required: true
-
-  defp realation_input(assigns)
-
-  defp realation_input(%{role_name: "legal guardian"} = assigns) do
-    ~H"""
-    <div class="col-span-12 md:col-span-5 ml-10">
-      <.input
-        field={@contact_role_relation[:contact_id]}
-        type="select"
-        label={@role_text}
-        options={
-          Personal.list_underage_contacts_for_contact_role_reltation_to_legal_gurdian_selection(
-            @club_id
-          )
-          |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
-        }
-        prompt="Bitte auswählen"
-      />
-    </div>
-    """
-  end
-
-  defp realation_input(%{role_relation_type: :contact} = assigns) do
-    ~H"""
-    <div class="col-span-12 md:col-span-5 ml-10">
-      <.input
-        field={@contact_role_relation[:contact_id]}
-        type="select"
-        label={@role_text}
-        options={
-          Personal.list_contacts(@club_id)
-          |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
-        }
-        prompt="Bitte auswählen"
-      />
-    </div>
-    """
-  end
-
-  defp realation_input(%{role_relation_type: :department} = assigns) do
-    ~H"""
-    <div class="col-span-12 md:col-span-5 ml-10">
-      <.input
-        field={@contact_role_relation[:department_id]}
-        type="select"
-        label={@role_text}
-        options={
-          Organization.list_departments(@club_id)
-          |> Enum.map(fn department -> [key: department.name, value: department.id] end)
-        }
-        prompt="Bitte auswählen"
-      />
-    </div>
-    """
-  end
-
-  defp realation_input(%{role_relation_type: :group} = assigns) do
-    ~H"""
-    <div class="col-span-12 md:col-span-5 ml-10">
-      <.input
-        field={@contact_role_relation[:group_id]}
-        type="select"
-        label={@role_text}
-        options={
-          Organization.list_all_groups_for_club(@club_id)
-          |> Enum.map(fn group ->
-            [key: "#{group.department.name}: #{group.name}", value: group.id]
-          end)
-        }
-        prompt="Bitte auswählen"
-      />
-    </div>
-    """
-  end
-
-  defp xx(%{contact_role_relation: contact_role_relation, club_id: club_id} = assigns) do
+  defp assign_field_and_options_by_role(
+         %{contact_role_relation: contact_role_relation, club_id: club_id} = assigns
+       ) do
     map =
       case assigns do
         %{role_name: "legal guardian"} ->
