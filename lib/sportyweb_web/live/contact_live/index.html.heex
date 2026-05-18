@@ -65,6 +65,9 @@
   </details>
 </.card>
 <.card class="mt-5">
+  <p>Gesamt: {@contacts_total} davon werden aktuell angezeigt: {@contacts_shown}</p>
+</.card>
+<.card class="mt-5">
   <%= if Enum.any?(@streams.contacts.inserts) do %>
     <.table
       id="contacts"

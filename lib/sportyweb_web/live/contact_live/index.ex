@@ -29,11 +29,7 @@ defmodule SportywebWeb.ContactLive.Index do
       |> Enum.filter(fn contact -> Enum.empty?(contact.contracts) end)
 
     socket
-    |> assign(:page_title, "Kontakte")
-    |> assign(:club_navigation_current_item, :contacts)
-    |> assign(:club, club)
-    |> assign(:contacts_present, Enum.any?(contacts))
-    |> stream(:contacts, contacts)
+    |> assign_common_values("Kontakte", club, :contacts, contacts)
   end
 
   defp apply_action(socket, :index_member, %{"club_id" => club_id}) do
@@ -44,10 +40,19 @@ defmodule SportywebWeb.ContactLive.Index do
       |> Enum.filter(fn contact -> !Enum.empty?(contact.contracts) end)
 
     socket
-    |> assign(:page_title, "Mitglieder")
-    |> assign(:club_navigation_current_item, :members)
+    |> assign_common_values("Mitglieder", club, :members, contacts)
+  end
+
+  defp assign_common_values(socket, page_title, club, club_navigation_current_item, contacts) do
+    number_of_contacts = length(contacts)
+
+    socket
+    |> assign(:page_title, page_title)
+    |> assign(:club_navigation_current_item, club_navigation_current_item)
     |> assign(:club, club)
     |> assign(:contacts_present, Enum.any?(contacts))
+    |> assign(:contacts_total, number_of_contacts)
+    |> assign(:contacts_shown, number_of_contacts)
     |> stream(:contacts, contacts)
   end
 
@@ -57,7 +62,18 @@ defmodule SportywebWeb.ContactLive.Index do
         %{"search" => %{"name" => name, "type" => type, "role" => role}},
         socket
       ) do
-    filtered_contacts = Personal.filter_contacts(socket.assigns.club.id, name, type, role)
-    {:noreply, socket |> stream(:contacts, filtered_contacts, reset: true)}
+    mode =
+      if socket.assigns.live_action == :index_member do
+        :only_members
+      else
+        :only_contacts
+      end
+
+    filtered_contacts = Personal.filter_contacts(socket.assigns.club.id, name, type, role, mode)
+
+    {:noreply,
+     socket
+     |> assign(:contacts_shown, length(filtered_contacts))
+     |> stream(:contacts, filtered_contacts, reset: true)}
   end
 end

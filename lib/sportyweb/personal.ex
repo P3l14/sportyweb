@@ -178,7 +178,7 @@ defmodule Sportyweb.Personal do
 
 
   """
-  def filter_contacts(club_id, name, type, role) do
+  def filter_contacts(club_id, name, type, role, mode \\ :all) do
     query =
       from(
         c in Contact,
@@ -209,6 +209,18 @@ defmodule Sportyweb.Personal do
         query |> where([c], like(c.name, ^name_search_term))
       else
         query
+      end
+
+    query =
+      cond do
+        mode == :only_contacts ->
+          query |> where([c, cr, contract], is_nil(contract.id))
+
+        mode == :only_members ->
+          query |> where([c, cr, contract], contract.id)
+
+        mode == :all ->
+          query
       end
 
     Repo.all(query)
