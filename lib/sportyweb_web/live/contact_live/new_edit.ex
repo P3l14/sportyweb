@@ -3,6 +3,7 @@ defmodule SportywebWeb.ContactLive.NewEdit do
 
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
+  alias Sportyweb.Personal.ContactRole
   alias Sportyweb.Organization
   alias Sportyweb.Polymorphic.Email
   alias Sportyweb.Polymorphic.FinancialData
@@ -64,6 +65,7 @@ defmodule SportywebWeb.ContactLive.NewEdit do
     |> assign(:contact, %Contact{
       club_id: club.id,
       club: club,
+      contact_roles: [%ContactRole{valid_from: Date.utc_today()}],
       postal_addresses: [%PostalAddress{}],
       emails: [%Email{}],
       phones: [%Phone{}],

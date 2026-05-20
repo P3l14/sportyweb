@@ -4,7 +4,6 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Personal.ContactRole
-  alias Sportyweb.Personal.ContactRoleRelation
   alias Sportyweb.Organization
 
   attr :propably_duplicate_contacts, :list, required: false, default: []
@@ -85,7 +84,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
     contact = %Contact{
       club_id: club.id,
       club: club,
-      contact_roles: [%ContactRole{contact_role_relations: [%ContactRoleRelation{}]}],
+      contact_roles: [%ContactRole{valid_from: Date.utc_today()}],
       postal_addresses: [],
       emails: [],
       phones: [],

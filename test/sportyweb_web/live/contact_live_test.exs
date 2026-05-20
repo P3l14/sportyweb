@@ -18,6 +18,12 @@ defmodule SportywebWeb.ContactLiveTest do
     person_middle_names: "some person_middle_names",
     person_gender: "male",
     person_last_name: "some person_last_name",
+    contact_roles: %{
+      "0" => %{
+        name: "interested",
+        valid_from: ~D[2026-03-14]
+      }
+    },
     financial_data: %{
       "0" => financial_data_attrs()
     },
