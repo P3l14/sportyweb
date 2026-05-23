@@ -146,6 +146,18 @@ defmodule Sportyweb.Personal.Contact do
     end)
   end
 
+  def get_departments(%Contact{} = contact) do
+    contact.contracts
+    |> Enum.filter(fn contract -> Contract.is_in_use?(contract) end)
+    |> Enum.flat_map(fn contract -> contract.departments end)
+  end
+
+  def get_groups(%Contact{} = contact) do
+    contact.contracts
+    |> Enum.filter(fn contract -> Contract.is_in_use?(contract) end)
+    |> Enum.flat_map(fn contract -> contract.groups end)
+  end
+
   @doc false
   def changeset(contact, attrs) do
     contact

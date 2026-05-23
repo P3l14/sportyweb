@@ -10,11 +10,15 @@ defmodule SportywebWeb.ContactLive.ContactRoleShowComponent do
     ~H"""
     <%= if Enum.any?(@contact_roles) do %>
       <div class="divide-y divide-zinc-100">
-        <%= for contact_role <- @contact_roles do %>
-          <div class="py-4 first:pt-0 last:pb-0">
-            <ul>
+        <div class="py-4 first:pt-0 last:pb-0">
+          <ul>
+            <%= for contact_role <- @contact_roles do %>
               <li>
-                {render_role_name(contact_role)} {render_period(
+                {render_role_name(contact_role)}<.icon
+                  :if={ContactRole.membership_role?(contact_role.name)}
+                  name="hero-check-badge"
+                  class="ml-1 inline-block w-[20px] text-green-800"
+                /> {render_period(
                   contact_role.valid_from,
                   contact_role.valid_until
                 )}
@@ -27,9 +31,9 @@ defmodule SportywebWeb.ContactLive.ContactRoleShowComponent do
                   )}
                 </li>
               </ul>
-            </ul>
-          </div>
-        <% end %>
+            <% end %>
+          </ul>
+        </div>
       </div>
     <% else %>
       -

@@ -82,6 +82,11 @@ defmodule Sportyweb.Personal.ContactRole do
     ]
   end
 
+  def membership_role?(role_name) do
+    entry = get_role_relation_entry(role_name)
+    entry[:requires_membership]
+  end
+
   def get_role_relation_type(role_name) do
     entry = get_role_relation_entry(role_name)
     entry[:has_role_relation]
