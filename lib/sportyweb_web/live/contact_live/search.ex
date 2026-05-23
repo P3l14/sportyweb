@@ -97,7 +97,7 @@ defmodule SportywebWeb.ContactLive.Search do
       ) do
     search = put_in(search["club_id"], socket.assigns.club.id)
 
-    found_contacts = Personal.search2(search)
+    found_contacts = Personal.search(search)
 
     {:noreply,
      socket
