@@ -44,17 +44,31 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
         element={contact_role}
       />
 
+      <datalist
+        :if={ContactRole.has_custom_input?(contact_role[:name].value)}
+        id={"previously_used_custom_roles_for_#{contact_role[:name].value}"}
+      >
+        <option
+          :for={
+            custom_role <-
+              Sportyweb.Personal.get_custom_roles(@form[:club_id].value, contact_role[:name].value)
+          }
+          value={custom_role}
+        />
+      </datalist>
+
       <div class="col-span-12 md:col-span-12">
         <.input
-          :if={has_custom_input?(contact_role[:name].value)}
+          :if={ContactRole.has_custom_input?(contact_role[:name].value)}
           field={contact_role[:custom_name]}
           type="text"
           label="Eigene Rollebezeichung"
+          list={"previously_used_custom_roles_for_#{contact_role[:name].value}"}
         />
       </div>
 
       <SportywebWeb.ContactLive.ContactRoleRelationFormComponent.render
-        :if={has_relations?(contact_role[:name].value)}
+        :if={ContactRole.has_relations?(contact_role[:name].value)}
         form={contact_role}
         role_name={contact_role[:name].value}
         role_text="für"
@@ -84,13 +98,5 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
         :Kontaktrollen
       end
     end)
-  end
-
-  defp has_relations?(role_name) do
-    ContactRole.get_role_relation_type(role_name)
-  end
-
-  defp has_custom_input?(role_name) do
-    ContactRole.get_role_relation_entry(role_name)[:custom_input]
   end
 end

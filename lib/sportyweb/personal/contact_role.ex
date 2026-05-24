@@ -109,6 +109,14 @@ defmodule Sportyweb.Personal.ContactRole do
       (is_nil(contact_role.valid_until) || Date.compare(date, contact_role.valid_until) == :lt)
   end
 
+  def has_relations?(role_name) do
+    get_role_relation_type(role_name)
+  end
+
+  def has_custom_input?(role_name) do
+    get_role_relation_entry(role_name)[:custom_input]
+  end
+
   @doc false
   def changeset(contact_role, attrs) do
     contact_role

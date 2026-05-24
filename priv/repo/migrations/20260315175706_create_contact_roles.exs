@@ -16,5 +16,6 @@ defmodule Sportyweb.Repo.Migrations.CreateContactRoles do
     end
 
     create index(:contact_roles, [:contact_id])
+    create index(:contact_roles, [:name])
   end
 end

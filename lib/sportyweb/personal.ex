@@ -627,6 +627,24 @@ defmodule Sportyweb.Personal do
     Repo.insert(contact)
   end
 
+  def get_custom_roles(club_id, role_name) do
+    if ContactRole.has_custom_input?(role_name) do
+      query =
+        from(
+          cr in ContactRole,
+          join: c in assoc(cr, :contact),
+          where: cr.name == ^role_name,
+          where: c.club_id == ^club_id,
+          order_by: cr.custom_name,
+          select: cr.custom_name
+        )
+
+      Repo.all(query)
+    else
+      nil
+    end
+  end
+
   alias Sportyweb.Personal.ContactRoleRelation
 
   @doc """
