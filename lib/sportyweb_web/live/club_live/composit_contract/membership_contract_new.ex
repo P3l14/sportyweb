@@ -50,6 +50,9 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                 zipcode_proposals={@zipcode_proposals}
                 street_proposals={@street_proposals}
                 propably_duplicate_contacts={@propably_duplicate_contacts}
+                contacts_for_different_holder_or_recipient={
+                  @contacts_for_different_holder_or_recipient
+                }
               >
                 <:additional_actions_for_dupplicate_contacts :let={duplicate_contact}>
                   <.button
@@ -264,6 +267,9 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
      |> assign(:department_id_fees_map, department_id_fees_map)
      |> assign(:department_id_fees_map_for_selection, department_id_fees_map)
      |> assign(:propably_duplicate_contacts, [])
+     |> SportywebWeb.ContactLive.FormComponent.assign_contacts_for_different_holder_or_recipient(
+       club.id
+     )
      |> SportywebWeb.PolymorphicLive.FinancialDataFormComponent.setup_validation_and_proposal_event_hook(
        &assign_form/2,
        "contact"

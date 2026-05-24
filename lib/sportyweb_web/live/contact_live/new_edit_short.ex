@@ -9,6 +9,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
   attr :propably_duplicate_contacts, :list, required: false, default: []
   @impl true
   def render(assigns) do
+
     ~H"""
     <div>
       <.header>
@@ -23,6 +24,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
             zipcode_proposals={@zipcode_proposals}
             street_proposals={@street_proposals}
             propably_duplicate_contacts={@propably_duplicate_contacts}
+            contacts_for_different_holder_or_recipient={@contacts_for_different_holder_or_recipient}
           />
           <:actions>
             <div>
@@ -85,7 +87,7 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
       club_id: club.id,
       club: club,
       contact_roles: [%ContactRole{valid_from: Date.utc_today()}],
-      postal_addresses: [],
+      postal_addresses: nil,
       emails: [],
       phones: [],
       financial_data: [],
@@ -97,6 +99,9 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
     |> assign(:contact, contact)
     |> assign_form()
     |> assign(:club, club)
+    |> SportywebWeb.ContactLive.FormComponent.assign_contacts_for_different_holder_or_recipient(
+      club.id
+    )
     |> SportywebWeb.PolymorphicLive.FinancialDataFormComponent.setup_validation_and_proposal_event_hook(
       &assign_form/2
     )

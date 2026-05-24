@@ -235,18 +235,10 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
     changeset = Personal.change_contact(contact)
 
-    contacts_for_different_holder_or_recipient =
-      assigns.contact.club_id
-      |> Personal.list_contacts()
-      |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
-
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(
-       :contacts_for_different_holder_or_recipient,
-       contacts_for_different_holder_or_recipient
-     )
+     |> assign_contacts_for_different_holder_or_recipient(assigns.contact.club_id)
      |> assign_new(:form, fn ->
        to_form(changeset)
      end)
@@ -257,6 +249,16 @@ defmodule SportywebWeb.ContactLive.FormComponent do
        &assign_form/2
      )
      |> setup_contact_duplicate_check_event_hook()}
+  end
+
+  def assign_contacts_for_different_holder_or_recipient(socket, club_id) do
+    socket
+    |> assign(
+      :contacts_for_different_holder_or_recipient,
+      club_id
+      |> Personal.list_contacts()
+      |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
+    )
   end
 
   @impl true
