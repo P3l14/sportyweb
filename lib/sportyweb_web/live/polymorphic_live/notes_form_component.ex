@@ -10,6 +10,9 @@ defmodule SportywebWeb.PolymorphicLive.NotesFormComponent do
     ~H"""
     <div class="col-span-12">
       <.input_grid>
+        <.header level="2" class="col-span-12 md:col-span-12">
+          Notizen <.errors_for_lists list_field={@form[:notes]} />
+        </.header>
         <.inputs_for :let={note} field={@form[:notes]}>
           <.element_index_field
             :if={@allow_multiple}
