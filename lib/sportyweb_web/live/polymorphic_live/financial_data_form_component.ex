@@ -51,6 +51,53 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
               />
             </div>
 
+            <.inputs_for
+              :let={contact}
+              :if={
+                financial_data[:direct_debit_different_account_holder_contact_id].value ==
+                  FinancialData.new_direct_debit_different_account_holder_value()
+              }
+              field={financial_data[:direct_debit_different_account_holder_contact]}
+            >
+              <div class="col-span-12 md:col-span-12">
+                <.header level="3" class="col-span-12 md:col-span-12">
+                  Neuer abweichender Bankkontoinhaber
+                </.header>
+                <SportywebWeb.ContactLive.FormComponent.contact_name_data_grid
+                  form={contact}
+                  contact_form_type={:other}
+                />
+              </div>
+              <input type="hidden" name={"#{contact.name}[club_id]"} value={@form[:club_id].value} />
+              <input
+                type="hidden"
+                name={"#{contact.name}[contact_roles][0][name]"}
+                value="debit account holder"
+              />
+              <input
+                type="hidden"
+                name={"#{contact.name}[contact_roles][0][valid_from]"}
+                value={Date.utc_today()}
+              />
+
+              <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
+                form={contact}
+                allow_multiple={true}
+              >
+                <:additional_address_actions>
+                  <.button
+                    type="button"
+                    name="copy_contact_address_to"
+                    value={"financial_data/#{financial_data.index}/direct_debit_different_account_holder_contact/postal_addresses"}
+                    class="col-span-12 md:col-span-12"
+                    phx-click={JS.dispatch("change")}
+                  >
+                    Adresse aus Kontakt übernehmen
+                  </.button>
+                </:additional_address_actions>
+              </SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render>
+            </.inputs_for>
+
             <div class="col-span-12 md:col-span-12">
               <.input field={financial_data[:direct_debit_iban]} type="text" label="IBAN" />
             </div>
@@ -86,6 +133,53 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
                 label="abweichender Rechnungsempfänger"
               />
             </div>
+
+            <.inputs_for
+              :let={contact}
+              :if={
+                financial_data[:invoice_different_recipient_contact_id].value ==
+                  FinancialData.new_invoice_different_recipient_value()
+              }
+              field={financial_data[:invoice_different_recipient_contact]}
+            >
+              <div class="col-span-12 md:col-span-12">
+                <.header level="3" class="col-span-12 md:col-span-12">
+                  Neuer abweichender Rechnungsempfänger
+                </.header>
+                <SportywebWeb.ContactLive.FormComponent.contact_name_data_grid
+                  form={contact}
+                  contact_form_type={:other}
+                />
+              </div>
+              <input type="hidden" name={"#{contact.name}[club_id]"} value={@form[:club_id].value} />
+              <input
+                type="hidden"
+                name={"#{contact.name}[contact_roles][0][name]"}
+                value="invoice recipient"
+              />
+              <input
+                type="hidden"
+                name={"#{contact.name}[contact_roles][0][valid_from]"}
+                value={Date.utc_today()}
+              />
+
+              <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
+                form={contact}
+                allow_multiple={true}
+              >
+                <:additional_address_actions>
+                  <.button
+                    type="button"
+                    name="copy_contact_address_to"
+                    value={"financial_data/#{financial_data.index}/invoice_different_recipient_contact/postal_addresses"}
+                    class="col-span-12 md:col-span-12"
+                    phx-click={JS.dispatch("change")}
+                  >
+                    Adresse aus Kontakt übernehmen
+                  </.button>
+                </:additional_address_actions>
+              </SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render>
+            </.inputs_for>
 
             <div class="col-span-12">
               <.input

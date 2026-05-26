@@ -248,16 +248,28 @@ defmodule SportywebWeb.ContactLive.FormComponent do
      |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
        &assign_form/2
      )
-     |> setup_contact_duplicate_check_event_hook()}
+     |> setup_contact_duplicate_check_event_hook()
+     |> setup_contact_copy_addresses_event_hook(&assign_form/2)}
   end
 
   def assign_contacts_for_different_holder_or_recipient(socket, club_id) do
-    socket
-    |> assign(
-      :contacts_for_different_holder_or_recipient,
+    contacts_for_different_holder_or_recipient =
       club_id
       |> Personal.list_contacts()
       |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
+
+    contacts_for_different_holder_or_recipient = [
+      [
+        key: "Neuen Kontakt anlegen",
+        value: FinancialData.new_direct_debit_different_account_holder_value()
+      ]
+      | contacts_for_different_holder_or_recipient
+    ]
+
+    socket
+    |> assign(
+      :contacts_for_different_holder_or_recipient,
+      contacts_for_different_holder_or_recipient
     )
   end
 
@@ -389,5 +401,52 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
   defp check_duplicates(socket, _name_of_changed_field, _contact) do
     socket
+  end
+
+  @doc """
+  Registers a hook on the validate event to copy address of the main contact on the view to another current on click of a button.
+
+  The first function parameter takes the assing function to create the form for the passed in parameters
+  The optional function parameter must be provided when the contact paramter data map is not below the key "contact".
+  The function parameter takes the parameter map as input und should return the map with the contact data.
+
+
+  """
+  def setup_contact_copy_addresses_event_hook(
+        socket,
+        assign_form_function,
+        parameter_contact_form_supplying_function \\ fn parameter -> parameter["contact"] end
+      )
+      when is_function(assign_form_function) and
+             is_function(parameter_contact_form_supplying_function) do
+    socket
+    |> Phoenix.LiveView.Lifecycle.attach_hook(
+      :contact_copy_addresses,
+      :handle_event,
+      fn
+        "validate",
+        %{
+          "_target" => ["copy_contact_address_to"]
+        } = parameter,
+        socket ->
+          path = parameter["copy_contact_address_to"] |> String.split("/")
+          contact_params = parameter_contact_form_supplying_function.(parameter)
+          contact_addresses = get_in(contact_params, ["postal_addresses"])
+
+          contact_params =
+            put_in(
+              contact_params,
+              path,
+              contact_addresses
+            )
+
+          {:halt,
+           socket
+           |> assign_form_function.(contact_params)}
+
+        _event, _params, socket ->
+          {:cont, socket}
+      end
+    )
   end
 end

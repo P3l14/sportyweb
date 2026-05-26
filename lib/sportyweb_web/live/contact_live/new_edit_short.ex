@@ -9,7 +9,6 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
   attr :propably_duplicate_contacts, :list, required: false, default: []
   @impl true
   def render(assigns) do
-
     ~H"""
     <div>
       <.header>
@@ -109,6 +108,9 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
       &assign_form/2
     )
     |> SportywebWeb.ContactLive.FormComponent.setup_contact_duplicate_check_event_hook()
+    |> SportywebWeb.ContactLive.FormComponent.setup_contact_copy_addresses_event_hook(
+      &assign_form/2
+    )
   end
 
   def assign_form(socket, contact_params \\ %{}) do

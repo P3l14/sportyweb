@@ -57,6 +57,28 @@ defmodule Sportyweb.Polymorphic.FinancialData do
       empty_values: ["", nil]
     )
     |> validate_required([:type])
+    |> cast_assoc(:direct_debit_different_account_holder_contact,
+      required: false,
+      with: &Contact.changeset_short_contact/2
+    )
+    |> update_change(:direct_debit_different_account_holder_contact_id, fn id ->
+      if id == new_direct_debit_different_account_holder_value() do
+        nil
+      else
+        id
+      end
+    end)
+    |> cast_assoc(:invoice_different_recipient_contact,
+      required: false,
+      with: &Contact.changeset_short_contact/2
+    )
+    |> update_change(:invoice_different_recipient_contact_id, fn id ->
+      if id == new_invoice_different_recipient_value() do
+        nil
+      else
+        id
+      end
+    end)
     |> update_change(:direct_debit_iban, &String.trim/1)
     |> update_change(:invoice_additional_information, &String.trim/1)
     |> validate_iban()
@@ -76,6 +98,22 @@ defmodule Sportyweb.Polymorphic.FinancialData do
         _ -> []
       end
     end)
+  end
+
+  @doc """
+  Value that indicates that a new direct_debit_different_account_holder is used in the form.
+
+  """
+  def new_direct_debit_different_account_holder_value() do
+    "new"
+  end
+
+  @doc """
+  Value that indicates that a new direct_invoice_different_recipient is used in the form.
+
+  """
+  def new_invoice_different_recipient_value() do
+    "new"
   end
 
   defp validate_required_type_condition(%Ecto.Changeset{} = changeset) do
