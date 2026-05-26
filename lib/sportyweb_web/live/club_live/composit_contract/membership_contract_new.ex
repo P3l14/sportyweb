@@ -64,26 +64,12 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                     Kontakt verwenden
                   </.button>
                 </:additional_actions_for_dupplicate_contacts>
-
-                <:additional_personal_components>
-                  <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
-                    <div class="col-span-12 md:col-span-12">
-                      <.input
-                        field={contact[:legal_gurardian_id]}
-                        type="select"
-                        label="Erziehungsberechtigter"
-                        options={@contact_options_for_legal_guardian}
-                        prompt="Bitte auswählen"
-                      />
-                    </div>
-                  </.input_grid>
-                </:additional_personal_components>
               </SportywebWeb.ContactLive.FormComponent.contact_grid>
 
               <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
                 <div class="col-span-12 md:col-span-12">
                   <.input
-                    field={contact[:legal_gurardian_id]}
+                    field={@form[:legal_gurardian_contact_id]}
                     type="select"
                     label="Erziehungsberechtigter"
                     options={@contact_options_for_legal_guardian}
@@ -91,6 +77,52 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                   />
                 </div>
               </.input_grid>
+              <.inputs_for
+                :let={contact}
+                :if={
+                  @form[:legal_gurardian_contact_id].value ==
+                    FinancialData.new_invoice_different_recipient_value()
+                }
+                field={@form[:legal_gurardian_contact]}
+              >
+                <div class="col-span-12 md:col-span-12">
+                  <.header level="3" class="col-span-12 md:col-span-12">
+                    Neuer gesetzlicher Vertreter
+                  </.header>
+                  <SportywebWeb.ContactLive.FormComponent.contact_name_data_grid
+                    form={contact}
+                    contact_form_type={:"legal guardian"}
+                  />
+                </div>
+                <input type="hidden" name={"#{contact.name}[club_id]"} value={@club.id} />
+                <input
+                  type="hidden"
+                  name={"#{contact.name}[contact_roles][0][name]"}
+                  value="legal guardian"
+                />
+                <input
+                  type="hidden"
+                  name={"#{contact.name}[contact_roles][0][valid_from]"}
+                  value={Date.utc_today()}
+                />
+
+                <SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render
+                  form={contact}
+                  allow_multiple={true}
+                >
+                  <:additional_address_actions>
+                    <.button
+                      type="button"
+                      name="copy_contact_address_to"
+                      value="legal_gurardian_contact/postal_addresses"
+                      class="col-span-12 md:col-span-12"
+                      phx-click={JS.dispatch("change")}
+                    >
+                      Adresse aus Kontakt übernehmen
+                    </.button>
+                  </:additional_address_actions>
+                </SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render>
+              </.inputs_for>
             </.inputs_for>
 
             <.input_grid>
@@ -241,6 +273,14 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
       |> Personal.list_contacts_for_contact_role_legal_gurdian_selection()
       |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
 
+    contact_options_for_legal_guardian = [
+      [
+        key: "Neuen Kontakt anlegen",
+        value: :new
+      ]
+      | contact_options_for_legal_guardian
+    ]
+
     contact_options_for_contract =
       club.id
       |> Personal.list_contract_contact_options(club)
@@ -348,14 +388,20 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
           membership_contract.contact_id
         end
 
-      legal_gurardian_id = get_in(membership_contract_form, ["contact", "legal_gurardian_id"])
+      case legal_gurardian_id = membership_contract.legal_gurardian_contact_id do
+        "new" ->
+          legal_gurardian_contact = membership_contract.legal_gurardian_contact
+          {:ok, _} = Personal.create_contact_internal(legal_gurardian_contact)
 
-      if legal_gurardian_id do
-        Personal.create_legal_guardian_relation(
-          legal_gurardian_id,
-          contact_id,
-          membership_contract.signing_date
-        )
+        nil ->
+          nil
+
+        _ ->
+          Personal.create_legal_guardian_relation(
+            legal_gurardian_id,
+            contact_id,
+            membership_contract.signing_date
+          )
       end
 
       club_contract = %Contract{

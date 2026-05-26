@@ -198,6 +198,11 @@ defmodule SportywebWeb.ContactLive.FormComponent do
             <.input field={@form[:person_birthday]} type="date" label="Geburtsdatum" />
           </div>
         <% end %>
+        <%= if @contact_form_type == :"legal guardian" do %>
+          <div class="col-span-12 md:col-span-4">
+            <.input field={@form[:person_birthday]} type="date" label="Geburtsdatum" />
+          </div>
+        <% end %>
       </.input_grid>
     <% end %>
     """
