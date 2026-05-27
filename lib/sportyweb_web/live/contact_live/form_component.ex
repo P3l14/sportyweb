@@ -420,10 +420,11 @@ defmodule SportywebWeb.ContactLive.FormComponent do
   def setup_contact_copy_addresses_event_hook(
         socket,
         assign_form_function,
-        parameter_contact_form_supplying_function \\ fn parameter -> parameter["contact"] end
+        path_to_contact \\ ["contact"],
+        form_parameter_provider \\ fn parameter -> parameter["contact"] end
       )
       when is_function(assign_form_function) and
-             is_function(parameter_contact_form_supplying_function) do
+             is_list(path_to_contact) and is_function(form_parameter_provider) do
     socket
     |> Phoenix.LiveView.Lifecycle.attach_hook(
       :contact_copy_addresses,
@@ -434,20 +435,20 @@ defmodule SportywebWeb.ContactLive.FormComponent do
           "_target" => ["copy_contact_address_to"]
         } = parameter,
         socket ->
-          path = parameter["copy_contact_address_to"] |> String.split("/")
-          contact_params = parameter_contact_form_supplying_function.(parameter)
-          contact_addresses = get_in(contact_params, ["postal_addresses"])
+          contact_addresses = get_in(parameter, path_to_contact ++ ["postal_addresses"])
 
-          contact_params =
+          target_path = parameter["copy_contact_address_to"] |> String.split("/")
+          form_parameter = form_parameter_provider.(parameter)
+          form_parameter =
             put_in(
-              contact_params,
-              path,
+              form_parameter,
+              target_path,
               contact_addresses
             )
 
           {:halt,
            socket
-           |> assign_form_function.(contact_params)}
+           |> assign_form_function.(form_parameter)}
 
         _event, _params, socket ->
           {:cont, socket}
