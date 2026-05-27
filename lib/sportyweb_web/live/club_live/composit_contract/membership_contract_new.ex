@@ -69,7 +69,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
               <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
                 <div class="col-span-12 md:col-span-12">
                   <.input
-                    field={@form[:legal_gurardian_contact_id]}
+                    field={@form[:legal_guardian_contact_id]}
                     type="select"
                     label="Erziehungsberechtigter"
                     options={@contact_options_for_legal_guardian}
@@ -80,10 +80,10 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
               <.inputs_for
                 :let={contact}
                 :if={
-                  @form[:legal_gurardian_contact_id].value ==
+                  @form[:legal_guardian_contact_id].value ==
                     FinancialData.new_invoice_different_recipient_value()
                 }
-                field={@form[:legal_gurardian_contact]}
+                field={@form[:legal_guardian_contact]}
               >
                 <div class="col-span-12 md:col-span-12">
                   <.header level="3" class="col-span-12 md:col-span-12">
@@ -114,7 +114,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                     <.button
                       type="button"
                       name="copy_contact_address_to"
-                      value="legal_gurardian_contact/postal_addresses"
+                      value="legal_guardian_contact/postal_addresses"
                       class="col-span-12 md:col-span-12"
                       phx-click={JS.dispatch("change")}
                     >
@@ -388,17 +388,17 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
           membership_contract.contact_id
         end
 
-      case legal_gurardian_id = membership_contract.legal_gurardian_contact_id do
+      case legal_guardian_id = membership_contract.legal_guardian_contact_id do
         "new" ->
-          legal_gurardian_contact = membership_contract.legal_gurardian_contact
-          {:ok, _} = Personal.create_contact_internal(legal_gurardian_contact)
+          legal_guardian_contact = membership_contract.legal_guardian_contact
+          {:ok, _} = Personal.create_contact_internal(legal_guardian_contact)
 
         nil ->
           nil
 
         _ ->
           Personal.create_legal_guardian_relation(
-            legal_gurardian_id,
+            legal_guardian_id,
             contact_id,
             membership_contract.signing_date
           )

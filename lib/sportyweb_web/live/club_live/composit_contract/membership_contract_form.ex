@@ -11,8 +11,8 @@ defmodule SportywebWeb.ClubLive.MembershipContractForm do
     field :start_date, :date, default: nil
     field :club_fee_id, :binary_id, default: nil
     embeds_one :contact, Sportyweb.Personal.Contact
-    field :legal_gurardian_contact_id, :string, default: nil
-    embeds_one :legal_gurardian_contact, Sportyweb.Personal.Contact
+    field :legal_guardian_contact_id, :string, default: nil
+    embeds_one :legal_guardian_contact, Sportyweb.Personal.Contact
     embeds_many :department_selections, DepartmentSelection, on_replace: :delete
   end
 
@@ -31,11 +31,11 @@ defmodule SportywebWeb.ClubLive.MembershipContractForm do
       :signing_date,
       :start_date,
       :club_fee_id,
-      :legal_gurardian_contact_id
+      :legal_guardian_contact_id
     ])
     |> validate_required([:contact_id, :signing_date, :start_date, :club_fee_id])
     |> cast_embed(:contact, with: &Contact.contact_for_membership_changeset/2)
-    |> cast_embed(:legal_gurardian_contact, with: &Contact.changeset_short_contact/2)
+    |> cast_embed(:legal_guardian_contact, with: &Contact.changeset_short_contact/2)
     |> cast_embed(:department_selections)
   end
 end
