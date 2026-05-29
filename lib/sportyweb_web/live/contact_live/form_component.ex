@@ -83,7 +83,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
         <.link navigate={~p"/contacts/#{duplicate_contact}"} class="text-indigo-600 hover:underline">
           {format_string_field(duplicate_contact.name)}
         </.link>
-        {render_slot(@additional_actions_for_dupplicate_contacts, dbg(duplicate_contact))}
+        {render_slot(@additional_actions_for_dupplicate_contacts, duplicate_contact)}
       </div>
     <% end %>
     <.input_grids>
