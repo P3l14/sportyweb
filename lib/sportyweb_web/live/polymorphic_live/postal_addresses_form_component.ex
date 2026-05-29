@@ -14,7 +14,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
   def render(assigns) do
     ~H"""
     <.header level="2" class="col-span-12 md:col-span-12">
-      Straßenadressen <.errors_for_lists list_field={@form[:postal_addresses]} />
+      Adressen <.errors_for_lists list_field={@form[:postal_addresses]} />
     </.header>
     {render_slot(@additional_address_actions)}
     <datalist :if={@zipcode_proposals} id="zipcode_proposals">
