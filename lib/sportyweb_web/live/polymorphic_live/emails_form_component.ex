@@ -11,7 +11,7 @@ defmodule SportywebWeb.PolymorphicLive.EmailsFormComponent do
     <%!-- <h2 class="text-xl/7 font-semibold col-span-12 md:col-span-12">EMailadressen</h2> --%>
 
     <.header level="2" class="col-span-12 md:col-span-12">
-      EMailadressen <.errors_for_lists list_field={@form[:emails]} />
+      E-Mail-Adressen <.errors_for_lists list_field={@form[:emails]} />
     </.header>
 
     <%!-- <h2 class="col-span-12 md:col-span-12" >EMailadressen</h2> --%>
