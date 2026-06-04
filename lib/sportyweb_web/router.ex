@@ -150,6 +150,10 @@ defmodule SportywebWeb.Router do
 
       live "/contacts/:id", ContactLive.Show, :show
 
+      live "/contacts/:id/terminate_membership",
+           ClubLive.MembershipContractTermination,
+           :terminate
+
       # Contact groups
 
       live "/contact_groups", ContactGroupLive.Index, :index_root
