@@ -118,7 +118,7 @@ defmodule SportywebWeb.ContactLive.Index do
 
       <:col :let={{_id, contact}} label="Rollen">
         <%= for contact_role <- contact.contact_roles do %>
-          {get_key_for_value(ContactRole.get_valid_names(), contact_role.name)}
+          {get_key_for_value(ContactRole.get_valid_names(), contact_role.name) |> truncate_string(15)}
           <.icon
             :if={ContactRole.membership_role?(contact_role.name)}
             name="hero-check-badge"
@@ -133,7 +133,7 @@ defmodule SportywebWeb.ContactLive.Index do
         label="Abteilungen"
       >
         <%= for department <- Contact.get_departments(contact) do %>
-          {format_string_field(department.name)}
+          {format_string_field(department.name) |> truncate_string(10)}
         <% end %>
       </:col>
 
@@ -149,7 +149,7 @@ defmodule SportywebWeb.ContactLive.Index do
         label="Gruppen"
       >
         <%= for group <- Contact.get_groups(contact) do %>
-          {format_string_field(group.name)}
+          {format_string_field(group.name) |> truncate_string(10)}
         <% end %>
       </:col>
 

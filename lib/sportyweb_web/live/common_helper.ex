@@ -107,4 +107,17 @@ defmodule SportywebWeb.CommonHelper do
       _ -> "-"
     end
   end
+
+  @doc """
+  Truncate the given string to the given length and appends '...' to indicate that the value has been trunctated
+  The max_length refers to the length above which a trunactions is applied and how long the returned value will be including the added "..."
+
+  """
+  def truncate_string(value, max_length) when is_binary(value) and is_number(max_length) do
+    if String.length(value) > max_length do
+      String.slice(value, 0, max_length - 3) <> "..."
+    else
+      value
+    end
+  end
 end
