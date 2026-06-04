@@ -439,6 +439,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
           target_path = parameter["copy_contact_address_to"] |> String.split("/")
           form_parameter = form_parameter_provider.(parameter)
+
           form_parameter =
             put_in(
               form_parameter,

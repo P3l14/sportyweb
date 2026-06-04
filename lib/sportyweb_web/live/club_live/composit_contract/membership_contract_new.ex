@@ -321,8 +321,11 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
      |> SportywebWeb.ContactLive.FormComponent.setup_contact_duplicate_check_event_hook(
        fn parameter -> parameter["membership_contract_form"]["contact"] end
      )
-     |> SportywebWeb.ContactLive.FormComponent.setup_contact_copy_addresses_event_hook(&assign_form/2, ["membership_contract_form","contact"], fn parameter -> parameter["membership_contract_form"] end)
-    }
+     |> SportywebWeb.ContactLive.FormComponent.setup_contact_copy_addresses_event_hook(
+       &assign_form/2,
+       ["membership_contract_form", "contact"],
+       fn parameter -> parameter["membership_contract_form"] end
+     )}
   end
 
   def assign_form(socket, membership_contract_form) do
