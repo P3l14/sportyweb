@@ -1,6 +1,7 @@
 defmodule SportywebWeb.ClubLive.MembershipContractForm do
   use Ecto.Schema
   import Ecto.Changeset
+  import SportywebWeb.CommonValidations
   alias SportywebWeb.ClubLive.DepartmentSelection
   alias Sportyweb.Personal.Contact
 
@@ -34,6 +35,11 @@ defmodule SportywebWeb.ClubLive.MembershipContractForm do
       :legal_guardian_contact_id
     ])
     |> validate_required([:contact_id, :signing_date, :start_date, :club_fee_id])
+    |> validate_dates_order(
+      :signing_date,
+      :start_date,
+      "Muss zeitlich später als oder gleich \"Unterzeichnungsdatum\" sein!"
+    )
     |> cast_embed(:contact, with: &Contact.contact_for_membership_changeset/2)
     |> cast_embed(:legal_guardian_contact, with: &Contact.changeset_short_contact/2)
     |> cast_embed(:department_selections)
