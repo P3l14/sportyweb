@@ -1,6 +1,8 @@
 defmodule SportywebWeb.ContractLive.FormComponent do
   use SportywebWeb, :live_component
 
+  import SportywebWeb.CommonHelper
+
   alias Sportyweb.Finance
   alias Sportyweb.Legal
   alias Sportyweb.Organization
@@ -28,14 +30,26 @@ defmodule SportywebWeb.ContractLive.FormComponent do
           <.input_grids>
             <.input_grid>
               <div class="col-span-12 md:col-span-6">
-                <.input
-                  field={@form[:contact_id]}
-                  type="select"
-                  label="Kontakt"
-                  options={@contact_options |> Enum.map(&{&1.name, &1.id})}
-                  prompt="Bitte auswählen"
-                  phx-change="update_fee_options"
-                />
+                <%= if @id == :new do %>
+                  <.input
+                    field={@form[:contact_id]}
+                    type="select"
+                    label="Kontakt"
+                    options={@contact_options |> Enum.map(&{&1.name, &1.id})}
+                    prompt="Bitte auswählen"
+                    phx-change="update_fee_options"
+                  />
+                <% else %>
+                  <!-- Contact should not be changed in existing contract and contacts with contracts are not shown in the option list because they already have a cotnract -->
+                  <.label for="contact_link" class="mb-5">Kontakt</.label>
+                  <.link
+                    id="contact_link"
+                    navigate={~p"/contacts/#{@contract.contact}"}
+                    class="text-indigo-600 hover:underline "
+                  >
+                    {format_string_field(@contract.contact.name)}
+                  </.link>
+                <% end %>
               </div>
 
               <div class="col-span-12 md:col-span-6">
@@ -55,6 +69,15 @@ defmodule SportywebWeb.ContractLive.FormComponent do
               <div class="col-span-12 md:col-span-6">
                 <.input field={@form[:start_date]} type="date" label="Vertragsbeginn" />
               </div>
+              <%= if @id != :new do %>
+                <div class="col-span-12 md:col-span-6">
+                  <.input field={@form[:termination_date]} type="date" label="Kündigungsdatum" />
+                </div>
+
+                <div class="col-span-12 md:col-span-6">
+                  <.input field={@form[:archive_date]} type="date" label="Vertragsende" />
+                </div>
+              <% end %>
             </.input_grid>
           </.input_grids>
 

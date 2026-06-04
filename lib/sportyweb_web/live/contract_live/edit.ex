@@ -10,7 +10,7 @@ defmodule SportywebWeb.ContractLive.Edit do
     <div>
       <.live_component
         module={SportywebWeb.ContractLive.FormComponent}
-        id={@contract.id || :new}
+        id={@contract.id}
         title={@page_title}
         action={@live_action}
         contract={@contract}
@@ -36,7 +36,9 @@ defmodule SportywebWeb.ContractLive.Edit do
   # There is no "new" action in this LiveView because that gets handled in the corresponding LiveView for contracts to club, department and group SportywebWeb.ContractLive.NewEdit
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    contract = Legal.get_contract!(id, [:contact, :fee, :clubs, :departments, :groups])
+    contract =
+      Legal.get_contract!(id, [:contact, :fee, :clubs, departments: [:fees], groups: [:fees]])
+
     contract_object = contract |> Contract.get_object()
     contract_object = Sportyweb.Repo.preload(contract_object, :contracts)
     # club = department.club
