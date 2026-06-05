@@ -61,12 +61,18 @@ defmodule Sportyweb.SeedHelper do
     if :rand.uniform() < 0.9 do
       %FinancialData{
         type: "direct_debit",
-        direct_debit_iban: "DE06495352657836424132"
+        direct_debit_iban: "DE06495352657836424132",
+        # Must be set explicit to nil because otherwise it has the value Ecto not loaded and the insert fails
+        direct_debit_different_account_holder_contact: nil,
+        invoice_different_recipient_contact: nil
       }
     else
       %FinancialData{
         type: "invoice",
-        invoice_additional_information: ""
+        invoice_additional_information: "",
+        # Must be set explicit to nil because otherwise it has the value Ecto not loaded and the insert fails
+        direct_debit_different_account_holder_contact: nil,
+        invoice_different_recipient_contact: nil
       }
     end
   end
