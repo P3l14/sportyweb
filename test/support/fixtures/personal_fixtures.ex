@@ -106,4 +106,29 @@ defmodule Sportyweb.PersonalFixtures do
 
     contact_role_relation
   end
+
+  @doc """
+  Generate a qualification.
+  """
+  def qualification_fixture(attrs \\ %{}) do
+    {:ok, qualification} =
+      attrs
+      |> Enum.into(%{
+        common_description: "some common_description",
+        common_issuance: ~D[2026-06-04],
+        common_type: "some common_type",
+        dosb_first_issuance: ~D[2026-06-04],
+        dosb_license_coach_sport: "some dosb_license_coach_sport",
+        dosb_license_level: "some dosb_license_level",
+        dosb_license_number: "some dosb_license_number",
+        dosb_license_number_sports_association: "some dosb_license_number_sports_association",
+        dosb_license_sport_instructor_type: "some dosb_license_sport_instructor_type",
+        dosb_license_type: "some dosb_license_type",
+        dosb_valid_until: ~D[2026-06-04],
+        type: "some type"
+      })
+      |> Sportyweb.Personal.create_qualification()
+
+    qualification
+  end
 end

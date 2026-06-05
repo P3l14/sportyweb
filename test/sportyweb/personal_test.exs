@@ -578,4 +578,138 @@ defmodule Sportyweb.PersonalTest do
       assert {:ok, %Contact{}} = Personal.create_short_contact(valid_attrs)
     end
   end
+
+  describe "qualifications" do
+    alias Sportyweb.Personal.Qualification
+
+    import Sportyweb.PersonalFixtures
+
+    @invalid_attrs %{
+      type: nil,
+      dosb_license_type: nil,
+      dosb_license_level: nil,
+      dosb_license_number: nil,
+      dosb_license_number_sports_association: nil,
+      dosb_license_coach_sport: nil,
+      dosb_license_sport_instructor_type: nil,
+      dosb_first_issuance: nil,
+      dosb_valid_until: nil,
+      common_type: nil,
+      common_description: nil,
+      common_issuance: nil
+    }
+
+    test "list_qualifications/0 returns all qualifications" do
+      qualification = qualification_fixture()
+      assert Personal.list_qualifications() == [qualification]
+    end
+
+    test "get_qualification!/1 returns the qualification with given id" do
+      qualification = qualification_fixture()
+      assert Personal.get_qualification!(qualification.id) == qualification
+    end
+
+    test "create_qualification/1 with valid data creates a qualification" do
+      valid_attrs = %{
+        type: "some type",
+        dosb_license_type: "some dosb_license_type",
+        dosb_license_level: "some dosb_license_level",
+        dosb_license_number: "some dosb_license_number",
+        dosb_license_number_sports_association: "some dosb_license_number_sports_association",
+        dosb_license_coach_sport: "some dosb_license_coach_sport",
+        dosb_license_sport_instructor_type: "some dosb_license_sport_instructor_type",
+        dosb_first_issuance: ~D[2026-06-04],
+        dosb_valid_until: ~D[2026-06-04],
+        common_type: "some common_type",
+        common_description: "some common_description",
+        common_issuance: ~D[2026-06-04]
+      }
+
+      assert {:ok, %Qualification{} = qualification} = Personal.create_qualification(valid_attrs)
+      assert qualification.type == "some type"
+      assert qualification.dosb_license_type == "some dosb_license_type"
+      assert qualification.dosb_license_level == "some dosb_license_level"
+      assert qualification.dosb_license_number == "some dosb_license_number"
+
+      assert qualification.dosb_license_number_sports_association ==
+               "some dosb_license_number_sports_association"
+
+      assert qualification.dosb_license_coach_sport == "some dosb_license_coach_sport"
+
+      assert qualification.dosb_license_sport_instructor_type ==
+               "some dosb_license_sport_instructor_type"
+
+      assert qualification.dosb_first_issuance == ~D[2026-06-04]
+      assert qualification.dosb_valid_until == ~D[2026-06-04]
+      assert qualification.common_type == "some common_type"
+      assert qualification.common_description == "some common_description"
+      assert qualification.common_issuance == ~D[2026-06-04]
+    end
+
+    test "create_qualification/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Personal.create_qualification(@invalid_attrs)
+    end
+
+    test "update_qualification/2 with valid data updates the qualification" do
+      qualification = qualification_fixture()
+
+      update_attrs = %{
+        type: "some updated type",
+        dosb_license_type: "some updated dosb_license_type",
+        dosb_license_level: "some updated dosb_license_level",
+        dosb_license_number: "some updated dosb_license_number",
+        dosb_license_number_sports_association:
+          "some updated dosb_license_number_sports_association",
+        dosb_license_coach_sport: "some updated dosb_license_coach_sport",
+        dosb_license_sport_instructor_type: "some updated dosb_license_sport_instructor_type",
+        dosb_first_issuance: ~D[2026-06-05],
+        dosb_valid_until: ~D[2026-06-05],
+        common_type: "some updated common_type",
+        common_description: "some updated common_description",
+        common_issuance: ~D[2026-06-05]
+      }
+
+      assert {:ok, %Qualification{} = qualification} =
+               Personal.update_qualification(qualification, update_attrs)
+
+      assert qualification.type == "some updated type"
+      assert qualification.dosb_license_type == "some updated dosb_license_type"
+      assert qualification.dosb_license_level == "some updated dosb_license_level"
+      assert qualification.dosb_license_number == "some updated dosb_license_number"
+
+      assert qualification.dosb_license_number_sports_association ==
+               "some updated dosb_license_number_sports_association"
+
+      assert qualification.dosb_license_coach_sport == "some updated dosb_license_coach_sport"
+
+      assert qualification.dosb_license_sport_instructor_type ==
+               "some updated dosb_license_sport_instructor_type"
+
+      assert qualification.dosb_first_issuance == ~D[2026-06-05]
+      assert qualification.dosb_valid_until == ~D[2026-06-05]
+      assert qualification.common_type == "some updated common_type"
+      assert qualification.common_description == "some updated common_description"
+      assert qualification.common_issuance == ~D[2026-06-05]
+    end
+
+    test "update_qualification/2 with invalid data returns error changeset" do
+      qualification = qualification_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Personal.update_qualification(qualification, @invalid_attrs)
+
+      assert qualification == Personal.get_qualification!(qualification.id)
+    end
+
+    test "delete_qualification/1 deletes the qualification" do
+      qualification = qualification_fixture()
+      assert {:ok, %Qualification{}} = Personal.delete_qualification(qualification)
+      assert_raise Ecto.NoResultsError, fn -> Personal.get_qualification!(qualification.id) end
+    end
+
+    test "change_qualification/1 returns a qualification changeset" do
+      qualification = qualification_fixture()
+      assert %Ecto.Changeset{} = Personal.change_qualification(qualification)
+    end
+  end
 end

@@ -163,6 +163,13 @@ defmodule SportywebWeb.Router do
       live "/contact_groups/:id", ContactGroupLive.Show, :show
       live "/clubs/:club_id/simplecontacts/new", SimpleContactLive.NewEdit, :new
 
+      live "/qualifications", QualificationLive.Index, :index
+      live "/qualifications/new", QualificationLive.Index, :new
+      live "/qualifications/:id/edit", QualificationLive.Index, :edit
+
+      live "/qualifications/:id", QualificationLive.Show, :show
+      live "/qualifications/:id/show/edit", QualificationLive.Show, :edit
+
       # Locations (Each belongs to a club)
 
       live "/locations", LocationLive.Index, :index_root

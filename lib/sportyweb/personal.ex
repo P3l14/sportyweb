@@ -740,4 +740,100 @@ defmodule Sportyweb.Personal do
   def change_contact_role_relation(%ContactRoleRelation{} = contact_role_relation, attrs \\ %{}) do
     ContactRoleRelation.changeset(contact_role_relation, attrs)
   end
+
+  alias Sportyweb.Personal.Qualification
+
+  @doc """
+  Returns the list of qualifications.
+
+  ## Examples
+
+      iex> list_qualifications()
+      [%Qualification{}, ...]
+
+  """
+  def list_qualifications do
+    Repo.all(Qualification)
+  end
+
+  @doc """
+  Gets a single qualification.
+
+  Raises `Ecto.NoResultsError` if the Qualification does not exist.
+
+  ## Examples
+
+      iex> get_qualification!(123)
+      %Qualification{}
+
+      iex> get_qualification!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_qualification!(id), do: Repo.get!(Qualification, id)
+
+  @doc """
+  Creates a qualification.
+
+  ## Examples
+
+      iex> create_qualification(%{field: value})
+      {:ok, %Qualification{}}
+
+      iex> create_qualification(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_qualification(attrs \\ %{}) do
+    %Qualification{}
+    |> Qualification.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a qualification.
+
+  ## Examples
+
+      iex> update_qualification(qualification, %{field: new_value})
+      {:ok, %Qualification{}}
+
+      iex> update_qualification(qualification, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_qualification(%Qualification{} = qualification, attrs) do
+    qualification
+    |> Qualification.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a qualification.
+
+  ## Examples
+
+      iex> delete_qualification(qualification)
+      {:ok, %Qualification{}}
+
+      iex> delete_qualification(qualification)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_qualification(%Qualification{} = qualification) do
+    Repo.delete(qualification)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking qualification changes.
+
+  ## Examples
+
+      iex> change_qualification(qualification)
+      %Ecto.Changeset{data: %Qualification{}}
+
+  """
+  def change_qualification(%Qualification{} = qualification, attrs \\ %{}) do
+    Qualification.changeset(qualification, attrs)
+  end
 end

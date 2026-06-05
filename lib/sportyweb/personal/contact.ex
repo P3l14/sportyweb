@@ -14,6 +14,7 @@ defmodule Sportyweb.Personal.Contact do
   alias Sportyweb.Personal.ContactPostalAddress
   alias Sportyweb.Personal.ContactRole
   alias Sportyweb.Personal.ContactRoleRelation
+  alias Sportyweb.Personal.Qualification
   alias Sportyweb.Polymorphic.Email
   alias Sportyweb.Polymorphic.FinancialData
   alias Sportyweb.Polymorphic.Note
@@ -36,6 +37,7 @@ defmodule Sportyweb.Personal.Contact do
     has_many :contracts, Contract
     has_many :contact_roles, ContactRole, on_replace: :delete
     has_many :contact_role_relations, ContactRoleRelation
+    has_many :qualifications, Qualification, on_replace: :delete
     many_to_many :contact_groups, ContactGroup, join_through: ContactGroupContact
     many_to_many :emails, Email, join_through: ContactEmail, on_replace: :delete
 

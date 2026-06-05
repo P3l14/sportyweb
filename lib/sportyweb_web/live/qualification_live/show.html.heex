@@ -1,0 +1,46 @@
+<.header>
+  Qualification {@qualification.id}
+  <:subtitle>This is a qualification record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/qualifications/#{@qualification}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit qualification</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Type">{@qualification.type}</:item>
+  <:item title="Dosb license type">{@qualification.dosb_license_type}</:item>
+  <:item title="Dosb license level">{@qualification.dosb_license_level}</:item>
+  <:item title="Dosb license number">{@qualification.dosb_license_number}</:item>
+  <:item title="Dosb license number sports association">
+    {@qualification.dosb_license_number_sports_association}
+  </:item>
+  <:item title="Dosb license coach sport">{@qualification.dosb_license_coach_sport}</:item>
+  <:item title="Dosb license sport instructor type">
+    {@qualification.dosb_license_sport_instructor_type}
+  </:item>
+  <:item title="Dosb first issuance">{@qualification.dosb_first_issuance}</:item>
+  <:item title="Dosb valid until">{@qualification.dosb_valid_until}</:item>
+  <:item title="Common type">{@qualification.common_type}</:item>
+  <:item title="Common description">{@qualification.common_description}</:item>
+  <:item title="Common issuance">{@qualification.common_issuance}</:item>
+</.list>
+
+<.back navigate={~p"/qualifications"}>Back to qualifications</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="qualification-modal"
+  show
+  on_cancel={JS.patch(~p"/qualifications/#{@qualification}")}
+>
+  <.live_component
+    module={SportywebWeb.QualificationLive.FormComponent}
+    id={@qualification.id}
+    title={@page_title}
+    action={@live_action}
+    qualification={@qualification}
+    patch={~p"/qualifications/#{@qualification}"}
+  />
+</.modal>
