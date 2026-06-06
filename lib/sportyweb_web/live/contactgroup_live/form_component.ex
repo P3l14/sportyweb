@@ -12,14 +12,14 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
       <.header>
         {@title}
       </.header>
-      <.simple_form
-        for={@form}
-        id="contact_group-form"
-        phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-      >
-        <.card>
+      <.card>
+        <.simple_form
+          for={@form}
+          id="contact_group-form"
+          phx-target={@myself}
+          phx-change="validate"
+          phx-submit="save"
+        >
           <.input_grids>
             <.inputs_for :let={contact_group} field={@form[:contact_group]}>
               <.input_grid>
@@ -74,22 +74,22 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
               />
             </.input_grid>
           </.input_grids>
-        </.card>
-        <:actions>
-          <div>
-            <.button phx-disable-with="Speichern...">Speichern</.button>
-            <.cancel_button navigate={@navigate}>Abbrechen</.cancel_button>
-          </div>
-          <.button
-            :if={@contact_group_form.contact_group.id}
-            class="bg-rose-700 hover:bg-rose-800"
-            phx-click={JS.push("delete", value: %{id: @contact_group_form.contact_group.id})}
-            data-confirm="Unwiderruflich löschen?"
-          >
-            Löschen
-          </.button>
-        </:actions>
-      </.simple_form>
+          <:actions>
+            <div>
+              <.button phx-disable-with="Speichern...">Speichern</.button>
+              <.cancel_button navigate={@navigate}>Abbrechen</.cancel_button>
+            </div>
+            <.button
+              :if={@contact_group_form.contact_group.id}
+              class="bg-rose-700 hover:bg-rose-800"
+              phx-click={JS.push("delete", value: %{id: @contact_group_form.contact_group.id})}
+              data-confirm="Unwiderruflich löschen?"
+            >
+              Löschen
+            </.button>
+          </:actions>
+        </.simple_form>
+      </.card>
     </div>
     """
   end
