@@ -30,6 +30,37 @@ defmodule SportywebWeb.CommonValidations do
   end
 
   @doc """
+  Validates that the date value is not after today.
+  Field can still be nil.
+
+  Takes a custom error message as optional parameter.
+
+  In the example below, the value of the person_birthday field
+  can't be in the future.-
+
+  ## Examples
+
+      changeset
+      |> validate_dates_order(:person_birthday, "Custom error")
+
+  """
+  def validate_date_not_in_future(
+        changeset,
+        field,
+        message \\ "Das Datum darf nicht in der Zukunft liegen!"
+      ) do
+    date_value = get_field(changeset, field)
+
+    if date_value &&
+         Date.after?(date_value, Date.utc_today()) do
+      changeset
+      |> add_error(field, message)
+    else
+      changeset
+    end
+  end
+
+  @doc """
   Validates that the numerical value of field_1 is smaller or equal than field_2.
   Either field can be nil.
 

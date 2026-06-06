@@ -114,18 +114,34 @@ defmodule Sportyweb.PersonalFixtures do
     {:ok, qualification} =
       attrs
       |> Enum.into(%{
-        common_description: "some common_description",
-        common_issuance: ~D[2026-06-04],
-        common_type: "some common_type",
+        contact_id: contact_fixture().id,
+        type: "dosb license",
         dosb_first_issuance: ~D[2026-06-04],
-        dosb_license_coach_sport: "some dosb_license_coach_sport",
-        dosb_license_level: "some dosb_license_level",
-        dosb_license_number: "some dosb_license_number",
-        dosb_license_number_sports_association: "some dosb_license_number_sports_association",
-        dosb_license_sport_instructor_type: "some dosb_license_sport_instructor_type",
-        dosb_license_type: "some dosb_license_type",
-        dosb_valid_until: ~D[2026-06-04],
-        type: "some type"
+        dosb_license_coach_sport: "Fußball",
+        dosb_license_level: "B",
+        dosb_license_number: "123456",
+        dosb_license_number_sports_association: "123456",
+        dosb_license_sport_instructor_type: "",
+        dosb_license_type: "coach professional",
+        dosb_valid_until: ~D[2066-06-04]
+      })
+      |> Sportyweb.Personal.create_qualification()
+
+    qualification
+  end
+
+  @doc """
+  Generate a qualification.
+  """
+  def qualification_fixture_common(attrs \\ %{}) do
+    {:ok, qualification} =
+      attrs
+      |> Enum.into(%{
+        contact_id: contact_fixture().id,
+        type: "common",
+        common_type: "apprenticeship",
+        common_description: "Sportkaufmann",
+        common_issuance: ~D[2026-06-04]
       })
       |> Sportyweb.Personal.create_qualification()
 

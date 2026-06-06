@@ -773,6 +773,26 @@ defmodule Sportyweb.Personal do
   def get_qualification!(id), do: Repo.get!(Qualification, id)
 
   @doc """
+  Gets a single qualification. Preloads associations.
+
+  Raises `Ecto.NoResultsError` if the Contact does not exist.
+
+  ## Examples
+
+      iex> get_qualification!(123, [:club])
+      %Contact{}
+
+      iex> get_qualification!(456, [:club])
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_qualification!(id, preloads) do
+    Qualification
+    |> Repo.get!(id)
+    |> Repo.preload(preloads)
+  end
+
+  @doc """
   Creates a qualification.
 
   ## Examples

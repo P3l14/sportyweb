@@ -610,40 +610,50 @@ defmodule Sportyweb.PersonalTest do
     end
 
     test "create_qualification/1 with valid data creates a qualification" do
+      contact_id = contact_fixture().id
+
       valid_attrs = %{
-        type: "some type",
-        dosb_license_type: "some dosb_license_type",
-        dosb_license_level: "some dosb_license_level",
-        dosb_license_number: "some dosb_license_number",
-        dosb_license_number_sports_association: "some dosb_license_number_sports_association",
-        dosb_license_coach_sport: "some dosb_license_coach_sport",
-        dosb_license_sport_instructor_type: "some dosb_license_sport_instructor_type",
-        dosb_first_issuance: ~D[2026-06-04],
-        dosb_valid_until: ~D[2026-06-04],
-        common_type: "some common_type",
-        common_description: "some common_description",
-        common_issuance: ~D[2026-06-04]
+        contact_id: contact_id,
+        type: "dosb license",
+        dosb_first_issuance: ~D[2022-06-04],
+        dosb_license_coach_sport: "Handball",
+        dosb_license_level: "B",
+        dosb_license_number: "987",
+        dosb_license_number_sports_association: "369",
+        dosb_license_sport_instructor_type: "prevention",
+        dosb_license_type: "sport instructor",
+        dosb_valid_until: ~D[2031-06-04]
       }
 
       assert {:ok, %Qualification{} = qualification} = Personal.create_qualification(valid_attrs)
-      assert qualification.type == "some type"
-      assert qualification.dosb_license_type == "some dosb_license_type"
-      assert qualification.dosb_license_level == "some dosb_license_level"
-      assert qualification.dosb_license_number == "some dosb_license_number"
+      assert qualification.contact_id == contact_id
+      assert qualification.type == "dosb license"
+      assert qualification.dosb_license_type == "sport instructor"
+      assert qualification.dosb_license_level == "B"
+      assert qualification.dosb_license_number == "987"
+      assert qualification.dosb_license_number_sports_association == "369"
+      assert qualification.dosb_license_sport_instructor_type == "prevention"
+      assert qualification.dosb_first_issuance == ~D[2022-06-04]
+      assert qualification.dosb_valid_until == ~D[2031-06-04]
+    end
 
-      assert qualification.dosb_license_number_sports_association ==
-               "some dosb_license_number_sports_association"
+    test "create_qualification/1 with valid data creates a common qualification" do
+      contact_id = contact_fixture().id
 
-      assert qualification.dosb_license_coach_sport == "some dosb_license_coach_sport"
+      valid_attrs = %{
+        contact_id: contact_id,
+        type: "common",
+        common_issuance: ~D[2022-06-04],
+        common_type: "academic",
+        common_description: "Bachelor in Sportwissenschaften"
+      }
 
-      assert qualification.dosb_license_sport_instructor_type ==
-               "some dosb_license_sport_instructor_type"
-
-      assert qualification.dosb_first_issuance == ~D[2026-06-04]
-      assert qualification.dosb_valid_until == ~D[2026-06-04]
-      assert qualification.common_type == "some common_type"
-      assert qualification.common_description == "some common_description"
-      assert qualification.common_issuance == ~D[2026-06-04]
+      assert {:ok, %Qualification{} = qualification} = Personal.create_qualification(valid_attrs)
+      assert qualification.contact_id == contact_id
+      assert qualification.type == "common"
+      assert qualification.common_type == "academic"
+      assert qualification.common_description == "Bachelor in Sportwissenschaften"
+      assert qualification.common_issuance == ~D[2022-06-04]
     end
 
     test "create_qualification/1 with invalid data returns error changeset" do
@@ -654,42 +664,44 @@ defmodule Sportyweb.PersonalTest do
       qualification = qualification_fixture()
 
       update_attrs = %{
-        type: "some updated type",
-        dosb_license_type: "some updated dosb_license_type",
-        dosb_license_level: "some updated dosb_license_level",
-        dosb_license_number: "some updated dosb_license_number",
-        dosb_license_number_sports_association:
-          "some updated dosb_license_number_sports_association",
-        dosb_license_coach_sport: "some updated dosb_license_coach_sport",
-        dosb_license_sport_instructor_type: "some updated dosb_license_sport_instructor_type",
+        dosb_license_type: "coach common",
+        dosb_license_level: "A",
+        dosb_license_number: "654",
+        dosb_license_number_sports_association: "321",
+        dosb_license_coach_sport: "Tennis",
         dosb_first_issuance: ~D[2026-06-05],
-        dosb_valid_until: ~D[2026-06-05],
-        common_type: "some updated common_type",
-        common_description: "some updated common_description",
-        common_issuance: ~D[2026-06-05]
+        dosb_valid_until: ~D[2030-06-05]
       }
 
       assert {:ok, %Qualification{} = qualification} =
                Personal.update_qualification(qualification, update_attrs)
 
-      assert qualification.type == "some updated type"
-      assert qualification.dosb_license_type == "some updated dosb_license_type"
-      assert qualification.dosb_license_level == "some updated dosb_license_level"
-      assert qualification.dosb_license_number == "some updated dosb_license_number"
-
-      assert qualification.dosb_license_number_sports_association ==
-               "some updated dosb_license_number_sports_association"
-
-      assert qualification.dosb_license_coach_sport == "some updated dosb_license_coach_sport"
-
-      assert qualification.dosb_license_sport_instructor_type ==
-               "some updated dosb_license_sport_instructor_type"
-
+      assert qualification.dosb_license_type == "coach common"
+      assert qualification.dosb_license_level == "A"
+      assert qualification.dosb_license_number == "654"
+      assert qualification.dosb_license_number_sports_association == "321"
+      assert qualification.dosb_license_coach_sport == "Tennis"
       assert qualification.dosb_first_issuance == ~D[2026-06-05]
-      assert qualification.dosb_valid_until == ~D[2026-06-05]
-      assert qualification.common_type == "some updated common_type"
-      assert qualification.common_description == "some updated common_description"
-      assert qualification.common_issuance == ~D[2026-06-05]
+      assert qualification.dosb_valid_until == ~D[2030-06-05]
+    end
+
+    test "update_qualification/2 with valid data updates the common qualification" do
+      qualification = qualification_fixture()
+
+      update_attrs = %{
+        type: "common",
+        common_issuance: ~D[2024-06-04],
+        common_type: "academic",
+        common_description: "Master in Sportmanagment"
+      }
+
+      assert {:ok, %Qualification{} = qualification} =
+               Personal.update_qualification(qualification, update_attrs)
+
+      assert qualification.type == "common"
+      assert qualification.common_type == "academic"
+      assert qualification.common_description == "Master in Sportmanagment"
+      assert qualification.common_issuance == ~D[2024-06-04]
     end
 
     test "update_qualification/2 with invalid data returns error changeset" do

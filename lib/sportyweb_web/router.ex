@@ -154,6 +154,10 @@ defmodule SportywebWeb.Router do
            ClubLive.MembershipContractTermination,
            :terminate
 
+      live "/contacts/:contact_id/qualifications/new", QualificationLive.NewEdit, :new
+      live "/contacts/:contact_id/qualifications/:id/edit", QualificationLive.NewEdit, :edit
+      live "/contacts/:contact_id/qualifications/:id", QualificationLive.Show, :show
+
       # Contact groups
 
       live "/contact_groups", ContactGroupLive.Index, :index_root
@@ -162,13 +166,6 @@ defmodule SportywebWeb.Router do
       live "/contact_groups/:id/edit", ContactGroupLive.NewEdit, :edit
       live "/contact_groups/:id", ContactGroupLive.Show, :show
       live "/clubs/:club_id/simplecontacts/new", SimpleContactLive.NewEdit, :new
-
-      live "/qualifications", QualificationLive.Index, :index
-      live "/qualifications/new", QualificationLive.Index, :new
-      live "/qualifications/:id/edit", QualificationLive.Index, :edit
-
-      live "/qualifications/:id", QualificationLive.Show, :show
-      live "/qualifications/:id/show/edit", QualificationLive.Show, :edit
 
       # Locations (Each belongs to a club)
 

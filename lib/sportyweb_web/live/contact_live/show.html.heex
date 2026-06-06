@@ -114,3 +114,48 @@
     </p>
   <% end %>
 </.card>
+
+<.header level="2" class="mt-12">
+  Qualifikationen
+  <:actions>
+    <.link navigate={~p"/contacts/#{@contact}/qualifications/new"}>
+      <.button>Neue Qualifikation erfassen</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.card>
+  <%= if Enum.any?(@streams.qualifications.inserts) do %>
+    <.table
+      id="qualifications"
+      rows={@streams.qualifications}
+      row_click={
+        fn {_id, qualification} ->
+          JS.navigate(~p"/contacts/#{@contact}/qualifications/#{qualification}")
+        end
+      }
+    >
+      <:col :let={{_id, qualification}} label="Art">
+        {get_key_for_value(Qualification.get_valid_types(), qualification.type)}
+      </:col>
+
+      <:col :let={{_id, qualification}} label="Beschreibung">
+        {describe(qualification)}
+      </:col>
+
+      <:col :let={{_id, qualification}} label="Gültig bis">
+        {format_date_field_dmy(qualification.dosb_valid_until)}
+      </:col>
+
+      <:action :let={{_id, qualification}}>
+        <.link navigate={~p"/contacts/#{@contact}/qualifications/#{qualification}"}>
+          Anzeigen
+        </.link>
+      </:action>
+    </.table>
+  <% else %>
+    <p>
+      Bisher wurden noch keine Qualifikationen erfasst.
+    </p>
+  <% end %>
+</.card>

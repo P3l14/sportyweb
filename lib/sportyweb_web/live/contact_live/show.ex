@@ -5,8 +5,10 @@ defmodule SportywebWeb.ContactLive.Show do
   alias Sportyweb.Legal.Contract
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
+  alias Sportyweb.Personal.Qualification
   alias Sportyweb.Polymorphic.Email
   alias Sportyweb.Polymorphic.Phone
+  import SportywebWeb.QualificationLive.Show
 
   @impl true
   def mount(_params, _session, socket) do
@@ -22,6 +24,7 @@ defmodule SportywebWeb.ContactLive.Show do
         :notes,
         :phones,
         :postal_addresses,
+        :qualifications,
         financial_data: [
           :direct_debit_different_account_holder_contact,
           :invoice_different_recipient_contact
@@ -35,6 +38,7 @@ defmodule SportywebWeb.ContactLive.Show do
      |> assign(:page_title, "Kontakt: #{contact.name}")
      |> assign(:contact, contact)
      |> assign(:club, contact.club)
-     |> stream(:contracts, contact.contracts)}
+     |> stream(:contracts, contact.contracts)
+     |> stream(:qualifications, contact.qualifications)}
   end
 end
