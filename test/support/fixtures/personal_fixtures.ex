@@ -3,6 +3,8 @@ defmodule Sportyweb.PersonalFixtures do
   This module defines test helpers for creating
   entities via the `Sportyweb.Personal` context.
   """
+  alias Sportyweb.LegalFixtures
+  alias Sportyweb.Organization
 
   import Sportyweb.OrganizationFixtures
   import Sportyweb.PolymorphicFixtures
@@ -32,6 +34,97 @@ defmodule Sportyweb.PersonalFixtures do
         notes: [note_attrs()]
       })
       |> Sportyweb.Personal.create_contact()
+
+    contact
+  end
+
+  @doc """
+  Creates a new contact for the given club_id with the first chairman role.
+  The valid_from date defaults to the actual date minus two years.
+  valid_from and valid_until can be modified by passing the atoms :chair_man_valid_from and :chair_man_valid_until.
+
+
+  """
+  def contact_with_first_chair_man_role_for_club_fixture(%{club_id: club_id} = attrs) do
+    now = Date.utc_today()
+
+    {:ok, contact} =
+      attrs
+      |> Enum.into(%{
+        club_id: club_id,
+        type: "person",
+        person_last_name: "Chairman",
+        person_first_name: "THE",
+        person_gender: "other",
+        person_birthday: Date.add(now, -40 * 365),
+        postal_addresses: [postal_address_attrs()],
+        emails: [email_attrs()],
+        phones: [phone_attrs()],
+        financial_data: [financial_data_attrs()],
+        notes: [note_attrs()],
+        contact_roles: [
+          %{
+            valid_from: Map.get(attrs, :chair_man_valid_from, Date.add(now, -2 * 365)),
+            valid_until: Map.get(attrs, :chair_man_valid_until),
+            name: "first chairman"
+          }
+        ]
+      })
+      |> Sportyweb.Personal.create_contact()
+
+    contact
+  end
+
+  @doc """
+  Convienience function to create a contact with multiple contracts.
+  Specific values for the contact are passed as contact keywords in the attr parameter
+  Specific values for the contracts are passed as keyword maps in a list under the key :fee_contract_target_object_list
+
+
+  ## Examples
+
+      iex>       contact_with_contract_fixture(%{
+                  club_id: club.id,
+                  person_gender: "female",
+                  fee_contract_target_object_list: [
+                    %{fee: fee, contract_target_object: club},
+                    %{fee: department_fee, contract_target_object: department1},
+                    %{fee: department_fee, contract_target_object: department2}
+                  ]
+                })
+
+
+  """
+  def contact_with_contract_fixture(
+        %{club_id: club_id, fee_contract_target_object_list: fee_contract_target_object_list} =
+          attrs
+      )
+      when is_list(fee_contract_target_object_list) do
+    contact = contact_fixture(attrs)
+
+    fee_contract_target_object_list
+    |> Enum.each(fn %{fee: fee, contract_target_object: contract_target_object} = contract_attrs ->
+      contract =
+        LegalFixtures.contract_fixture(
+          contract_attrs
+          |> Enum.into(%{
+            contact_id: contact.id,
+            club_id: club_id,
+            fee_id: fee.id
+          })
+        )
+
+      case contract_target_object do
+        %Organization.Club{} ->
+          Organization.create_club_contract(contract_target_object, contract)
+
+        %Organization.Department{} ->
+          Organization.create_department_contract(contract_target_object, contract)
+
+        %Organization.Group{} ->
+          Organization.create_group_contract(contract_target_object, contract)
+      end
+    end)
 
     contact
   end

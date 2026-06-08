@@ -143,7 +143,11 @@ defmodule Sportyweb.MixProject do
       # Library for xml creation. Used to create member inventory list
       # https://xml-builder.hexdocs.pm/readme.html
       # https://github.com/joshnuss/xml_builder
-      {:xml_builder, "~> 2.4"}
+      {:xml_builder, "~> 2.4"},
+      # Library for xml queries with xpath. Used for thetest of the xml file for the member inventory list
+      # https://sweet-xml.hexdocs.pm/SweetXml.html
+      # https://github.com/kbrw/sweet_xml
+      {:sweet_xml, "~> 0.7.5", only: :test, runtime: false}
     ]
   end
 

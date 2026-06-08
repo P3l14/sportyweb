@@ -724,4 +724,230 @@ defmodule Sportyweb.PersonalTest do
       assert %Ecto.Changeset{} = Personal.change_qualification(qualification)
     end
   end
+
+  describe "member inventory" do
+    import Sportyweb.PersonalFixtures
+    import Sportyweb.OrganizationFixtures
+    import Sportyweb.FinanceFixtures
+    import SweetXml
+    alias Sportyweb.Organization
+
+    test "create_member_inventory_document/2 for club without departments returns a member inventory document" do
+      club =
+        club_fixture(%{
+          name: "DER Verein",
+          association_number: "123",
+          affiliated_sports_federation: "12",
+          departments: []
+        })
+
+      contact_with_first_chair_man_role_for_club_fixture(%{club_id: club.id})
+
+      club = Organization.get_club!(club.id, :departments)
+      fee = fee_fixture()
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "male",
+        person_birthday: ~D[1999-02-15],
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "male",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "male",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "female",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "other",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "no_info",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      xml = Personal.create_member_inventory_document(club, Date.utc_today())
+
+      assert xml |> xpath(~x"/Mitglieder/Software/Schluessel/text()"s) =~ "Sportyweb"
+      assert xml |> xpath(~x"/Mitglieder/Verein/Nummer/text()"s) =~ club.association_number
+      assert xml |> xpath(~x"/Mitglieder/Verein/Ansprechpartner/text()"s) =~ "THE Chairman"
+      assert xml |> xpath(~x"/Mitglieder/Verein/Bezeichnung/text()"s) =~ club.name
+      assert xml |> xpath(~x"/Mitglieder/Zahlen[Typ/text()='A'][1]/Typ/text()"s) =~ "A"
+      assert xml |> xpath(~x"/Mitglieder/Zahlen[Typ/text()='A'][1]/Fachverband/text()"s) =~ ""
+
+      assert xml
+             |> xpath(
+               ~x"/Mitglieder/Zahlen[Typ/text()='A' and Jahrgang='1999'][1]/AnzahlM/text()"s
+             ) =~ "1"
+
+      assert xml
+             |> xpath(
+               ~x"/Mitglieder/Zahlen[Typ/text()='A' and Jahrgang='2000'][1]/AnzahlM/text()"s
+             ) =~ "2"
+
+      assert xml |> xpath(~x"/Mitglieder/Zahlen[Typ/text()='B'][1]/Typ/text()"s) =~ "B"
+
+      assert xml |> xpath(~x"/Mitglieder/Zahlen[Typ/text()='B'][1]/Fachverband/text()"s) =~
+               club.association_number
+    end
+
+    test "create_member_inventory_document/2 for club with departments returns a member inventory document" do
+      club =
+        club_fixture(%{
+          name: "DER Mehrsparten Verein",
+          association_number: "123"
+        })
+
+      contact_with_first_chair_man_role_for_club_fixture(%{club_id: club.id})
+
+      department1 =
+        department_fixture(%{
+          club_id: club.id,
+          name: "Taekwondoabteilung",
+          affiliated_sports_federation: "80"
+        })
+
+      department2 =
+        department_fixture(%{
+          club_id: club.id,
+          name: "Karateabteilung",
+          affiliated_sports_federation: "43"
+        })
+
+      club = Organization.get_club!(club.id, :departments)
+      fee = fee_fixture()
+      department_fee = fee_fixture(type: "department")
+
+      now = Date.utc_today()
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "male",
+        person_birthday: ~D[1999-02-15],
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "male",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "male",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department2}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "female",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1},
+          %{fee: department_fee, contract_target_object: department2}
+        ]
+      })
+
+      # Adding a contact with archived contracts which should not be counted.
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "female",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{
+            fee: department_fee,
+            contract_target_object: department1,
+            archive_date: Date.add(now, -2 * 365)
+          },
+          %{
+            fee: department_fee,
+            contract_target_object: department2,
+            archive_date: Date.add(now, -2 * 365)
+          }
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "female",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "other",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "no_info",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department2}
+        ]
+      })
+
+      xml = Personal.create_member_inventory_document(club, now)
+
+      assert xml |> xpath(~x"/Mitglieder/Software/Schluessel/text()"s) =~ "Sportyweb"
+      assert xml |> xpath(~x"/Mitglieder/Verein/Nummer/text()"s) =~ club.association_number
+      assert xml |> xpath(~x"/Mitglieder/Verein/Bezeichnung/text()"s) =~ club.name
+      assert xml |> xpath(~x"/Mitglieder/Zahlen[Typ/text()='A'][1]/Typ/text()"s) =~ "A"
+      assert xml |> xpath(~x"/Mitglieder/Zahlen[Typ/text()='A'][1]/Fachverband/text()"s) =~ ""
+
+      assert xml
+             |> xpath(
+               ~x"/Mitglieder/Zahlen[Typ/text()='A' and Jahrgang='1999'][1]/AnzahlM/text()"s
+             ) =~ "1"
+
+      assert xml
+             |> xpath(
+               ~x"/Mitglieder/Zahlen[Typ/text()='A' and Jahrgang='2000'][1]/AnzahlM/text()"s
+             ) =~ "2"
+
+      assert xml
+             |> xpath(
+               ~x"/Mitglieder/Zahlen[Typ/text()='B' and Jahrgang='1999' and Fachverband='80'][1]/AnzahlM/text()"s
+             ) =~ "1"
+
+      assert xml
+             |> xpath(
+               ~x"/Mitglieder/Zahlen[Typ/text()='B' and Jahrgang='2000' and Fachverband='80'][1]/AnzahlW/text()"s
+             ) =~ "2"
+    end
+  end
 end

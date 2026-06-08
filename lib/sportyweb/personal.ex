@@ -741,6 +741,211 @@ defmodule Sportyweb.Personal do
     ContactRoleRelation.changeset(contact_role_relation, attrs)
   end
 
+  @doc """
+  Gets the contact with the membership specific role "first chairman" for the actual or passed in date.
+  Assumes that at any given time der must be a contact with that role.
+  Fails if there are two or none contacts which have the role at the given time.
+
+
+  """
+  def get_first_chair_man_of_club(club_id, date \\ Date.utc_today()) when is_binary(club_id) do
+    query =
+      from(
+        c in Contact,
+        inner_join: contact_role in assoc(c, :contact_roles),
+        where: c.club_id == ^club_id,
+        where: c.type == "person",
+        where: contact_role.name == "first chairman",
+        where:
+          contact_role.valid_from <= ^date and
+            (is_nil(contact_role.valid_until) or contact_role.valid_until >= ^date)
+      )
+
+    Repo.one!(query)
+  end
+
+  import XmlBuilder
+
+  @doc """
+
+  Creates a xml string for anual member inventory for the state sports association.
+  Requires that the departments are preloaded on the passed in club struct.
+
+  ## Example xml from [interface document](https://cdn.dosb.de/alter_Datenbestand/fm-dosb/downloads/schnitt/Schnittstelle_Bestandsdaten_m-w-d-oA.pdf) of the German Olympic Sports Confederation
+
+     <?xml version="1.0" encoding="utf-8" ?>
+       <Mitglieder>
+     	<Software>
+     		<Schluessel>ABCDEFGHIJ1234567890</Schluessel>
+     	</Software>
+     	<Verein>
+     		<Nummer>123456</Nummer>
+     		<Bezeichnung>Sportverein Berlin e.V.</Bezeichnung>
+     		<Ansprechpartner>Kai Müller</Ansprechpartner>
+     	</Verein>
+     	<Zahlen>
+     		<Typ>A</Typ>
+     		<Fachverband/>
+     		<Jahrgang>1972</Jahrgang>
+     		<AnzahlM>234</AnzahlM>
+     		<AnzahlW>132</AnzahlW>
+     		<AnzahlD>1</AnzahlD>
+     		<AnzahlO>0</AnzahlO>
+     	</Zahlen>
+     	<Zahlen>
+     		<Typ>A</Typ>
+     		<Fachverband/>
+     		<Jahrgang>1988</Jahrgang>
+     		<AnzahlM>78</AnzahlM>
+     		<AnzahlW>103</AnzahlW>
+     		<AnzahlD>0</AnzahlD>
+     		<AnzahlO>1</AnzahlO>
+     	</Zahlen>
+     	<Zahlen>
+     		<Typ>B</Typ>
+     		<Fachverband>12</Fachverband>
+     		<Jahrgang>1972</Jahrgang>
+     		<AnzahlM>12</AnzahlM>
+     		<AnzahlW>6</AnzahlW>
+     		<AnzahlD>0</AnzahlD>
+     		<AnzahlO>0</AnzahlO>
+     	</Zahlen>
+     	<Zahlen>
+     		<Typ>B</Typ>
+     		<Fachverband>12</Fachverband>
+     		<Jahrgang>1988</Jahrgang>
+     		<AnzahlM>7</AnzahlM>
+     		<AnzahlW>13</AnzahlW>
+     		<AnzahlD>1</AnzahlD>
+     		<AnzahlO>0</AnzahlO>
+     	</Zahlen>
+     </Mitglieder>
+
+
+  """
+  def create_member_inventory_document(club, date) do
+    first_chair_man = get_first_chair_man_of_club(club.id)
+
+    # Query for type a inventory. Based on the assumption that every member needs a club contract and there can't be a department contract without a club contract.
+    query =
+      from(
+        c in Contact,
+        inner_join: contract in assoc(c, :contracts),
+        inner_join: club_contract in assoc(contract, :clubs),
+        where: c.club_id == ^club.id,
+        where: c.type == "person",
+        where:
+          contract.start_date <= ^date and
+            (is_nil(contract.archive_date) or contract.archive_date >= ^date),
+        group_by: [fragment("EXTRACT(YEAR FROM ?)", c.person_birthday), c.person_gender],
+        select: %{
+          year: fragment("EXTRACT(YEAR FROM ?)", c.person_birthday),
+          gender: c.person_gender,
+          count: count(c.id)
+        }
+      )
+
+    inventory_a = Repo.all(query)
+
+    inventory_a_grouped_by_year_and_gender =
+      inventory_a
+      |> Enum.group_by(fn map -> map.year end)
+      |> Map.new(fn {year, maps} ->
+        grouped_by_gender =
+          maps
+          |> Enum.group_by(fn map -> map.gender end)
+          |> Map.new(fn {key, [head | _tail]} -> {key, head} end)
+
+        {year, grouped_by_gender}
+      end)
+
+    inventory_b_grouped_by_year_and_gender =
+      if inventory_a_grouped_by_year_and_gender != %{} and club.departments == [] and
+           club.association_number do
+        inventory_a_grouped_by_year_and_gender
+        |> Map.new(fn {key, value} -> {{club.association_number, key}, value} end)
+      else
+        # Query for type b inventory. Based on the assumption that every department has a affiliated_sports_federation assigned.
+        query =
+          from(
+            c in Contact,
+            inner_join: contract in assoc(c, :contracts),
+            inner_join: department in assoc(contract, :departments),
+            where: c.club_id == ^club.id,
+            where: c.type == "person",
+            where:
+              contract.start_date <= ^date and
+                (is_nil(contract.archive_date) or contract.archive_date >= ^date),
+            group_by: [
+              fragment("EXTRACT(YEAR FROM ?)", c.person_birthday),
+              c.person_gender,
+              department.affiliated_sports_federation
+            ],
+            select: %{
+              year: fragment("EXTRACT(YEAR FROM ?)", c.person_birthday),
+              gender: c.person_gender,
+              count: count(c.id),
+              affiliated_sports_federation: department.affiliated_sports_federation
+            }
+          )
+
+        inventory_b = Repo.all(query)
+
+        inventory_b
+        |> Enum.group_by(fn map -> {map.affiliated_sports_federation, map.year} end)
+        |> Map.new(fn {year, maps} ->
+          grouped_by_gender =
+            maps
+            |> Enum.group_by(fn map -> map.gender end)
+            |> Map.new(fn {key, [head | _tail]} -> {key, head} end)
+
+          {year, grouped_by_gender}
+        end)
+      end
+
+    document =
+      document(
+        element(:Mitglieder, [
+          element(:Software, [
+            element(:Schluessel, "Sportyweb")
+          ]),
+          element(:Verein, [
+            element(:Nummer, club.association_number),
+            element(:Bezeichnung, club.name),
+            element(
+              :Ansprechpartner,
+              "#{first_chair_man.person_first_name} #{first_chair_man.person_last_name}"
+            )
+          ]),
+          Enum.map(inventory_a_grouped_by_year_and_gender, fn {year, gender_map} ->
+            element(:Zahlen, [
+              element(:Typ, "A"),
+              element(:Fachverband, ""),
+              element(:Jahrgang, Decimal.to_integer(year)),
+              element(:AnzahlW, Map.get(Map.get(gender_map, "female", %{}), :count, 0)),
+              element(:AnzahlD, Map.get(Map.get(gender_map, "other", %{}), :count, 0)),
+              element(:AnzahlM, Map.get(Map.get(gender_map, "male", %{}), :count, 0)),
+              element(:AnzahlO, Map.get(Map.get(gender_map, "no_info", %{}), :count, 0))
+            ])
+          end),
+          Enum.map(inventory_b_grouped_by_year_and_gender, fn {{association_number, year},
+                                                               gender_map} ->
+            element(:Zahlen, [
+              element(:Typ, "B"),
+              element(:Fachverband, association_number),
+              element(:Jahrgang, Decimal.to_integer(year)),
+              element(:AnzahlW, Map.get(Map.get(gender_map, "female", %{}), :count, 0)),
+              element(:AnzahlD, Map.get(Map.get(gender_map, "other", %{}), :count, 0)),
+              element(:AnzahlM, Map.get(Map.get(gender_map, "male", %{}), :count, 0)),
+              element(:AnzahlO, Map.get(Map.get(gender_map, "no_info", %{}), :count, 0))
+            ])
+          end)
+        ])
+      )
+
+    generate(document)
+  end
+
   alias Sportyweb.Personal.Qualification
 
   @doc """
