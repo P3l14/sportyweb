@@ -12,6 +12,12 @@
     <:item title="Referenznummer">
       {format_string_field(@club.reference_number)}
     </:item>
+    <:item title="Vereinsnummer (LSV)">
+      {format_string_field(@club.association_number)}
+    </:item>
+    <:item :if={@club.affiliated_sports_federation != ""} title="Zugeordnete Fachverbandsnummer">
+      {format_string_field(@club.affiliated_sports_federation)}
+    </:item>
     <:item title="Beschreibung">
       {format_string_field(@club.description)}
     </:item>

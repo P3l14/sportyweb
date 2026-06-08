@@ -6,6 +6,8 @@ defmodule Sportyweb.Repo.Migrations.CreateClubs do
       add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :reference_number, :string, null: false
+      add :association_number, :string, null: false
+      add :affiliated_sports_federation, :string, null: false
       add :description, :text, null: false
       add :website_url, :string, null: false
       add :foundation_date, :date, null: false

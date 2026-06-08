@@ -158,6 +158,10 @@ defmodule SportywebWeb.Router do
       live "/contacts/:contact_id/qualifications/:id/edit", QualificationLive.NewEdit, :edit
       live "/contacts/:contact_id/qualifications/:id", QualificationLive.Show, :show
 
+      get "/clubs/:club_id/members/inventory_list/:member_inventory_year",
+          ContactInventoryListController,
+          :create
+
       # Contact groups
 
       live "/contact_groups", ContactGroupLive.Index, :index_root

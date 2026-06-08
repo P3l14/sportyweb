@@ -139,7 +139,11 @@ defmodule Sportyweb.MixProject do
       # Library for iban and bic validation. Used to check input of financial data
       # https://hex.pm/packages/bankster
       # https://github.com/railsmechanic/bankster
-      {:bankster, "~> 0.4.0"}
+      {:bankster, "~> 0.4.0"},
+      # Library for xml creation. Used to create member inventory list
+      # https://xml-builder.hexdocs.pm/readme.html
+      # https://github.com/joshnuss/xml_builder
+      {:xml_builder, "~> 2.4"}
     ]
   end
 

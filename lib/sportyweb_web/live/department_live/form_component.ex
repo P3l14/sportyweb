@@ -33,6 +33,18 @@ defmodule SportywebWeb.DepartmentLive.FormComponent do
                 />
               </div>
 
+              <div class="col-span-12 md:col-span-12">
+                <.input
+                  field={@form[:affiliated_sports_federation]}
+                  type="text"
+                  label="Zugeordnete Fachverbandsnummer (optional)"
+                />
+                <.input_description>
+                  Nummer des Fachverbands dem der Verband angehört.
+                  Nur zu erfassen, wenn keine sportartspezifischen Abteilungen vorhanden sind.
+                </.input_description>
+              </div>
+
               <div class="col-span-12">
                 <.input field={@form[:description]} type="textarea" label="Beschreibung (optional)" />
               </div>

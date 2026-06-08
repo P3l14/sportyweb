@@ -10,6 +10,10 @@
       </.link>
     <% end %>
     <%= if @live_action == :index_member do %>
+      <.link href={~p"/clubs/#{@club}/members/inventory_list/#{@member_inventory_year}"} download>
+        <.button>Bestandsmeldung</.button>
+      </.link>
+      <%!-- <.simple_input type="number" name="member_inventory_year" value={@member_inventory_year} class="w-12" /> --%>
       <.link navigate={~p"/clubs/#{@club}/contracts/new_membership"}>
         <.button>Mitgliedsantrag erfassen</.button>
       </.link>

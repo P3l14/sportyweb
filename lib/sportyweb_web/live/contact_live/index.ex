@@ -49,6 +49,7 @@ defmodule SportywebWeb.ContactLive.Index do
       |> Enum.filter(fn contact -> !Enum.empty?(contact.contracts) end)
 
     socket
+    |> assign(:member_inventory_year, Date.utc_today().year)
     |> assign_common_values("Mitglieder", club, :members, contacts)
   end
 

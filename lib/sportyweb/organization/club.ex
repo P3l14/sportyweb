@@ -42,6 +42,9 @@ defmodule Sportyweb.Organization.Club do
     many_to_many :phones, Phone, join_through: ClubPhone
 
     field :name, :string, default: ""
+    # number provided from the state sports association
+    field :association_number, :string, default: ""
+    field :affiliated_sports_federation, :string, default: ""
     field :reference_number, :string, default: ""
     field :description, :string, default: ""
     field :website_url, :string, default: ""
@@ -63,6 +66,8 @@ defmodule Sportyweb.Organization.Club do
         :location_id,
         :name,
         :reference_number,
+        :association_number,
+        :affiliated_sports_federation,
         :description,
         :website_url,
         :foundation_date
@@ -76,11 +81,15 @@ defmodule Sportyweb.Organization.Club do
     |> validate_required([:name, :foundation_date])
     |> update_change(:name, &String.trim/1)
     |> update_change(:reference_number, &String.trim/1)
+    |> update_change(:association_number, &String.trim/1)
+    |> update_change(:affiliated_sports_federation, &String.trim/1)
     |> update_change(:description, &String.trim/1)
     |> update_change(:website_url, &String.trim/1)
     |> update_change(:website_url, &String.downcase/1)
     |> validate_length(:name, max: 250)
     |> validate_length(:reference_number, max: 250)
+    |> validate_length(:association_number, max: 25)
+    |> validate_length(:affiliated_sports_federation, max: 25)
     |> validate_length(:description, max: 20_000)
     |> validate_length(:website_url, max: 250)
   end

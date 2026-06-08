@@ -25,12 +25,35 @@ defmodule SportywebWeb.ClubLive.FormComponent do
                 <.input field={@form[:name]} type="text" label="Name" />
               </div>
 
-              <div class="col-span-12 md:col-span-6">
+              <div class="col-span-12 md:col-span-3">
                 <.input
                   field={@form[:reference_number]}
                   type="text"
                   label="Referenznummer (optional)"
                 />
+              </div>
+
+              <div class="col-span-12 md:col-span-3">
+                <.input
+                  field={@form[:association_number]}
+                  type="text"
+                  label="Vereinsnummer (optional)"
+                />
+                <.input_description>
+                  Vom Landessportbund (LSV) erteilte Vereinsnummer.
+                </.input_description>
+              </div>
+
+              <div class="col-span-12 md:col-span-12">
+                <.input
+                  field={@form[:affiliated_sports_federation]}
+                  type="text"
+                  label="Zugeordnete Fachverbandsnummer (optional)"
+                />
+                <.input_description>
+                  Nummer des Fachverbands dem der Verband angehört.
+                  Nur zu erfassen, wenn keine sportartspezifischen Abteilungen vorhanden sind.
+                </.input_description>
               </div>
 
               <div class="col-span-12">

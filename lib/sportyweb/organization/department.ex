@@ -31,6 +31,7 @@ defmodule Sportyweb.Organization.Department do
     field :name, :string, default: ""
     field :reference_number, :string, default: ""
     field :description, :string, default: ""
+    field :affiliated_sports_federation, :string, default: ""
     field :creation_date, :date, default: nil
 
     timestamps(type: :utc_datetime)
@@ -45,6 +46,7 @@ defmodule Sportyweb.Organization.Department do
         :club_id,
         :name,
         :reference_number,
+        :affiliated_sports_federation,
         :description,
         :creation_date
       ],
@@ -57,9 +59,11 @@ defmodule Sportyweb.Organization.Department do
     |> update_change(:name, &String.trim/1)
     |> update_change(:reference_number, &String.trim/1)
     |> update_change(:description, &String.trim/1)
+    |> update_change(:affiliated_sports_federation, &String.trim/1)
     |> validate_length(:name, max: 250)
     |> validate_length(:reference_number, max: 250)
     |> validate_length(:description, max: 20_000)
+    |> validate_length(:affiliated_sports_federation, max: 25)
     |> unique_constraint(
       :name,
       name: "departments_club_id_name_index",
