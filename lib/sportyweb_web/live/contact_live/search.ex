@@ -81,7 +81,6 @@ defmodule SportywebWeb.ContactLive.Search do
     socket
     |> assign(:page_title, "Kontaktsuche")
     |> assign(:club_navigation_current_item, :contact_search)
-    |> assign(:club_navigation_current_item, :contact_search)
     |> assign(:club, club)
     |> assign(:search, search)
     |> assign(:id, "form-#{System.unique_integer()}")
