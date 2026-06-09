@@ -83,7 +83,6 @@ defmodule SportywebWeb.ContactLive.Search do
     |> assign(:club_navigation_current_item, :contact_search)
     |> assign(:club, club)
     |> assign(:search, search)
-    |> assign(:id, "form-#{System.unique_integer()}")
     |> assign(:form, to_form(Personal.change_short_contact(search)))
     |> stream(:contacts, contacts)
   end
