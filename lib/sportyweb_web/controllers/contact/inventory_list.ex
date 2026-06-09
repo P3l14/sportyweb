@@ -37,12 +37,13 @@ defmodule SportywebWeb.ContactInventoryListController do
         end
 
       {:error, messages} ->
-        messages |> Enum.reduce(fn message, acc -> acc <> "#{message}\n" end)
-
         conn
         |> put_status(:internal_server_error)
         |> put_view(html: SportywebWeb.ErrorHTML)
-        |> render("500.html", from: "ContactInventoryListController", reason: messages)
+        |> render("500.html",
+          from: "ContactInventoryListController",
+          reason: messages |> Enum.reduce(fn message, acc -> acc <> "#{message}\n" end)
+        )
     end
   end
 end

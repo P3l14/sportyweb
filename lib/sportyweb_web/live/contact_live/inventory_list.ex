@@ -89,7 +89,7 @@ defmodule SportywebWeb.ContactLive.InventoryList do
         socket
         |> assign_errors_and_button_info(
           socket.assigns.club,
-          inventory_list_form["year"]|> String.to_integer(),
+          inventory_list_form["year"] |> String.to_integer(),
           inventory_list_form["format"]
         )
       else
@@ -106,7 +106,8 @@ defmodule SportywebWeb.ContactLive.InventoryList do
            format
          ) do
       {:ok} ->
-        socket |> assign(:show_download_button, true)
+        socket
+        |> assign(:show_download_button, true)
         |> assign(:error_messages, [])
 
       {:error, error_messages} ->
