@@ -6,6 +6,7 @@ defmodule Sportyweb.Personal.Contact.Query do
     query = contact_base_query(club_id, type)
 
     query
+    |> apply_search_scope(search_params["search_scope"], search_params["include_invalid"])
     |> maybe_search_by_person_last_name(search_params["person_last_name"])
     |> maybe_search_by_person_birth_name(search_params["person_birth_name"])
     |> maybe_search_by_person_middle_names(search_params["person_middle_names"])
@@ -14,14 +15,96 @@ defmodule Sportyweb.Personal.Contact.Query do
     |> maybe_search_by_person_birthday(search_params["person_birthday"])
     |> maybe_search_by_organization_name(search_params["organization_name"])
     |> maybe_search_by_organization_type(search_params["organization_type"])
+    |> order_by_name()
+  end
+
+  def order_by_name(query)
+
+  def order_by_name(%Ecto.Query{distinct: nil} = query) do
+    query |> order_by([contact: contact], contact.name)
+  end
+
+  def order_by_name(%Ecto.Query{distinct: _} = query) do
+    # using subquery because order by works not on [distinct queries](https://ecto.hexdocs.pm/Ecto.Query.html#distinct/3). When distinct is used a group by claus for the same column is added at the frist place.
+    from(contact in subquery(query),
+      order_by: contact.name
+    )
+  end
+
+  @doc """
+  Scope determinse the set of contacts on which the search is performed:
+  * all
+  * only_members
+  * without_members 
+  include_invalid decides wheter or not the contact role or the contract ist valid today
+
+
+
+  """
+  def apply_search_scope(query, search_scope, include_invalid)
+
+  def apply_search_scope(query, "all", "true") do
+    query
+  end
+
+  def apply_search_scope(query, "all", "false") do
+    date = Date.utc_today()
+
+    from([contact: contact] in query,
+      left_join: contact_role in assoc(contact, :contact_roles),
+      left_join: contract in assoc(contact, :contracts),
+      where:
+        (not is_nil(contract) and contract.start_date <= ^date and
+           (is_nil(contract.archive_date) or contract.archive_date >= ^date)) or
+          (not is_nil(contact_role) and contact_role.valid_from <= ^date and
+             (is_nil(contact_role.valid_until) or contact_role.valid_until >= ^date))
+    )
+  end
+
+  def apply_search_scope(query, "without_members", "true") do
+    from([contact: contact] in query,
+      inner_join: contact_role in assoc(contact, :contact_roles),
+      left_join: contract in assoc(contact, :contracts),
+      where: is_nil(contract)
+    )
+  end
+
+  def apply_search_scope(query, "without_members", "false") do
+    date = Date.utc_today()
+
+    from([contact: contact] in query,
+      left_join: contact_role in assoc(contact, :contact_roles),
+      left_join: contract in assoc(contact, :contracts),
+      where:
+        is_nil(contract) and not is_nil(contact_role) and contact_role.valid_from <= ^date and
+          (is_nil(contact_role.valid_until) or contact_role.valid_until >= ^date)
+    )
+  end
+
+  def apply_search_scope(query, "only_members", "true") do
+    from([contact: contact] in query,
+      inner_join: contract in assoc(contact, :contracts)
+    )
+  end
+
+  def apply_search_scope(query, "only_members", "false") do
+    date = Date.utc_today()
+
+    from([contact: contact] in query,
+      left_join: contract in assoc(contact, :contracts),
+      where:
+        not is_nil(contract) and contract.start_date <= ^date and
+          (is_nil(contract.archive_date) or contract.archive_date >= ^date)
+    )
   end
 
   def contact_base_query(club_id, type) do
     from(
       c in Contact,
+      as: :contact,
+      distinct: c.id,
       where: c.club_id == ^club_id,
-      where: c.type == ^type,
-      order_by: c.name
+      where: c.type == ^type
     )
   end
 

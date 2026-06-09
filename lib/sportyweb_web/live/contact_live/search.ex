@@ -19,6 +19,25 @@ defmodule SportywebWeb.ContactLive.Search do
         </.header>
         <.simple_form :let={form} for={@form} as={:search} phx-submit="search" phx-change="validate">
           <.input_grids>
+            <div class="col-span-12 md:col-span-6">
+              <.input
+                field={form[:search_scope]}
+                type="select"
+                label="Suchumfang"
+                options={get_valid_search_scopes()}
+              />
+            </div>
+            <div class="col-span-12 md:col-span-4">
+              <.input
+                field={form[:include_invalid]}
+                type="checkbox"
+                label="auch inaktive Kontakte und Mitglieder anzeigen"
+              />
+              <.input_description>
+                Inaktiv bedeutet bei Kontakten, dass diese keine heute gültige Rolle mehr besitzen und bei Mitglieder, dass diese keinen heute gültigen Mitgliedschaftsvertrag besitzen.
+              </.input_description>
+            </div>
+
             <SportywebWeb.ContactLive.FormComponent.contact_name_data_grid
               form={form}
               contact_form_type={:full}
@@ -58,6 +77,14 @@ defmodule SportywebWeb.ContactLive.Search do
     """
   end
 
+  defp get_valid_search_scopes() do
+    [
+      [key: "alle", value: "all"],
+      [key: "ohne Mitglieder", value: "without_members"],
+      [key: "nur Mitglieder", value: "only_members"]
+    ]
+  end
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :club_navigation_current_item, :contact_search)}
@@ -94,7 +121,6 @@ defmodule SportywebWeb.ContactLive.Search do
         socket
       ) do
     search = put_in(search["club_id"], socket.assigns.club.id)
-
     found_contacts = Personal.search(search)
 
     {:noreply,
