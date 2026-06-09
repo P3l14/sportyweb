@@ -946,6 +946,94 @@ defmodule Sportyweb.Personal do
     generate(document)
   end
 
+  alias XlsxWriter.Builder
+
+  @doc """
+
+    Creates binary xlsx data as alternative data format for the anual member inventory for the state sports association.
+  Requires that the departments are preloaded on the passed in club struct.
+
+  The format is specicied in the [interface document](https://cdn.dosb.de/alter_Datenbestand/fm-dosb/downloads/schnitt/Schnittstelle_Bestandsdaten_m-w-d-oA.pdf) of the German Olympic Sports Confederation
+  Contacts can occur multiple times, when they habe contracts with different club departments.
+
+  ## Example writte an csv
+    "Name";"Vorname";"Geschlecht";"Geburtsdatum";"Abteilungen"
+    "Mustermann";"Max";"M";"01.01.1986";"12"
+
+  """
+  def create_member_inventory_document_xlsx(club, date) do
+    query =
+      from(
+        contact in Contact,
+        as: :contact,
+        inner_join: contract in assoc(contact, :contracts),
+        as: :contract,
+        where: contact.club_id == ^club.id,
+        where: contact.type == "person",
+        where:
+          contract.start_date <= ^date and
+            (is_nil(contract.archive_date) or contract.archive_date >= ^date),
+        order_by: contact.person_last_name
+      )
+
+    # Edge case simple club without departmants and association_number saved in club
+    query =
+      if club.departments == [] and club.association_number do
+        from([contact: contact, contract: contract] in query,
+          inner_join: club in assoc(contract, :clubs),
+          select: %{
+            person_last_name: contact.person_last_name,
+            person_first_name: contact.person_first_name,
+            person_gender: contact.person_gender,
+            person_birthday: contact.person_birthday,
+            affiliated_sports_federation: club.affiliated_sports_federation
+          }
+        )
+      else
+        from([contact: contact, contract: contract] in query,
+          inner_join: department in assoc(contract, :departments),
+          select: %{
+            person_last_name: contact.person_last_name,
+            person_first_name: contact.person_first_name,
+            person_gender: contact.person_gender,
+            person_birthday: contact.person_birthday,
+            affiliated_sports_federation: department.affiliated_sports_federation
+          }
+        )
+      end
+
+    contacts_with_active_contracts = Repo.all(query)
+
+    {:ok, binary} =
+      Builder.create()
+      |> Builder.add_sheet("Mitgliederliste")
+      |> Builder.add_rows([["Name", "Vorname", "Geschlecht", "Geburtsdatum", "Abteilungen"]])
+      |> Builder.add_rows(
+        contacts_with_active_contracts
+        |> Enum.map(fn contact ->
+          [
+            contact.person_last_name,
+            contact.person_first_name,
+            gender_code_for_inventory_xlsx(contact.person_gender),
+            SportywebWeb.CommonHelper.format_date_field_dmy(contact.person_birthday),
+            contact.affiliated_sports_federation
+          ]
+        end)
+      )
+      |> Builder.write_binary()
+
+    binary
+  end
+
+  defp gender_code_for_inventory_xlsx(gender) do
+    case gender do
+      "male" -> "M"
+      "female" -> "F"
+      "other" -> "D"
+      "no_info" -> "O"
+    end
+  end
+
   alias Sportyweb.Personal.Qualification
 
   @doc """

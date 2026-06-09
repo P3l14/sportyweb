@@ -147,7 +147,15 @@ defmodule Sportyweb.MixProject do
       # Library for xml queries with xpath. Used for thetest of the xml file for the member inventory list
       # https://sweet-xml.hexdocs.pm/SweetXml.html
       # https://github.com/kbrw/sweet_xml
-      {:sweet_xml, "~> 0.7.5", only: :test, runtime: false}
+      {:sweet_xml, "~> 0.7.5", only: :test, runtime: false},
+      # Library for xlsx creation. Used to create member inventory list in alternative format.
+      # https://xlsx-writer.hexdocs.pm/XlsxWriter.html
+      # https://github.com/fltoss/xlsx_writer
+      {:xlsx_writer, "~> 0.9.0"},
+      # Library for reading of xlsx data. Used to check the create member inventory list in alternative format in tests.
+      # https://xlsx-writer.hexdocs.pm/XlsxWriter.html
+      # https://github.com/fltoss/xlsx_writer
+      {:xlsx_reader, "~> 0.8.0", only: :test}
     ]
   end
 

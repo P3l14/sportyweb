@@ -949,5 +949,231 @@ defmodule Sportyweb.PersonalTest do
                ~x"/Mitglieder/Zahlen[Typ/text()='B' and Jahrgang='2000' and Fachverband='80'][1]/AnzahlW/text()"s
              ) =~ "2"
     end
+
+    test "create_member_inventory_document_xlsx/2 for club without departments returns a member inventory document" do
+      club =
+        club_fixture(%{
+          name: "DER Verein",
+          association_number: "123",
+          affiliated_sports_federation: "12",
+          departments: []
+        })
+
+      contact_with_first_chair_man_role_for_club_fixture(%{club_id: club.id})
+
+      club = Organization.get_club!(club.id, :departments)
+      fee = fee_fixture()
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_first_name: "John",
+        person_last_name: "Johnsen",
+        person_gender: "male",
+        person_birthday: ~D[1999-02-15],
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        person_first_name: "Theo",
+        person_last_name: "Test",
+        club_id: club.id,
+        person_gender: "male",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        person_first_name: "Peter",
+        person_last_name: "Porsche",
+        club_id: club.id,
+        person_gender: "male",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        person_first_name: "Maria",
+        person_last_name: "Muster",
+        club_id: club.id,
+        person_gender: "female",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        person_first_name: "Markus",
+        person_last_name: "Maxen",
+        club_id: club.id,
+        person_gender: "other",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      contact_with_contract_fixture(%{
+        person_first_name: "Benjamin",
+        person_last_name: "Bauer",
+        club_id: club.id,
+        person_gender: "no_info",
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
+
+      binary_data = Personal.create_member_inventory_document_xlsx(club, Date.utc_today())
+
+      {:ok, xlsx_data} = XlsxReader.open(binary_data, source: :binary)
+
+      {:ok, xlsx_sheet_rows} =
+        xlsx_data
+        |> XlsxReader.sheet("Mitgliederliste")
+
+      [header | data_rows] = xlsx_sheet_rows
+      assert header == ["Name", "Vorname", "Geschlecht", "Geburtsdatum", "Abteilungen"]
+      assert data_rows |> Enum.at(0) == ["Bauer", "Benjamin", "O", "15.02.2000", "12"]
+      # Enum.at(4) -> value of Abteilungen for row
+      rows_by_abteilungen = data_rows |> Enum.group_by(fn row -> row |> Enum.at(4) end)
+      abteilungen_in_inventory_list = Map.keys(rows_by_abteilungen)
+      assert abteilungen_in_inventory_list == ["12"]
+    end
+
+    test "create_member_inventory_document_xlsx/2 for club with departments returns a member inventory document" do
+      club =
+        club_fixture(%{
+          name: "DER Mehrsparten Verein",
+          association_number: "123"
+        })
+
+      contact_with_first_chair_man_role_for_club_fixture(%{club_id: club.id})
+
+      department1 =
+        department_fixture(%{
+          club_id: club.id,
+          name: "Taekwondoabteilung",
+          affiliated_sports_federation: "80"
+        })
+
+      department2 =
+        department_fixture(%{
+          club_id: club.id,
+          name: "Karateabteilung",
+          affiliated_sports_federation: "43"
+        })
+
+      club = Organization.get_club!(club.id, :departments)
+      fee = fee_fixture()
+      department_fee = fee_fixture(type: "department")
+
+      now = Date.utc_today()
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_first_name: "Lukas",
+        person_last_name: "Liebig",
+        person_gender: "male",
+        person_birthday: ~D[1999-02-15],
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_gender: "male",
+        person_first_name: "Simon",
+        person_last_name: "Simsen",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_first_name: "Lars",
+        person_last_name: "Lustig",
+        person_gender: "male",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department2}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_first_name: "Lisa",
+        person_last_name: "Lacher",
+        person_gender: "female",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1},
+          %{fee: department_fee, contract_target_object: department2}
+        ]
+      })
+
+      # Adding a contact with archived contracts which should not be counted.
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_first_name: "Katharina",
+        person_last_name: "Klassen",
+        person_gender: "female",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{
+            fee: department_fee,
+            contract_target_object: department1,
+            archive_date: Date.add(now, -2 * 365)
+          },
+          %{
+            fee: department_fee,
+            contract_target_object: department2,
+            archive_date: Date.add(now, -2 * 365)
+          }
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_first_name: "Paulina",
+        person_last_name: "Panzer",
+        person_gender: "female",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        person_first_name: "Marlon",
+        person_last_name: "Muster",
+        person_gender: "other",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department1}
+        ]
+      })
+
+      contact_with_contract_fixture(%{
+        person_first_name: "Michael",
+        person_last_name: "Müller",
+        club_id: club.id,
+        person_gender: "no_info",
+        fee_contract_target_object_list: [
+          %{fee: fee, contract_target_object: club},
+          %{fee: department_fee, contract_target_object: department2}
+        ]
+      })
+
+      binary_data = Personal.create_member_inventory_document_xlsx(club, now)
+      {:ok, xlsx_data} = XlsxReader.open(binary_data, source: :binary)
+
+      {:ok, xlsx_sheet_rows} =
+        xlsx_data
+        |> XlsxReader.sheet("Mitgliederliste")
+
+      [header | data_rows] = xlsx_sheet_rows
+      assert header == ["Name", "Vorname", "Geschlecht", "Geburtsdatum", "Abteilungen"]
+      assert data_rows |> Enum.at(0) == ["Lacher", "Lisa", "F", "15.02.2000", "80"]
+      assert data_rows |> Enum.at(1) == ["Lacher", "Lisa", "F", "15.02.2000", "43"]
+      # Enum.at(4) -> value of Abteilungen for row
+      rows_by_abteilungen = data_rows |> Enum.group_by(fn row -> row |> Enum.at(4) end)
+      abteilungen_in_inventory_list = rows_by_abteilungen |> Map.keys() |> Enum.sort()
+      assert abteilungen_in_inventory_list == ["43", "80"]
+    end
   end
 end
