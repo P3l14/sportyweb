@@ -491,6 +491,33 @@ defmodule SportywebWeb.CoreComponents do
     """
   end
 
+  attr :type, :string
+  attr :id, :any, default: nil
+  attr :name, :any
+  attr :value, :any, default: nil
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def simple_input(assigns) do
+    ~H"""
+    <div>
+      <input
+        type={@type}
+        name={@name}
+        id={@id}
+        value={@value}
+        class={
+          Twix.tw([
+            "mt-2 xs:py-8 sm:py-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 border-zinc-300 focus:border-zinc-400",
+            @class
+          ])
+        }
+        {@rest}
+      />
+    </div>
+    """
+  end
+
   def disabled_classes do
     "disabled:bg-gray-100 disabled:cursor-not-allowed"
   end

@@ -741,6 +741,20 @@ defmodule Sportyweb.Personal do
     ContactRoleRelation.changeset(contact_role_relation, attrs)
   end
 
+  def can_create_member_inventory_list(club, date, _type) do
+    cond do
+      club.association_number == "" ->
+        {:error,
+         "Beim Verein ist nicht die vom Landessportbund vergebene Vereinsnummer gespeichert!"}
+
+      is_nil(get_first_chair_man_of_club(club.id, date)) ->
+        {:error, "Beim Verein ist kein Mitglied mit der Rolle '1. Vorsitzender' gespeichert!"}
+
+      true ->
+        {:ok}
+    end
+  end
+
   @doc """
   Gets the contact with the membership specific role "first chairman" for the actual or passed in date.
   Assumes that at any given time der must be a contact with that role.
@@ -761,7 +775,7 @@ defmodule Sportyweb.Personal do
             (is_nil(contact_role.valid_until) or contact_role.valid_until >= ^date)
       )
 
-    Repo.one!(query)
+    Repo.one(query)
   end
 
   import XmlBuilder
