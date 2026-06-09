@@ -6,29 +6,43 @@ defmodule SportywebWeb.ContactInventoryListController do
   alias Sportyweb.Organization
   alias Sportyweb.Personal
 
-  def create(conn, %{"club_id" => club_id} = parameter) do
+  def create(conn, %{"club_id" => club_id, "member_inventory_year" => year, "format" => format}) do
     club = Organization.get_club!(club_id, :departments)
-    year = Map.get(parameter, "member_inventory_year", Date.utc_today().year)
     date = year |> String.to_integer() |> Date.new!(1, 1)
 
-    case Personal.can_create_member_inventory_list(club, date, "XML") do
+    case Personal.can_create_member_inventory_list(club, date, format) do
       {:ok} ->
-        inventory_document = Personal.create_member_inventory_document(club, date)
+        case format do
+          "xml" ->
+            inventory_document = Personal.create_member_inventory_document(club, date)
+
+            conn
+            |> put_flash(:info, "Download startet jetzt.")
+            |> put_resp_content_type("application/xml")
+            |> send_download({:binary, inventory_document},
+              filename: "bestandserhebung_#{year}.xml"
+            )
+
+          "xslx" ->
+            binary_data = Personal.create_member_inventory_document_xlsx(club, date)
+
+            conn
+            |> put_flash(:info, "Download startet jetzt.")
+            |> put_resp_content_type(
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            |> send_download({:binary, binary_data},
+              filename: "bestandserhebung_#{year}.xlsx"
+            )
+        end
+
+      {:error, messages} ->
+        messages |> Enum.reduce(fn message, acc -> acc <> "#{message}\n" end)
 
         conn
-        |> put_flash(:info, "Download startet jetzt.")
-        |> put_resp_content_type("application/xml")
-        |> send_download({:binary, inventory_document},
-          filename: "member_inventory.xml"
-        )
-
-      {:error, message} ->
-        conn
-        |> put_flash(
-          :error,
-          "Bestandsliste kann nicht erstellt werden. #{message}"
-        )
-        |> redirect(to: ~p"/clubs/#{club_id}/members/inventory_list")
+        |> put_status(:internal_server_error)
+        |> put_view(html: SportywebWeb.ErrorHTML)
+        |> render("500.html", from: "ContactInventoryListController", reason: messages)
     end
   end
 end

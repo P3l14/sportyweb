@@ -160,7 +160,7 @@ defmodule SportywebWeb.Router do
 
       live "/clubs/:club_id/members/inventory_list", ContactLive.InventoryList, :index
 
-      get "/clubs/:club_id/members/inventory_list/:member_inventory_year",
+      get "/clubs/:club_id/members/inventory_list/:member_inventory_year/:format",
           ContactInventoryListController,
           :create
 

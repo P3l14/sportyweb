@@ -741,17 +741,76 @@ defmodule Sportyweb.Personal do
     ContactRoleRelation.changeset(contact_role_relation, attrs)
   end
 
-  def can_create_member_inventory_list(club, date, _type) do
-    cond do
-      club.association_number == "" ->
-        {:error,
-         "Beim Verein ist nicht die vom Landessportbund vergebene Vereinsnummer gespeichert!"}
+  @doc """
+  Checks if all necessary informations are present to create the member inventory list in the desired format.
+  Delivers {:ok} when the member inventory list can be created.
+  Otherswise {:error, ["error text !", "...]} with the error messages which can be presented to the user.
 
-      is_nil(get_first_chair_man_of_club(club.id, date)) ->
-        {:error, "Beim Verein ist kein Mitglied mit der Rolle '1. Vorsitzender' gespeichert!"}
 
-      true ->
-        {:ok}
+  """
+  def can_create_member_inventory_list(club, date, format)
+
+  def can_create_member_inventory_list(club, date, "xml") do
+    error_list = can_create_member_inventory_list_common_checks(club, date)
+
+    error_list =
+      if club.association_number == "" do
+        new_error =
+          "Beim Verein ist nicht die vom Landessportbund vergebene Vereinsnummer gespeichert!"
+
+        [new_error | error_list]
+      else
+        error_list
+      end
+
+    error_list =
+      if is_nil(get_first_chair_man_of_club(club.id, date)) do
+        new_error =
+          "Beim Verein ist kein Mitglied mit der Rolle '1. Vorsitzender' gespeichert!"
+
+        [new_error | error_list]
+      else
+        error_list
+      end
+
+    if error_list == [] do
+      {:ok}
+    else
+      {:error, error_list}
+    end
+  end
+
+  def can_create_member_inventory_list(club, date, "xslx") do
+    error_list = can_create_member_inventory_list_common_checks(club, date)
+
+    if error_list == [] do
+      {:ok}
+    else
+      {:error, error_list}
+    end
+  end
+
+  defp can_create_member_inventory_list_common_checks(club, _date, error_list \\ []) do
+    error_list =
+      if club.departments == [] and club.affiliated_sports_federation == "" do
+        new_error =
+          "Der Verein verfügt über keine Abteilungen und es ist keine Sportverbandsnummer am Verein selbst gespeichert. Entweder die Sportverbandsnummer wird beim Verein gespeichert oder es müssen neue Abteilungen angelegt und dort die Sportverbandsnummer gespeichert werden."
+
+        [new_error | error_list]
+      else
+        error_list
+      end
+
+    if club.departments != [] and
+         length(club.departments) ==
+           length(
+             club.departments
+             |> Enum.filter(fn department -> department.affiliated_sports_federation != "" end)
+           ) do
+      new_error = "Nicht bei allen Abteilungen ist eine Sportsverbandsnummer gespeichert!"
+      [new_error | error_list]
+    else
+      error_list
     end
   end
 

@@ -5,24 +5,25 @@ defmodule SportywebWeb.ContactLive.InventoryList.InventoryListForm do
   @primary_key false
   embedded_schema do
     field :year, :integer
-    field :type, :string
+    field :format, :string
     field :checked, :boolean
   end
 
-  def get_valid_types do
+  def get_valid_formats do
     [
-      "XML",
-      "XLSX"
+      "xml",
+      "xslx"
     ]
   end
 
   def changeset(inventory_list_form, attrs \\ %{}) do
     inventory_list_form
-    |> cast(attrs, [:year, :type])
-    |> validate_required([:year, :type])
+    |> cast(attrs, [:year, :format])
+    |> validate_required([:year, :format])
+    |> validate_number(:year, greater_than: 1990, less_than: 3000)
     |> validate_inclusion(
-      :type,
-      get_valid_types() |> Enum.map(fn type -> type end)
+      :format,
+      get_valid_formats() |> Enum.map(fn format -> format end)
     )
   end
 end
