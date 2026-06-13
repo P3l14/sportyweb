@@ -1045,8 +1045,7 @@ defmodule Sportyweb.Personal do
         where: contact.type == "person",
         where:
           contract.start_date <= ^date and
-            (is_nil(contract.archive_date) or contract.archive_date >= ^date),
-        order_by: contact.person_last_name
+            (is_nil(contract.archive_date) or contract.archive_date >= ^date)
       )
 
     # Edge case simple club without departmants and association_number saved in club
@@ -1060,7 +1059,8 @@ defmodule Sportyweb.Personal do
             person_gender: contact.person_gender,
             person_birthday: contact.person_birthday,
             affiliated_sports_federation: club.affiliated_sports_federation
-          }
+          },
+          order_by: contact.person_last_name
         )
       else
         from([contact: contact, contract: contract] in query,
@@ -1071,7 +1071,9 @@ defmodule Sportyweb.Personal do
             person_gender: contact.person_gender,
             person_birthday: contact.person_birthday,
             affiliated_sports_federation: department.affiliated_sports_federation
-          }
+          },
+          # fix order for contacts which are in different departments with different affiliated sports federation
+          order_by: [contact.person_last_name, department.affiliated_sports_federation]
         )
       end
 

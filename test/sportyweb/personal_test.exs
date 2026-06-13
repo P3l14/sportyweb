@@ -1168,8 +1168,8 @@ defmodule Sportyweb.PersonalTest do
 
       [header | data_rows] = xlsx_sheet_rows
       assert header == ["Name", "Vorname", "Geschlecht", "Geburtsdatum", "Abteilungen"]
-      assert data_rows |> Enum.at(0) == ["Lacher", "Lisa", "F", "15.02.2000", "80"]
-      assert data_rows |> Enum.at(1) == ["Lacher", "Lisa", "F", "15.02.2000", "43"]
+      assert data_rows |> Enum.at(0) == ["Lacher", "Lisa", "F", "15.02.2000", "43"]
+      assert data_rows |> Enum.at(1) == ["Lacher", "Lisa", "F", "15.02.2000", "80"]
       # Enum.at(4) -> value of Abteilungen for row
       rows_by_abteilungen = data_rows |> Enum.group_by(fn row -> row |> Enum.at(4) end)
       abteilungen_in_inventory_list = rows_by_abteilungen |> Map.keys() |> Enum.sort()
