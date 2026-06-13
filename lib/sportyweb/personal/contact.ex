@@ -54,6 +54,7 @@ defmodule Sportyweb.Personal.Contact do
 
     field :type, :string, default: "person"
     field :name, :string, default: ""
+    field :identification_number, :integer
     field :organization_name, :string, default: ""
     field :organization_type, :string, default: ""
     field :person_last_name, :string, default: ""
@@ -168,6 +169,7 @@ defmodule Sportyweb.Personal.Contact do
       [
         :club_id,
         :type,
+        :identification_number,
         :organization_name,
         :organization_type,
         :person_last_name,
@@ -250,6 +252,7 @@ defmodule Sportyweb.Personal.Contact do
       [
         :club_id,
         :type,
+        :identification_number,
         :organization_name,
         :organization_type,
         :person_last_name,
@@ -389,6 +392,7 @@ defmodule Sportyweb.Personal.Contact do
       [
         :club_id,
         :type,
+        :identification_number,
         :organization_name,
         :organization_type,
         :person_last_name,

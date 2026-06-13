@@ -2,19 +2,38 @@ defmodule Sportyweb.Personal.Contact.Query do
   import Ecto.Query, warn: false
   alias Sportyweb.Personal.Contact
 
-  def contact_query(%{"club_id" => club_id, "type" => type} = search_params) do
+  def contact_query(%{
+        "type" => "contact_identification_number",
+        "club_id" => club_id,
+        "contact_identification_number" => identification_number
+      })
+      when identification_number != "" do
+    from(contact in Contact,
+      as: :contact,
+      where: contact.club_id == ^club_id,
+      where: contact.identification_number == ^identification_number
+    )
+  end
+
+  def contact_query(
+        %{
+          "type" => "contact",
+          "club_id" => club_id,
+          "contact" => %{"type" => type} = contact_params
+        } = scope_params
+      ) do
     query = contact_base_query(club_id, type)
 
     query
-    |> apply_search_scope(search_params["search_scope"], search_params["include_invalid"])
-    |> maybe_search_by_person_last_name(search_params["person_last_name"])
-    |> maybe_search_by_person_birth_name(search_params["person_birth_name"])
-    |> maybe_search_by_person_middle_names(search_params["person_middle_names"])
-    |> maybe_search_by_person_first_name(search_params["person_first_name"])
-    |> maybe_search_by_person_gender(search_params["person_gender"])
-    |> maybe_search_by_person_birthday(search_params["person_birthday"])
-    |> maybe_search_by_organization_name(search_params["organization_name"])
-    |> maybe_search_by_organization_type(search_params["organization_type"])
+    |> apply_search_scope(scope_params["search_scope"], scope_params["include_invalid"])
+    |> maybe_search_by_person_last_name(contact_params["person_last_name"])
+    |> maybe_search_by_person_birth_name(contact_params["person_birth_name"])
+    |> maybe_search_by_person_middle_names(contact_params["person_middle_names"])
+    |> maybe_search_by_person_first_name(contact_params["person_first_name"])
+    |> maybe_search_by_person_gender(contact_params["person_gender"])
+    |> maybe_search_by_person_birthday(contact_params["person_birthday"])
+    |> maybe_search_by_organization_name(contact_params["organization_name"])
+    |> maybe_search_by_organization_type(contact_params["organization_type"])
     |> order_by_name()
   end
 
@@ -35,7 +54,7 @@ defmodule Sportyweb.Personal.Contact.Query do
   Scope determinse the set of contacts on which the search is performed:
   * all
   * only_members
-  * without_members 
+  * without_members
   include_invalid decides wheter or not the contact role or the contract ist valid today
 
 

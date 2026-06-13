@@ -1176,4 +1176,169 @@ defmodule Sportyweb.PersonalTest do
       assert abteilungen_in_inventory_list == ["43", "80"]
     end
   end
+
+  describe "contact identification number" do
+    import Sportyweb.PersonalFixtures
+    import Sportyweb.OrganizationFixtures
+    import Sportyweb.FinanceFixtures
+    alias Sportyweb.Personal.ContactIdentificationNumber
+
+    test "generate_new/1 generates a new identification number for the contact of a club" do
+      club = club_fixture()
+      assert 10_000_004 == ContactIdentificationNumber.generate_new(club.id)
+      assert 10_000_012 == ContactIdentificationNumber.generate_new(club.id)
+    end
+
+    test "generate_new/1 generates a new identification number for the contact of different clubs independently" do
+      club1 = club_fixture()
+      assert 10_000_004 == ContactIdentificationNumber.generate_new(club1.id)
+      assert 10_000_012 == ContactIdentificationNumber.generate_new(club1.id)
+      club2 = club_fixture()
+      assert 10_000_004 == ContactIdentificationNumber.generate_new(club2.id)
+      assert 10_000_012 == ContactIdentificationNumber.generate_new(club2.id)
+
+      assert 10_000_020 == ContactIdentificationNumber.generate_new(club1.id)
+    end
+
+    test "valid?/1 delivers true for valid contact identification number" do
+      assert ContactIdentificationNumber.valid?(10_021_277)
+    end
+
+    test "valid?/1 delivers true for generated contact identification number" do
+      club = club_fixture()
+
+      assert club.id
+             |> ContactIdentificationNumber.generate_new()
+             |> ContactIdentificationNumber.valid?()
+    end
+
+    test "valid?/1 delivers false for invalid contact identification number when numers are interchanged in order" do
+      refute ContactIdentificationNumber.valid?(10_201_277)
+      refute ContactIdentificationNumber.valid?(10_012_277)
+      refute ContactIdentificationNumber.valid?(10_022_177)
+      refute ContactIdentificationNumber.valid?(10_021_727)
+    end
+  end
+
+  describe "contact search" do
+    import Sportyweb.PersonalFixtures
+    import Sportyweb.OrganizationFixtures
+    import Sportyweb.FinanceFixtures
+    alias Sportyweb.Personal.ContactIdentificationNumber
+
+    test "search/1 contact_identification_number should not find contact with unfitting contact_identification_number" do
+      contact = contact_fixture()
+
+      search_result =
+        Personal.search(%{
+          "club_id" => contact.club_id,
+          "type" => "contact_identification_number",
+          "contact_identification_number" => 13_371_337
+        })
+
+      assert search_result == []
+    end
+
+    test "search/1 contact_identification_number should find contact with contact_identification_number" do
+      contact = contact_fixture()
+
+      [found_contact] =
+        Personal.search(%{
+          "club_id" => contact.club_id,
+          "type" => "contact_identification_number",
+          "contact_identification_number" => contact.identification_number
+        })
+
+      assert contact.identification_number == found_contact.identification_number
+      assert contact.name == found_contact.name
+    end
+
+    test "search/1 contact should find contacts with matching person_last_name" do
+      club_id = club_fixture().id
+
+      contact1 =
+        contact_fixture(%{
+          club_id: club_id,
+          person_last_name: "Mustermann",
+          person_first_name: "Max"
+        })
+
+      contact2 =
+        contact_fixture(%{
+          club_id: club_id,
+          person_last_name: "Mustermann",
+          person_first_name: "Maria"
+        })
+
+      contact_fixture(%{
+        club_id: club_id,
+        person_last_name: "Panzer",
+        person_first_name: "Paul"
+      })
+
+      search_result =
+        Personal.search(%{
+          "club_id" => contact1.club_id,
+          "type" => "contact",
+          "search_scope" => "all",
+          "include_invalid" => "true",
+          "contact" => %{
+            "type" => "person",
+            "person_last_name" => "Mustermann"
+          }
+        })
+
+      assert length(search_result) == 2
+      [found_contact1, found_contact2] = search_result
+      assert contact1.person_last_name == found_contact1.person_last_name
+      assert contact2.person_last_name == found_contact2.person_last_name
+      assert found_contact1.person_first_name != found_contact2.person_first_name
+    end
+
+    test "search/1 contact should find contacts with matching person data" do
+      club_id = club_fixture().id
+
+      contact1 =
+        contact_fixture(%{
+          club_id: club_id,
+          person_last_name: "Mustermann",
+          person_birth_name: "Muster",
+          person_middle_names: "Marius Markus",
+          person_first_name: "Max",
+          person_birthday: ~D[1986-09-01],
+          person_gender: "no_info",
+          contact_roles: [
+            %{valid_from: Date.add(Date.utc_today(), -2 * 365), name: "interested"}
+          ]
+        })
+
+      contact_fixture(%{
+        club_id: club_id,
+        person_last_name: "Mustermann",
+        person_first_name: "Maria"
+      })
+
+      search_result =
+        Personal.search(%{
+          "club_id" => contact1.club_id,
+          "type" => "contact",
+          "search_scope" => "without_members",
+          "include_invalid" => "false",
+          "contact" => %{
+            "type" => "person",
+            "person_last_name" => "Mustermann",
+            "person_birth_name" => "Muster",
+            "person_middle_names" => "Marius Markus",
+            "person_first_name" => "Max",
+            "person_birthday" => ~D[1986-09-01],
+            "person_gender" => "no_info"
+          }
+        })
+
+      assert length(search_result) == 1
+      [found_contact1] = search_result
+      assert contact1.person_last_name == found_contact1.person_last_name
+      assert contact1.person_middle_names == found_contact1.person_middle_names
+    end
+  end
 end

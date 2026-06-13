@@ -5,6 +5,7 @@ defmodule Sportyweb.Personal do
 
   import Ecto.Query, warn: false
   alias Sportyweb.Personal.ContactRoleRelation
+  alias Sportyweb.Personal.ContactIdentificationNumber
   alias Sportyweb.Repo
 
   alias Sportyweb.Legal.Contract
@@ -291,15 +292,49 @@ defmodule Sportyweb.Personal do
 
   """
   def create_contact(attrs \\ %{}) do
-    %Contact{}
-    |> Contact.changeset(attrs)
-    |> Repo.insert()
+    {:ok, result} =
+      Repo.transaction(fn ->
+        club_id = attrs |> Map.get("club_id") || attrs |> Map.get(:club_id)
+        contact_identification_number = ContactIdentificationNumber.generate_new(club_id)
+
+        %Contact{}
+        |> Contact.changeset(attrs)
+        |> Ecto.Changeset.put_change(:identification_number, contact_identification_number)
+        |> Repo.insert()
+      end)
+
+    result
   end
 
   def create_short_contact(attrs \\ %{}) do
-    %Contact{}
-    |> Contact.changeset_short_contact(attrs)
-    |> Repo.insert()
+    {:ok, result} =
+      Repo.transaction(fn ->
+        club_id = attrs |> Map.get("club_id") || attrs |> Map.get(:club_id)
+        contact_identification_number = ContactIdentificationNumber.generate_new(club_id)
+
+        %Contact{}
+        |> Contact.changeset_short_contact(attrs)
+        |> Ecto.Changeset.put_change(:identification_number, contact_identification_number)
+        |> Repo.insert()
+      end)
+
+    result
+  end
+
+  @doc """
+  Saves an internally created and already validated contact to the database
+
+  """
+  def create_contact_internal(%Contact{} = contact) do
+    {:ok, result} =
+      Repo.transaction(fn ->
+        club_id = contact.club_id
+        contact_identification_number = ContactIdentificationNumber.generate_new(club_id)
+        contact = %{contact | identification_number: contact_identification_number}
+        Repo.insert(contact)
+      end)
+
+    result
   end
 
   @doc """
@@ -617,14 +652,6 @@ defmodule Sportyweb.Personal do
   """
   def change_contact_role(%ContactRole{} = contact_role, attrs \\ %{}) do
     ContactRole.changeset(contact_role, attrs)
-  end
-
-  @doc """
-  Saves an internally created and already validated contact to the database
-
-  """
-  def create_contact_internal(%Contact{} = contact) do
-    Repo.insert(contact)
   end
 
   def get_custom_roles(club_id, role_name) do

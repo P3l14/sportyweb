@@ -12,6 +12,9 @@
     <:item title="Art">
       {get_key_for_value(Contact.get_valid_types(), @contact.type)}
     </:item>
+    <:item title="Kontaktnummer">
+      {@contact.identification_number}
+    </:item>
     <:item title="Name">
       {format_string_field(@contact.name)}
     </:item>

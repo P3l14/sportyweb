@@ -3,7 +3,7 @@ defmodule SportywebWeb.ContactLive.Search do
 
   alias Sportyweb.Organization
   alias Sportyweb.Personal
-  alias Sportyweb.Personal.Contact
+  alias SportywebWeb.ContactLive.Search.SearchForm
 
   @impl true
   def render(assigns) do
@@ -17,31 +17,59 @@ defmodule SportywebWeb.ContactLive.Search do
         <.header level="2" class="col-span-12 md:col-span-12">
           Suchkriterien
         </.header>
-        <.simple_form :let={form} for={@form} as={:search} phx-submit="search" phx-change="validate">
+        <.simple_form id="search-form" for={@form} phx-submit="search" phx-change="validate">
           <.input_grids>
-            <div class="col-span-12 md:col-span-6">
-              <.input
-                field={form[:search_scope]}
-                type="select"
-                label="Suchumfang"
-                options={get_valid_search_scopes()}
-              />
-            </div>
-            <div class="col-span-12 md:col-span-4">
-              <.input
-                field={form[:include_invalid]}
-                type="checkbox"
-                label="auch inaktive Kontakte und Mitglieder anzeigen"
-              />
-              <.input_description>
-                Inaktiv bedeutet bei Kontakten, dass diese keine heute gültige Rolle mehr besitzen und bei Mitglieder, dass diese keinen heute gültigen Mitgliedschaftsvertrag besitzen.
-              </.input_description>
-            </div>
-
-            <SportywebWeb.ContactLive.FormComponent.contact_name_data_grid
-              form={form}
-              contact_form_type={:full}
-            />
+            <.input_grid>
+              <div class="col-span-12 md:col-span-">
+                <.input
+                  field={@form[:type]}
+                  type="select"
+                  label="Suchart"
+                  options={SearchForm.get_valid_types()}
+                  prompt="Bitte auswählen"
+                />
+              </div>
+            </.input_grid>
+            <%= case @form[:type].value do %>
+              <% "contact_identification_number" -> %>
+                <.input_grid>
+                  <div class="col-span-12 md:col-span-">
+                    <.input
+                      field={@form[:contact_identification_number]}
+                      type="number"
+                      label="Kontaktnummer"
+                    />
+                  </div>
+                </.input_grid>
+              <% "contact" -> %>
+                <.input_grid>
+                  <div class="col-span-12 md:col-span-">
+                    <.input
+                      field={@form[:search_scope]}
+                      type="select"
+                      label="Suchumfang"
+                      options={SearchForm.get_valid_search_scopes()}
+                    />
+                  </div>
+                  <div class="col-span-12 md:col-span-12">
+                    <.input
+                      field={@form[:include_invalid]}
+                      type="checkbox"
+                      label="auch inaktive Kontakte und Mitglieder anzeigen"
+                    />
+                    <.input_description>
+                      Inaktiv bedeutet bei Kontakten, dass diese keine heute gültige Rolle mehr besitzen und bei Mitglieder, dass diese keinen heute gültigen Mitgliedschaftsvertrag besitzen.
+                    </.input_description>
+                  </div>
+                </.input_grid>
+                <.inputs_for :let={contact} field={@form[:contact]}>
+                  <SportywebWeb.ContactLive.FormComponent.contact_name_data_grid
+                    form={contact}
+                    contact_form_type={:full}
+                  />
+                </.inputs_for>
+              <% _ -> %>
+            <% end %>
           </.input_grids>
           <:actions>
             <div>
@@ -71,18 +99,10 @@ defmodule SportywebWeb.ContactLive.Search do
       <% end %>
     </.card>
 
-    <div :if={@live_action == :index_member} class="mt-4 flex align-middle">
+    <div class="mt-4 flex align-middle">
       <.icon name="hero-check-badge" class="mr-1 inline-block w-[20px] text-green-800" /> Mitglied
     </div>
     """
-  end
-
-  defp get_valid_search_scopes() do
-    [
-      [key: "alle", value: "all"],
-      [key: "ohne Mitglieder", value: "without_members"],
-      [key: "nur Mitglieder", value: "only_members"]
-    ]
   end
 
   @impl true
@@ -103,41 +123,57 @@ defmodule SportywebWeb.ContactLive.Search do
       )
 
     contacts = []
-    search = %Contact{}
+    search = %SearchForm{}
 
     socket
     |> assign(:page_title, "Kontaktsuche")
     |> assign(:club_navigation_current_item, :contact_search)
     |> assign(:club, club)
     |> assign(:search, search)
-    |> assign(:form, to_form(Personal.change_short_contact(search)))
+    |> assign(:form, to_form(SearchForm.changeset(search)))
     |> stream(:contacts, contacts)
   end
 
   @impl true
   def handle_event(
         "search",
-        %{"search" => search},
+        %{"search_form" => search},
         socket
       ) do
-    search = put_in(search["club_id"], socket.assigns.club.id)
-    found_contacts = Personal.search(search)
+    changeset = SearchForm.changeset(socket.assigns.search, search)
 
-    {:noreply,
-     socket
-     |> assign(:hits, length(found_contacts))
-     |> stream(:contacts, found_contacts, reset: true)}
+    if changeset.valid? do
+      search = put_in(search["club_id"], socket.assigns.club.id)
+      found_contacts = Personal.search(search)
+
+      {:noreply,
+       socket
+       |> assign(:hits, length(found_contacts))
+       |> stream(:contacts, found_contacts, reset: true)}
+    else
+      {:noreply,
+       socket
+       |> assign(
+         :form,
+         to_form(changeset, action: :validate)
+       )}
+    end
   end
 
   @impl true
   def handle_event(
         "validate",
-        %{"search" => search},
+        %{"search_form" => search},
         socket
       ) do
+    changeset = SearchForm.changeset(socket.assigns.search, search)
+
     {:noreply,
      socket
-     |> assign(:form, to_form(Personal.change_short_contact(socket.assigns.search, search)))}
+     |> assign(
+       :form,
+       to_form(changeset, action: :validate)
+     )}
   end
 
   @impl true
