@@ -291,14 +291,14 @@ defmodule Sportyweb.Personal do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_contact(attrs \\ %{}) do
+  def create_contact(attrs \\ %{}, changeset_function \\ &Contact.changeset/2) do
     {:ok, result} =
       Repo.transaction(fn ->
         club_id = attrs |> Map.get("club_id") || attrs |> Map.get(:club_id)
         contact_identification_number = ContactIdentificationNumber.generate_new(club_id)
 
         %Contact{}
-        |> Contact.changeset(attrs)
+        |> changeset_function.(attrs)
         |> Ecto.Changeset.put_change(:identification_number, contact_identification_number)
         |> Repo.insert()
       end)
@@ -307,18 +307,7 @@ defmodule Sportyweb.Personal do
   end
 
   def create_short_contact(attrs \\ %{}) do
-    {:ok, result} =
-      Repo.transaction(fn ->
-        club_id = attrs |> Map.get("club_id") || attrs |> Map.get(:club_id)
-        contact_identification_number = ContactIdentificationNumber.generate_new(club_id)
-
-        %Contact{}
-        |> Contact.changeset_short_contact(attrs)
-        |> Ecto.Changeset.put_change(:identification_number, contact_identification_number)
-        |> Repo.insert()
-      end)
-
-    result
+    create_contact(attrs, &Contact.changeset_short_contact/2)
   end
 
   @doc """
