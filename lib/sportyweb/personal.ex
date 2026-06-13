@@ -845,56 +845,55 @@ defmodule Sportyweb.Personal do
   Requires that the departments are preloaded on the passed in club struct.
 
   ## Example xml from [interface document](https://cdn.dosb.de/alter_Datenbestand/fm-dosb/downloads/schnitt/Schnittstelle_Bestandsdaten_m-w-d-oA.pdf) of the German Olympic Sports Confederation
-
-     <?xml version="1.0" encoding="utf-8" ?>
-       <Mitglieder>
-     	<Software>
-     		<Schluessel>ABCDEFGHIJ1234567890</Schluessel>
-     	</Software>
-     	<Verein>
-     		<Nummer>123456</Nummer>
-     		<Bezeichnung>Sportverein Berlin e.V.</Bezeichnung>
-     		<Ansprechpartner>Kai Müller</Ansprechpartner>
-     	</Verein>
-     	<Zahlen>
-     		<Typ>A</Typ>
-     		<Fachverband/>
-     		<Jahrgang>1972</Jahrgang>
-     		<AnzahlM>234</AnzahlM>
-     		<AnzahlW>132</AnzahlW>
-     		<AnzahlD>1</AnzahlD>
-     		<AnzahlO>0</AnzahlO>
-     	</Zahlen>
-     	<Zahlen>
-     		<Typ>A</Typ>
-     		<Fachverband/>
-     		<Jahrgang>1988</Jahrgang>
-     		<AnzahlM>78</AnzahlM>
-     		<AnzahlW>103</AnzahlW>
-     		<AnzahlD>0</AnzahlD>
-     		<AnzahlO>1</AnzahlO>
-     	</Zahlen>
-     	<Zahlen>
-     		<Typ>B</Typ>
-     		<Fachverband>12</Fachverband>
-     		<Jahrgang>1972</Jahrgang>
-     		<AnzahlM>12</AnzahlM>
-     		<AnzahlW>6</AnzahlW>
-     		<AnzahlD>0</AnzahlD>
-     		<AnzahlO>0</AnzahlO>
-     	</Zahlen>
-     	<Zahlen>
-     		<Typ>B</Typ>
-     		<Fachverband>12</Fachverband>
-     		<Jahrgang>1988</Jahrgang>
-     		<AnzahlM>7</AnzahlM>
-     		<AnzahlW>13</AnzahlW>
-     		<AnzahlD>1</AnzahlD>
-     		<AnzahlO>0</AnzahlO>
-     	</Zahlen>
-     </Mitglieder>
-
-
+    ```xml
+      <?xml version="1.0" encoding="utf-8" ?>
+      <Mitglieder>
+        <Software>
+          <Schluessel>ABCDEFGHIJ1234567890</Schluessel>
+        </Software>
+        <Verein>
+          <Nummer>123456</Nummer>
+          <Bezeichnung>Sportverein Berlin e.V.</Bezeichnung>
+          <Ansprechpartner>Kai Müller</Ansprechpartner>
+        </Verein>
+        <Zahlen>
+          <Typ>A</Typ>
+          <Fachverband/>
+          <Jahrgang>1972</Jahrgang>
+          <AnzahlM>234</AnzahlM>
+          <AnzahlW>132</AnzahlW>
+          <AnzahlD>1</AnzahlD>
+          <AnzahlO>0</AnzahlO>
+        </Zahlen>
+        <Zahlen>
+          <Typ>A</Typ>
+          <Fachverband/>
+          <Jahrgang>1988</Jahrgang>
+          <AnzahlM>78</AnzahlM>
+          <AnzahlW>103</AnzahlW>
+          <AnzahlD>0</AnzahlD>
+          <AnzahlO>1</AnzahlO>
+        </Zahlen>
+        <Zahlen>
+          <Typ>B</Typ>
+          <Fachverband>12</Fachverband>
+          <Jahrgang>1972</Jahrgang>
+          <AnzahlM>12</AnzahlM>
+          <AnzahlW>6</AnzahlW>
+          <AnzahlD>0</AnzahlD>
+          <AnzahlO>0</AnzahlO>
+        </Zahlen>
+        <Zahlen>
+          <Typ>B</Typ>
+          <Fachverband>12</Fachverband>
+          <Jahrgang>1988</Jahrgang>
+          <AnzahlM>7</AnzahlM>
+          <AnzahlW>13</AnzahlW>
+          <AnzahlD>1</AnzahlD>
+          <AnzahlO>0</AnzahlO>
+        </Zahlen>
+      </Mitglieder>
+    ```
   """
   def create_member_inventory_document(club, date) do
     first_chair_man = get_first_chair_man_of_club(club.id)
