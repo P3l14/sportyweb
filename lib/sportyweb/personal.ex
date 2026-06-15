@@ -218,13 +218,19 @@ defmodule Sportyweb.Personal do
           query |> where([c, cr, contract], is_nil(contract.id))
 
         mode == :only_members ->
-          query |> where([c, cr, contract], contract.id)
+          query |> where([c, cr, contract], not is_nil(contract.id))
 
         mode == :all ->
           query
       end
 
-    Repo.all(query)
+    contacts = Repo.all(query)
+
+    if mode in [:only_members, :all] do
+      Repo.preload(contacts, contracts: [:departments, :groups])
+    else
+      contacts
+    end
   end
 
   @doc """
@@ -600,7 +606,7 @@ defmodule Sportyweb.Personal do
 
   @doc """
   Creates a role relation to a legal guradian.
-  Initially creats the role with the relation when the contact does not have the role legal guardian and
+  Initially creates the role with the relation when the contact does not have the role legal guardian and
   adds a relation to the present role otherwise.
 
 
@@ -639,6 +645,31 @@ defmodule Sportyweb.Personal do
       }
 
       create_contact_role(legal_guardian_role)
+    end
+  end
+
+  def create_role_when_not_persent_or_inactive(
+        contact_id,
+        role_name,
+        start_date
+      ) do
+    query =
+      from(
+        cr in ContactRole,
+        where: cr.contact_id == ^contact_id and cr.name == ^role_name
+      )
+
+    contact_roles = Repo.all(query)
+
+    if Enum.empty?(contact_roles) or
+         not Enum.any?(contact_roles, fn contact_role -> ContactRole.is_in_use?(contact_role) end) do
+      new_role = %{
+        valid_from: start_date,
+        name: role_name,
+        contact_id: contact_id
+      }
+
+      create_contact_role(new_role)
     end
   end
 
