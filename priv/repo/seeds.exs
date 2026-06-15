@@ -29,6 +29,7 @@ alias Sportyweb.Organization.Group
 alias Sportyweb.Personal
 alias Sportyweb.Personal.Contact
 alias Sportyweb.Personal.ContactRole
+alias Sportyweb.Personal.ContactGroup
 alias Sportyweb.Personal.Qualification
 alias Sportyweb.Polymorphic.Email
 alias Sportyweb.Polymorphic.FinancialData
@@ -298,6 +299,7 @@ end
 club_1 =
   Repo.insert!(%Club{
     name: "FC Bayern München",
+    association_number: Faker.format("#######"),
     reference_number: "FCB",
     description:
       "One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin.",
@@ -313,6 +315,7 @@ department =
   Repo.insert!(%Department{
     club: club_1,
     name: "Fußball Herren",
+    affiliated_sports_federation: Faker.format("##"),
     creation_date: ~D[1900-03-01],
     emails: [Sportyweb.SeedHelper.get_random_email()],
     phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -368,6 +371,7 @@ department =
   Repo.insert!(%Department{
     club: club_1,
     name: "Fußball Damen",
+    affiliated_sports_federation: Faker.format("##"),
     creation_date: ~D[1905-03-01],
     emails: [Sportyweb.SeedHelper.get_random_email()],
     phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -422,6 +426,7 @@ Repo.insert!(%Group{
 Repo.insert!(%Department{
   club: club_1,
   name: "Basketball",
+  affiliated_sports_federation: Faker.format("##"),
   creation_date: ~D[1910-03-01],
   emails: [Sportyweb.SeedHelper.get_random_email()],
   phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -431,6 +436,7 @@ Repo.insert!(%Department{
 Repo.insert!(%Department{
   club: club_1,
   name: "Handball",
+  affiliated_sports_federation: Faker.format("##"),
   creation_date: ~D[1915-03-01],
   emails: [Sportyweb.SeedHelper.get_random_email()],
   phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -440,6 +446,7 @@ Repo.insert!(%Department{
 Repo.insert!(%Department{
   club: club_1,
   name: "Schach",
+  affiliated_sports_federation: Faker.format("##"),
   creation_date: ~D[1920-03-01],
   emails: [Sportyweb.SeedHelper.get_random_email()],
   phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -452,6 +459,7 @@ Repo.insert!(%Department{
 club_2 =
   Repo.insert!(%Club{
     name: "1. FC Köln",
+    association_number: Faker.format("#######"),
     reference_number: "Effzeh",
     description:
       "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.",
@@ -467,6 +475,7 @@ department =
   Repo.insert!(%Department{
     club: club_2,
     name: "Fußball Herren",
+    affiliated_sports_federation: Faker.format("##"),
     creation_date: ~D[1948-03-01],
     emails: [Sportyweb.SeedHelper.get_random_email()],
     phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -522,6 +531,7 @@ department =
   Repo.insert!(%Department{
     club: club_2,
     name: "Fußball Damen",
+    affiliated_sports_federation: Faker.format("##"),
     creation_date: ~D[1950-03-01],
     emails: [Sportyweb.SeedHelper.get_random_email()],
     phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -576,6 +586,7 @@ Repo.insert!(%Group{
 Repo.insert!(%Department{
   club: club_2,
   name: "Handball",
+  affiliated_sports_federation: Faker.format("##"),
   creation_date: ~D[1955-03-01],
   emails: [Sportyweb.SeedHelper.get_random_email()],
   phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -585,6 +596,7 @@ Repo.insert!(%Department{
 Repo.insert!(%Department{
   club: club_2,
   name: "Tischtennis",
+  affiliated_sports_federation: Faker.format("##"),
   creation_date: ~D[1960-03-01],
   emails: [Sportyweb.SeedHelper.get_random_email()],
   phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -597,6 +609,7 @@ Repo.insert!(%Department{
 _club_3 =
   Repo.insert!(%Club{
     name: "FC St. Pauli",
+    association_number: Faker.format("#######"),
     reference_number: "-",
     description:
       "A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart.",
@@ -630,6 +643,7 @@ club_4 =
 testclub =
   Repo.insert!(%Club{
     name: "TestVerein",
+    association_number: Faker.format("#######"),
     reference_number: "",
     website_url: "",
     foundation_date: ~D[2023-03-01],
@@ -642,6 +656,7 @@ testclub =
 Repo.insert!(%Department{
   club: testclub,
   name: "TestAbteilung1",
+  affiliated_sports_federation: Faker.format("##"),
   creation_date: ~D[2023-03-01],
   emails: [Sportyweb.SeedHelper.get_random_email()],
   phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -651,6 +666,7 @@ Repo.insert!(%Department{
 Repo.insert!(%Department{
   club: testclub,
   name: "TestAbteilung2",
+  affiliated_sports_federation: Faker.format("##"),
   creation_date: ~D[2023-03-01],
   emails: [Sportyweb.SeedHelper.get_random_email()],
   phones: [Sportyweb.SeedHelper.get_random_phone()],
@@ -1167,7 +1183,7 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
           role_name =
             ContactRole.get_valid_names(true)
             |> Enum.map(fn role -> role[:value] end)
-            |> Enum.random()
+            |> Faker.Util.pick(["first chairman"])
 
           Personal.create_contact_role(%{
             contact_id: contact_with_loaded_contracts.id,
@@ -1273,6 +1289,22 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
         end
       end
     end
+
+    # make a random member to first chair man
+    club_with_contracts = Organization.get_club!(club.id, contracts: :contact)
+
+    first_chair_man_contact =
+      club_with_contracts.contracts
+      |> Enum.map(fn contract -> contract.contact end)
+      |> Enum.filter(fn contact -> not Contact.underage_person?(contact) end)
+      |> Enum.random()
+
+    Personal.create_role_when_not_persent_or_inactive(
+      first_chair_man_contact.id,
+      "first chairman",
+      ~D[2022-01-01]
+    )
+
     # Contact groups with contacts and contracts
     for _i <- 0..Enum.random(3..7) do
       family_name = Faker.Person.last_name()
