@@ -16,7 +16,20 @@
       {get_key_for_value(ContactGroup.get_valid_types(), @contact_group.type)}
     </:item>
     <:item title="Kontakte">
-      {format_struct_list(@contact_group.contacts, :name)}
+      <ul>
+        <li :for={contact <- @contact_group.contacts}>
+          <.link_to
+            target={contact}
+            additional_text={" - #{Contact.age_in_years(contact)} Jahre"}
+          />
+        </li>
+      </ul>
+    </:item>
+    <:item title="Angelegt am">
+      {format_date_time_field_dmy_hms(@contact_group.inserted_at)}
+    </:item>
+    <:item title="Zuletzt geändert am">
+      {format_date_time_field_dmy_hms(@contact_group.updated_at)}
     </:item>
   </.list>
 </.card>

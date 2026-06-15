@@ -3,6 +3,7 @@ defmodule SportywebWeb.ContactGroupLive.Show do
 
   alias Sportyweb.Personal
   alias Sportyweb.Personal.ContactGroup
+  alias Sportyweb.Personal.Contact
 
   @impl true
   def mount(_params, _session, socket) do

@@ -16,6 +16,7 @@ defmodule SportywebWeb.CoreComponents do
   """
   use Phoenix.Component
   use Gettext, backend: SportywebWeb.Gettext
+  use SportywebWeb, :verified_routes
 
   alias Phoenix.LiveView.JS
 
@@ -901,6 +902,38 @@ defmodule SportywebWeb.CoreComponents do
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
     <span class={[@name, @class]} />
+    """
+  end
+
+  @doc """
+  Creates a link to the given entity and renders its name field as text.
+
+  """
+  attr :target, :map, required: true
+  attr :additional_text, :string, default: ""
+  def link_to(assigns)
+
+  def link_to(%{target: %Sportyweb.Personal.Contact{}} = assigns) do
+    ~H"""
+    <.link navigate={~p"/contacts/#{@target}"} class="text-indigo-600 hover:underline">
+      {SportywebWeb.CommonHelper.format_string_field(@target.name)}{@additional_text}
+    </.link>
+    """
+  end
+
+  def link_to(%{target: %Sportyweb.Organization.Department{}} = assigns) do
+    ~H"""
+    <.link navigate={~p"/departments/#{@target}"} class="text-indigo-600 hover:underline">
+      {SportywebWeb.CommonHelper.format_string_field(@target.name)}{@additional_text}
+    </.link>
+    """
+  end
+
+  def link_to(%{target: %Sportyweb.Organization.Group{}} = assigns) do
+    ~H"""
+    <.link navigate={~p"/groups/#{@target}"} class="text-indigo-600 hover:underline">
+      {SportywebWeb.CommonHelper.format_string_field(@target.name)}{@additional_text}
+    </.link>
     """
   end
 
