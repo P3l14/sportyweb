@@ -227,6 +227,41 @@ defmodule Sportyweb.Personal do
     Repo.all(query)
   end
 
+  @doc """
+  Common filter method for qualification list
+
+
+  """
+  def filter_qualifications(club_id, name, qualification_type) do
+    query =
+      from(
+        c in Contact,
+        where: c.club_id == ^club_id,
+        where: c.type == "person",
+        inner_join: qualification in assoc(c, :qualifications),
+        left_join: contract in assoc(c, :contracts),
+        preload: [qualifications: qualification, contracts: contract],
+        order_by: [qualification.dosb_valid_until, c.name]
+      )
+
+    query =
+      if qualification_type != "" do
+        query |> where([c, qualification], qualification.type == ^qualification_type)
+      else
+        query
+      end
+
+    query =
+      if name != "" do
+        name_search_term = "%#{name}%"
+        query |> where([c], like(c.name, ^name_search_term))
+      else
+        query
+      end
+
+    Repo.all(query)
+  end
+
   def search(search_params) do
     query = Contact.Query.contact_query(search_params)
 

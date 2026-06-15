@@ -159,6 +159,7 @@ defmodule SportywebWeb.Router do
       live "/contacts/:contact_id/qualifications/:id", QualificationLive.Show, :show
 
       live "/clubs/:club_id/members/inventory_list", ContactLive.InventoryList, :index
+      live "/clubs/:club_id/members/qualifications", QualificationLive.Index, :index
 
       get "/clubs/:club_id/members/inventory_list/:member_inventory_year/:format",
           ContactInventoryListController,

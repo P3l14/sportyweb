@@ -1,0 +1,117 @@
+<.header>
+  {@page_title}
+</.header>
+
+<.card>
+  <details>
+    <summary>
+      Filter
+    </summary>
+    <search>
+      <.form :let={f} for={%{}} as={:search} phx-change="search">
+        <.input_grids>
+          <.input_grid>
+            <div class="col-span-12 md:col-span-6 ml-10">
+              <.input field={f[:name]} type="search" label="Name" phx-debounce="1000" />
+            </div>
+            <div class="col-span-12 md:col-span-3">
+              <.input
+                field={f[:qualification_type]}
+                type="select"
+                label="Qualifikationsart"
+                options={Qualification.get_valid_types()}
+                prompt="Alle"
+                phx-debounce="1000"
+              />
+            </div>
+            <div class="col-span-12 md:col-span-3 ml-10">
+              <.button type="reset">Filter zurücksetzen</.button>
+            </div>
+          </.input_grid>
+        </.input_grids>
+      </.form>
+    </search>
+  </details>
+</.card>
+<.card class="mt-5">
+  <p>Gesamt: {@contacts_total} davon werden aktuell angezeigt: {@contacts_shown}</p>
+</.card>
+<.card class="mt-5">
+  <%= if Enum.any?(@streams.contacts.inserts) do %>
+    <.table
+      id="contacts"
+      rows={@streams.contacts}
+      row_click={fn {_id, contact} -> JS.navigate(~p"/contacts/#{contact}") end}
+    >
+      <:col :let={{_id, contact}} label="Name">
+        {format_string_field(contact.name)}
+        <%= if Contact.has_active_membership_contract?(contact) do %>
+          <.icon name="hero-check-badge" class="ml-1 inline-block w-[20px] text-green-800" />
+        <% end %>
+      </:col>
+      <:col :let={{_id, contact}} label="Geschlecht">
+        {get_key_for_value(Contact.get_valid_genders(), contact.person_gender)}
+      </:col>
+
+      <:col :let={{_id, contact}} label="Geburtsdatum">
+        {format_date_field_dmy(contact.person_birthday)}
+      </:col>
+
+      <:col :let={{_id, contact}} label="Qualifikationen">
+        <.table id="qualifications" rows={contact.qualifications}>
+          <:col :let={qualification} label="Beschreibung">
+            {SportywebWeb.QualificationLive.Show.describe(qualification)}
+            <br />
+          </:col>
+
+          <:col :let={qualification} label="Erteilungsdatum">
+            {format_date_field_dmy(qualification.dosb_first_issuance)}
+          </:col>
+
+          <:col :let={qualification} label="Gültig bis">
+            {format_date_field_dmy(qualification.dosb_valid_until)}
+          </:col>
+        </.table>
+      </:col>
+
+      <%!-- <:col :let={{_id, contact}} label="Qualifikationen">
+        <%= for qualification <- contact.qualifications do %>
+          {SportywebWeb.QualificationLive.Show.describe(qualification)}
+          <br />
+        <% end %>
+      </:col>
+
+      <:col :let={{_id, contact}} label="Erteilungsdatum">
+        <%= for qualification <- contact.qualifications do %>
+          {format_date_field_dmy(qualification.dosb_first_issuance)}
+          <br />
+        <% end %>
+      </:col>
+
+      <:col :let={{_id, contact}} label="Gültig bis">
+        <%= for qualification <- contact.qualifications do %>
+          {format_date_field_dmy(qualification.dosb_valid_until)}
+          <br />
+        <% end %>
+      </:col> --%>
+
+      <:action :let={{_id, contact}}>
+        <.link navigate={~p"/contacts/#{contact}"}>Anzeigen</.link>
+      </:action>
+    </.table>
+  <% else %>
+    <%= if @contacts_present do %>
+      <p>
+        Es wurden keine Kontakte gefunden, die zu den Filterkriterien passen.
+      </p>
+    <% else %>
+      <p>
+        Bisher wurde noch kein Kontakt erstellt.
+      </p>
+    <% end %>
+  <% end %>
+</.card>
+
+<div :if={@live_action == :index_member} class="mt-4 flex align-middle">
+  <.icon name="hero-check-badge" class="mr-1 inline-block w-[20px] text-green-800" /> Mitglied
+</div>
