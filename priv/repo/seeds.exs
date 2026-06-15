@@ -28,6 +28,8 @@ alias Sportyweb.Organization.Department
 alias Sportyweb.Organization.Group
 alias Sportyweb.Personal
 alias Sportyweb.Personal.Contact
+alias Sportyweb.Personal.ContactRole
+alias Sportyweb.Personal.Qualification
 alias Sportyweb.Polymorphic.Email
 alias Sportyweb.Polymorphic.FinancialData
 alias Sportyweb.Polymorphic.InternalEvent
@@ -122,6 +124,80 @@ defmodule Sportyweb.SeedHelper do
     %Note{
       content: if(:rand.uniform() < 0.7, do: Faker.Lorem.paragraph(), else: "")
     }
+  end
+
+  def get_random_custom_contact_role do
+    [
+      "eigene Rolle A",
+      "eigene Rolle B",
+      "eigene Rolle C"
+    ]
+    |> Enum.random()
+  end
+
+  def get_random_custom_board_role do
+    [
+      "eigene Vorstandsrolle A",
+      "eigene Vorstandsrolle B",
+      "eigene Vorstandsrolle C"
+    ]
+    |> Enum.random()
+  end
+
+  def get_random_dosb_license_coach_sport do
+    [
+      "Fußball",
+      "Handball",
+      "Tennis",
+      "Schwimmen",
+      "Karate",
+      "Turnen"
+    ]
+    |> Enum.random()
+  end
+
+  def get_random_dosb_license_qualification(contact_id) do
+    dosb_first_issuance = Faker.Date.backward(365 * 2)
+
+    dosb_license_type =
+      Qualification.get_valid_dosb_license_types()
+      |> Enum.map(fn license_type -> license_type[:value] end)
+      |> Enum.random()
+
+    dosb_license_level =
+      Qualification.get_valid_dosb_license_levels()
+      |> Enum.map(fn level -> level[:value] end)
+      |> Enum.random()
+
+    Personal.create_qualification(%{
+      contact_id: contact_id,
+      type: "dosb license",
+      dosb_license_type: dosb_license_type,
+      dosb_license_level: dosb_license_level,
+      dosb_license_number: Faker.format("##-##-###-???"),
+      dosb_license_number_sports_association: Faker.format("######"),
+      dosb_license_coach_sport:
+        if(Qualification.requires_dosb_license_coach_sport?(dosb_license_type),
+          do: Sportyweb.SeedHelper.get_random_dosb_license_coach_sport(),
+          else: ""
+        ),
+      dosb_license_sport_instructor_type:
+        if(
+          Qualification.requires_dosb_license_sport_instructor_type?(
+            dosb_license_type,
+            dosb_license_level
+          ),
+          do:
+            Qualification.get_valid_dosb_license_sport_instructor_types()
+            |> Enum.map(fn dosb_license_sport_instructor_type ->
+              dosb_license_sport_instructor_type[:value]
+            end)
+            |> Enum.random(),
+          else: ""
+        ),
+      dosb_first_issuance: dosb_first_issuance,
+      dosb_valid_until: Date.add(dosb_first_issuance, 4 * 365)
+    })
   end
 end
 
@@ -656,9 +732,25 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
       description: "",
       amount: Money.new(:EUR, Enum.random(10..25)),
       amount_one_time: Money.new(:EUR, 0),
-      is_for_contact_group_contacts_only: false,
+      is_for_contact_group_contacts_only: true,
       minimum_age_in_years: 0,
       maximum_age_in_years: 12,
+      internal_events: [Sportyweb.SeedHelper.get_random_internal_event()],
+      notes: [%Note{}]
+    })
+
+    Repo.insert!(%Fee{
+      club_id: club.id,
+      is_general: true,
+      type: "club",
+      name: "Jahresmitgl. Verein Familientraif",
+      reference_number: Sportyweb.SeedHelper.get_random_string(3),
+      description: "",
+      amount: Money.new(:EUR, Enum.random(10..20)),
+      amount_one_time: Money.new(:EUR, 0),
+      is_for_contact_group_contacts_only: false,
+      minimum_age_in_years: nil,
+      maximum_age_in_years: nil,
       internal_events: [Sportyweb.SeedHelper.get_random_internal_event()],
       notes: [%Note{}]
     })
@@ -975,6 +1067,119 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
               })
             end
           end
+        end
+      end
+
+      contact_with_loaded_contracts = Personal.get_contact!(contact.id, :contracts)
+
+      if Enum.any?(contact_with_loaded_contracts.contracts) do
+        if :rand.uniform() < 0.3 do
+          role_name =
+            ContactRole.get_valid_names(true)
+            |> Enum.map(fn role -> role[:value] end)
+            |> Enum.random()
+
+          Personal.create_contact_role(%{
+            contact_id: contact_with_loaded_contracts.id,
+            name: role_name,
+            custom_name:
+              if(ContactRole.has_custom_input?(role_name),
+                do: Sportyweb.SeedHelper.get_random_custom_board_role(),
+                else: ""
+              ),
+            valid_from: ~D[2022-01-01]
+          })
+        end
+
+        # Create qualifications
+
+        if :rand.uniform() < 0.3 do
+          Sportyweb.SeedHelper.get_random_dosb_license_qualification(
+            contact_with_loaded_contracts.id
+          )
+
+          # Create another qualification
+          if :rand.uniform() < 0.4 do
+            Sportyweb.SeedHelper.get_random_dosb_license_qualification(
+              contact_with_loaded_contracts.id
+            )
+          end
+        end
+
+        if :rand.uniform() < 0.2 do
+          common_issuance = Faker.Date.backward(365 * 2)
+
+          common_type =
+            Qualification.get_valid_common_types()
+            |> Enum.map(fn common_type -> common_type[:value] end)
+            |> Enum.random()
+
+          Personal.create_qualification(%{
+            contact_id: contact_with_loaded_contracts.id,
+            type: "common",
+            common_type: common_type,
+            common_issuance: common_issuance,
+            common_description:
+              if(common_type != "first aid",
+                do:
+                  Enum.random(["Sportwissenschaften", "Wirtschaftswissenschaften", "Soziologie"]),
+                else: ""
+              )
+          })
+        end
+
+        if :rand.uniform() < 0.3 do
+          role_name =
+            ContactRole.get_valid_names(true)
+            |> Enum.map(fn role -> role[:value] end)
+            |> Enum.random()
+
+          Personal.create_contact_role(%{
+            contact_id: contact_with_loaded_contracts.id,
+            name: role_name,
+            custom_name:
+              if(ContactRole.has_custom_input?(role_name),
+                do: Sportyweb.SeedHelper.get_random_custom_board_role(),
+                else: ""
+              ),
+            valid_from: ~D[2022-01-01]
+          })
+        end
+      else
+        # every contact that is not a member needs a role to define its purpose
+        role_name =
+          ContactRole.get_valid_names(false)
+          |> Enum.map(fn role -> role[:value] end)
+          |> Enum.random()
+
+        Personal.create_contact_role(%{
+          contact_id: contact_with_loaded_contracts.id,
+          name: role_name,
+          custom_name:
+            if(ContactRole.has_custom_input?(role_name),
+              do: Sportyweb.SeedHelper.get_random_custom_contact_role(),
+              else: ""
+            ),
+          valid_from: ~D[2022-01-01]
+        })
+
+        # create another role
+        if :rand.uniform() < 0.3 do
+          role_name =
+            ContactRole.get_valid_names(true)
+            |> Enum.map(fn role -> role[:value] end)
+            |> Enum.random()
+
+          Personal.create_contact_role(%{
+            contact_id: contact_with_loaded_contracts.id,
+            name: role_name,
+            custom_name:
+              if(ContactRole.has_custom_input?(role_name),
+                do: Sportyweb.SeedHelper.get_random_custom_board_role(),
+                else: ""
+              ),
+            valid_from: ~D[2022-04-07]
+          })
         end
       end
     end
