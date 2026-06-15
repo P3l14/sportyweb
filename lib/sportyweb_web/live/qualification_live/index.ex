@@ -18,39 +18,9 @@ defmodule SportywebWeb.QualificationLive.Index do
 
   defp apply_action(socket, :index, %{"club_id" => club_id}) do
     club =
-      Organization.get_club!(club_id,
-        departments: [:groups],
-        contacts: [:qualifications, contracts: [:departments, :groups]]
-      )
+      Organization.get_club!(club_id)
 
-    # A member is a person with a contract. The contract must not be active.
-    empty_date_default = %Qualification{
-      dosb_valid_until: Date.add(Date.utc_today(), 10 * 365)
-    }
-
-    contacts =
-      club.contacts
-      |> Enum.filter(fn contact ->
-        !Enum.empty?(contact.contracts) and
-          !Enum.empty?(contact.qualifications)
-      end)
-      |> Enum.sort_by(
-        fn contact ->
-          qualification_with_recent_valid_until_date =
-            Enum.min_by(
-              contact.qualifications
-              |> Enum.filter(fn qualification -> qualification.dosb_valid_until end),
-              fn qualification ->
-                qualification.dosb_valid_until
-              end,
-              Date,
-              fn -> empty_date_default end
-            )
-
-          qualification_with_recent_valid_until_date.dosb_valid_until
-        end,
-        Date
-      )
+    contacts = Personal.get_contacts_for_qualification_index(club.id)
 
     socket
     |> assign(:member_inventory_year, Date.utc_today().year)
