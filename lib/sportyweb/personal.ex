@@ -864,7 +864,7 @@ defmodule Sportyweb.Personal do
       end
 
     if club.departments != [] and
-         length(club.departments) ==
+         length(club.departments) >
            length(
              club.departments
              |> Enum.filter(fn department -> department.affiliated_sports_federation != "" end)

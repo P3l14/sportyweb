@@ -30,23 +30,25 @@ defmodule SportywebWeb.ContactLive.InventoryList do
           </.input_grid>
         </.input_grids>
       </.simple_form>
+      <div :if={Enum.any?(@error_messages)} class="mt-5">
+        <.header level="2">
+          Fehler
+        </.header>
+        <ol class="list-disc ml-5">
+          <li :for={error_message <- @error_messages}>
+            {error_message}
+          </li>
+        </ol>
+      </div>
+
       <.link
+        :if={@show_download_button}
         href={
           ~p"/clubs/#{@club}/members/inventory_list/#{@form[:year].value}/#{@form[:format].value}"
         }
         download
       >
-        <div :if={Enum.any?(@error_messages)} class="mt-5">
-          <.header level="2">
-            Fehler
-          </.header>
-          <ol class="list-disc ml-5">
-            <li :for={error_message <- @error_messages}>
-              {error_message}
-            </li>
-          </ol>
-        </div>
-        <.button :if={@show_download_button} class="mt-10" type="clear">
+        <.button class="mt-10" type="clear">
           Bestandsmeldung erstellen
         </.button>
       </.link>
