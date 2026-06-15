@@ -25,7 +25,8 @@ defmodule SportywebWeb.ContactLive.ContactRoleShowComponent do
               </li>
               <ul :if={Enum.any?(contact_role.contact_role_relations)} class="ml-5">
                 <li :for={contact_role_relation <- contact_role.contact_role_relations}>
-                  für {format_string_field(ContactRoleRelation.get_target(contact_role_relation).name)} {render_period(
+                  für
+                  <.link_to target={ContactRoleRelation.get_target(contact_role_relation)} /> {render_period(
                     contact_role_relation.valid_from,
                     contact_role.valid_until
                   )}

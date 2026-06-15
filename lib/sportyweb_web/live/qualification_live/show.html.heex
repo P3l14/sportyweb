@@ -12,9 +12,7 @@
     <% "dosb license" -> %>
       <.list>
         <:item title="Kontakt">
-          <.link navigate={~p"/contacts/#{@contact}"} class="text-indigo-600 hover:underline">
-            {format_string_field(@contact.name)}
-          </.link>
+          <.link_to target={@contact} />
         </:item>
         <:item title="Art">
           {get_key_for_value(Qualification.get_valid_types(), @qualification.type)}
@@ -64,13 +62,17 @@
         <:item title="Gültig bis">
           {format_date_field_dmy(@qualification.dosb_valid_until)}
         </:item>
+        <:item title="Angelegt am">
+          {format_date_time_field_dmy_hms(@qualification.inserted_at)}
+        </:item>
+        <:item title="Zuletzt geändert am">
+          {format_date_time_field_dmy_hms(@qualification.updated_at)}
+        </:item>
       </.list>
     <% "common" -> %>
       <.list>
         <:item title="Kontakt">
-          <.link navigate={~p"/contacts/#{@contact}"} class="text-indigo-600 hover:underline">
-            {format_string_field(@contact.name)}
-          </.link>
+          <.link_to target={@contact} />
         </:item>
         <:item title="Art">
           {get_key_for_value(Qualification.get_valid_types(), @qualification.type)}
@@ -83,6 +85,12 @@
         </:item>
         <:item title="Besschreibung">
           {format_string_field(@qualification.common_description)}
+        </:item>
+        <:item title="Angelegt am">
+          {format_date_time_field_dmy_hms(@qualification.inserted_at)}
+        </:item>
+        <:item title="Zuletzt geändert am">
+          {format_date_time_field_dmy_hms(@qualification.updated_at)}
         </:item>
       </.list>
     <% _ -> %>

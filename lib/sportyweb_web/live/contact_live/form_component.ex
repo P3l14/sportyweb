@@ -5,7 +5,6 @@ defmodule SportywebWeb.ContactLive.FormComponent do
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Polymorphic.FinancialData
   alias Sportyweb.Polymorphic.Note
-  import SportywebWeb.CommonHelper
 
   attr :contact_form_type, :atom, required: false
   attr :propably_duplicate_contacts, :list, required: false, default: []
@@ -80,9 +79,7 @@ defmodule SportywebWeb.ContactLive.FormComponent do
         Bitte prüfen Sie ob einer dieser Kontakte identisch mit dem Kontakt ist, der gerade erfasst werden soll.
       </.warning>
       <div :for={duplicate_contact <- @propably_duplicate_contacts} class="divide-y divide-zinc-100">
-        <.link navigate={~p"/contacts/#{duplicate_contact}"} class="text-indigo-600 hover:underline">
-          {format_string_field(duplicate_contact.name)}
-        </.link>
+        <.link_to target={duplicate_contact} />
         {render_slot(@additional_actions_for_dupplicate_contacts, duplicate_contact)}
       </div>
     <% end %>

@@ -13,9 +13,7 @@
       {format_string_field(@contract_object.name)}
     </:item>
     <:item title="Kontakt">
-      <.link navigate={~p"/contacts/#{@contract.contact}"} class="text-indigo-600 hover:underline">
-        {format_string_field(@contract.contact.name)}
-      </.link>
+      <.link_to target={@contract.contact} />
     </:item>
     <:item title="Gebühr">
       <.link navigate={~p"/fees/#{@contract.fee}"} class="text-indigo-600 hover:underline">
