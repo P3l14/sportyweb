@@ -56,8 +56,6 @@ defmodule Sportyweb.SeedHelper do
   end
 
   def get_random_financial_data do
-    random_name = "#{Faker.Person.last_name()}, #{Faker.Person.first_name()}"
-
     if :rand.uniform() < 0.9 do
       %FinancialData{
         type: "direct_debit",
