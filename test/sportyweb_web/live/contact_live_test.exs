@@ -262,20 +262,37 @@ defmodule SportywebWeb.ContactLiveTest do
     end
 
     defp prepare_create_data(%{club: club}) do
-      fee = fee_fixture(%{club_id: club.id, club: [club]})
+      fee =
+        fee_fixture(%{club_id: club.id, club: [club], is_for_contact_group_contacts_only: false})
+
       department = department_fixture(%{club_id: club.id})
 
       department_fee =
-        fee_fixture(%{club_id: club.id, type: "department", departments: [department]})
+        fee_fixture(%{
+          club_id: club.id,
+          type: "department",
+          departments: [department],
+          is_for_contact_group_contacts_only: false
+        })
 
       Organization.create_department_fee(department, department_fee)
 
       %{
         membership_contract_form_1: %{
-          "club_fee_id" => fee.id,
           "contact_id" => MembershipContractForm.new_contact_value()
         },
         membership_contract_form_2: %{
+          "contact_id" => MembershipContractForm.new_contact_value(),
+          "contact" => %{
+            "type" => "person",
+            "person_birthday" => "1999-04-01",
+            "person_first_name" => "Max",
+            "person_middle_names" => "",
+            "person_gender" => "male",
+            "person_last_name" => "Mustermann"
+          }
+        },
+        membership_contract_form_3: %{
           "club_fee_id" => fee.id,
           "contact_id" => MembershipContractForm.new_contact_value(),
           "contact" => %{
@@ -312,7 +329,7 @@ defmodule SportywebWeb.ContactLiveTest do
           "signing_date" => "2026-03-29",
           "start_date" => "2026-03-29"
         },
-        membership_contract_form_3: %{
+        membership_contract_form_4: %{
           "club_fee_id" => fee.id,
           "contact_id" => MembershipContractForm.new_contact_value(),
           "contact" => %{
@@ -361,7 +378,8 @@ defmodule SportywebWeb.ContactLiveTest do
       club: club,
       membership_contract_form_1: membership_contract_form_1,
       membership_contract_form_2: membership_contract_form_2,
-      membership_contract_form_3: membership_contract_form_3
+      membership_contract_form_3: membership_contract_form_3,
+      membership_contract_form_4: membership_contract_form_4
     } do
       {:error, _} = live(conn, ~p"/clubs/#{club}/contracts/new_membership")
 
@@ -379,14 +397,18 @@ defmodule SportywebWeb.ContactLiveTest do
       |> form("#membership-form", membership_contract_form: membership_contract_form_1)
       |> render_change()
 
-      # send data with checked department selection to enable fee selection in form submission
       new_live
       |> form("#membership-form", membership_contract_form: membership_contract_form_2)
+      |> render_change(%{_target: ["membership_contract_form", "contact", "person_birthday"]})
+
+      # send data with checked department selection to enable fee selection in form submission
+      new_live
+      |> form("#membership-form", membership_contract_form: membership_contract_form_3)
       |> render_change()
 
       {:ok, _, html} =
         new_live
-        |> form("#membership-form", membership_contract_form: membership_contract_form_3)
+        |> form("#membership-form", membership_contract_form: membership_contract_form_4)
         |> render_submit()
         |> follow_redirect(conn, ~p"/clubs/#{club}/members")
 

@@ -171,7 +171,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                     label="Gebühr"
                     options={
                       @department_id_fees_map_for_selection
-                      |> Map.get(department_selection[:id].value)
+                      |> Map.get(department_selection[:id].value, [])
                       |> Enum.map(&{&1.name, &1.id})
                     }
                     prompt="Bitte auswählen"
@@ -196,8 +196,8 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                       type="select"
                       label="Gebühr"
                       options={
-                        @department_id_fees_map_for_selection
-                        |> Map.get(department_selection[:id].value)
+                        @group_id_fees_map_for_selection
+                        |> Map.get(group_selection[:id].value, [])
                         |> Enum.map(&{&1.name, &1.id})
                       }
                       prompt="Bitte auswählen"
@@ -229,8 +229,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
 
   @impl true
   def handle_params(%{"club_id" => club_id}, _url, socket) do
-    club = Organization.get_club!(club_id, [:contracts, departments: [:fees, :groups]])
-    club_fees = Finance.list_club_fees(club_id)
+    club = Organization.get_club!(club_id, [:contracts, departments: [:fees, groups: :fees]])
 
     contact = %Contact{
       club_id: club.id,
@@ -264,9 +263,6 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
           }
         )
     }
-
-    department_id_fees_map =
-      Map.new(club.departments, fn department -> {department.id, department.fees} end)
 
     contact_options_for_legal_guardian =
       club.id
@@ -302,10 +298,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
        to_form(MembershipContractForm.changeset(membership_contract_form))
      end)
      |> assign(:club, club)
-     |> assign(:club_fees, club_fees)
-     |> assign(:club_fees_for_selection, club_fees)
-     |> assign(:department_id_fees_map, department_id_fees_map)
-     |> assign(:department_id_fees_map_for_selection, department_id_fees_map)
+     |> reset_fees_for_selection()
      |> assign(:propably_duplicate_contacts, [])
      |> SportywebWeb.ContactLive.FormComponent.assign_contacts_for_different_holder_or_recipient(
        club.id
@@ -357,16 +350,68 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
   def handle_event(
         "validate",
         %{
+          "_target" => ["membership_contract_form", "contact_id"],
+          "membership_contract_form" => %{"contact_id" => contact_id} = membership_contract_form
+        },
+        socket
+      ) do
+    if contact_id in [MembershipContractForm.new_contact_value(), ""] do
+      {:noreply,
+       socket
+       |> assign_form(membership_contract_form)
+       |> reset_fees_for_selection()}
+    else
+      contact = Personal.get_contact!(contact_id, :contact_groups)
+
+      {:noreply,
+       socket
+       |> assign_form(membership_contract_form)
+       |> assign_fees_for_selection(contact)}
+    end
+  end
+
+  @impl true
+  def handle_event(
+        "validate",
+        %{
+          "_target" => ["membership_contract_form", "contact", "type"],
+          "membership_contract_form" =>
+            %{"contact" => %{"type" => _} = contact} = membership_contract_form
+        },
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign_form(membership_contract_form)
+     |> assign_fees_for_selection(contact)}
+  end
+
+  @impl true
+  def handle_event(
+        "validate",
+        %{
+          "_target" => ["membership_contract_form", "contact", "person_birthday"],
+          "membership_contract_form" => %{"contact" => contact} = membership_contract_form
+        },
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign_form(membership_contract_form)
+     |> assign_fees_for_selection(contact)}
+  end
+
+  @impl true
+  def handle_event(
+        "validate",
+        %{
           "membership_contract_form" => membership_contract_form
         },
         socket
       ) do
-    birthday = get_in(membership_contract_form, ["contact", "person_birthday"])
-
     {:noreply,
      socket
-     |> assign_form(membership_contract_form)
-     |> assign_club_fees_for_selection(birthday)}
+     |> assign_form(membership_contract_form)}
   end
 
   def handle_event(
@@ -493,28 +538,73 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
     # end
   end
 
-  defp assign_club_fees_for_selection(socket, birthday) do
-    if is_nil(birthday) do
-      socket
-      |> assign(:club_fees_for_selection, socket.assigns.club_fees)
-    else
-      case Date.from_iso8601(birthday) do
-        {:ok, birthday_date} ->
-          age_in_years = Contact.age_in_years(birthday_date)
+  defp assign_fees_for_selection(%{assigns: %{club: club}} = socket, %{
+         "type" => "organization" = type
+       }) do
+    contact_param = %Contact{
+      club_id: club.id,
+      type: type
+    }
 
-          socket
-          |> assign(
-            :club_fees_for_selection,
-            socket.assigns.club_fees
-            |> Enum.filter(fn fee ->
-              age_in_years > fee.minimum_age_in_years and age_in_years < fee.maximum_age_in_years
-            end)
-          )
+    assign_fees_for_selection(socket, contact_param)
+  end
 
-        _ ->
-          socket
-          |> assign(:club_fees_for_selection, socket.assigns.club_fees)
-      end
+  defp assign_fees_for_selection(
+         %{assigns: %{club: club}} = socket,
+         %{"type" => "person" = type, "person_birthday" => person_birthday}
+       ) do
+    case Date.from_iso8601(person_birthday) do
+      {:ok, birthday_date} ->
+        contact_param = %Contact{
+          club_id: club.id,
+          type: type,
+          person_birthday: birthday_date,
+          contact_groups: []
+        }
+
+        assign_fees_for_selection(socket, contact_param)
+
+      _ ->
+        socket
+        |> reset_fees_for_selection()
     end
+  end
+
+  defp assign_fees_for_selection(
+         socket,
+         %{"type" => "person"}
+       ) do
+    socket
+    |> reset_fees_for_selection()
+  end
+
+  defp assign_fees_for_selection(%{assigns: %{club: club}} = socket, %Contact{} = contact) do
+    club_fees =
+      Finance.list_contract_fee_options(club, contact)
+
+    department_id_fees_map =
+      club.departments
+      |> Map.new(fn department ->
+        {department.id, Finance.list_contract_fee_options(department, contact)}
+      end)
+
+    group_id_fees_map =
+      socket.assigns.club.departments
+      |> Enum.flat_map(fn departments -> departments.groups end)
+      |> Map.new(fn group ->
+        {group.id, Finance.list_contract_fee_options(group, contact)}
+      end)
+
+    socket
+    |> assign(:club_fees_for_selection, club_fees)
+    |> assign(:department_id_fees_map_for_selection, department_id_fees_map)
+    |> assign(:group_id_fees_map_for_selection, group_id_fees_map)
+  end
+
+  defp reset_fees_for_selection(socket) do
+    socket
+    |> assign(:club_fees_for_selection, [])
+    |> assign(:department_id_fees_map_for_selection, %{})
+    |> assign(:group_id_fees_map_for_selection, %{})
   end
 end

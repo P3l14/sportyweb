@@ -117,65 +117,70 @@ defmodule Sportyweb.Finance do
       []
 
   """
+  def list_contract_fee_options(contract_object, %Contact{} = contact) do
+    # The following code determines which type of entity the contract_object is.
+    # Based on that, it returns the corresponding fee type, which will be used
+    # to only select matching fees.
+
+    fee_type =
+      case contract_object do
+        %Club{} -> "club"
+        %Department{} -> "department"
+        %Group{} -> "group"
+      end
+
+    # Only clubs don't have specific (non-general) fees.
+    specific_fee_ids =
+      if fee_type == "club", do: [], else: Enum.map(contract_object.fees, fn fee -> fee.id end)
+
+    query =
+      from(
+        f in Fee,
+        join: internal_events in assoc(f, :internal_events),
+        where: f.club_id == ^contact.club_id,
+        where: f.type == ^fee_type,
+        where: f.is_general == true or f.id in ^specific_fee_ids,
+        where:
+          is_nil(internal_events.archive_date) or
+            internal_events.archive_date > ^Date.utc_today(),
+        order_by: f.name
+      )
+
+    # The age restriction only plays a role for persons
+    query =
+      if Contact.is_person?(contact) do
+        contact_age_in_years = Contact.age_in_years(contact)
+
+        query_with_age =
+          from(
+            f in query,
+            where:
+              is_nil(f.minimum_age_in_years) or f.minimum_age_in_years <= ^contact_age_in_years,
+            where:
+              is_nil(f.maximum_age_in_years) or f.maximum_age_in_years >= ^contact_age_in_years
+          )
+
+        if Enum.empty?(contact.contact_groups) do
+          from(
+            f in query_with_age,
+            where: not f.is_for_contact_group_contacts_only
+          )
+        else
+          query_with_age
+        end
+      else
+        query
+      end
+
+    Repo.all(query)
+  end
+
   def list_contract_fee_options(contract_object, contact_id) do
     if is_nil(contact_id) || (is_binary(contact_id) && String.trim(contact_id) == "") do
       []
     else
       contact = Personal.get_contact!(contact_id, :contact_groups)
-      # The following code determines which type of entity the contract_object is.
-      # Based on that, it returns the corresponding fee type, which will be used
-      # to only select matching fees.
-      fee_type =
-        case contract_object do
-          %Club{} -> "club"
-          %Department{} -> "department"
-          %Group{} -> "group"
-        end
-
-      # Only clubs don't have specific (non-general) fees.
-      specific_fee_ids =
-        if fee_type == "club", do: [], else: Enum.map(contract_object.fees, fn fee -> fee.id end)
-
-      query =
-        from(
-          f in Fee,
-          join: internal_events in assoc(f, :internal_events),
-          where: f.club_id == ^contact.club_id,
-          where: f.type == ^fee_type,
-          where: f.is_general == true or f.id in ^specific_fee_ids,
-          where:
-            is_nil(internal_events.archive_date) or
-              internal_events.archive_date > ^Date.utc_today(),
-          order_by: f.name
-        )
-
-      # The age restriction only plays a role for persons
-      query =
-        if Contact.is_person?(contact) do
-          contact_age_in_years = Contact.age_in_years(contact)
-
-          query_with_age =
-            from(
-              f in query,
-              where:
-                is_nil(f.minimum_age_in_years) or f.minimum_age_in_years <= ^contact_age_in_years,
-              where:
-                is_nil(f.maximum_age_in_years) or f.maximum_age_in_years >= ^contact_age_in_years
-            )
-
-          if Enum.empty?(contact.contact_groups) do
-            from(
-              f in query_with_age,
-              where: not f.is_for_contact_group_contacts_only
-            )
-          else
-            query_with_age
-          end
-        else
-          query
-        end
-
-      Repo.all(query)
+      list_contract_fee_options(contract_object, contact)
     end
   end
 
