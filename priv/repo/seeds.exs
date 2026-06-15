@@ -1027,6 +1027,40 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
             archive_date: nil,
             clubs: [club]
           })
+
+          if Contact.underage_person?(contact) do
+            {:ok, %Contact{}} =
+              Personal.create_short_contact(%{
+                club_id: club.id,
+                type: "person",
+                person_last_name: contact.person_last_name,
+                contact_roles: [
+                  %{
+                    name: "legal guardian",
+                    valid_from: Date.utc_today(),
+                    contact_role_relations: [
+                      %{
+                        contact_id: contact.id,
+                        valid_from: Date.utc_today()
+                      }
+                    ]
+                  }
+                ],
+                person_first_name: Faker.Person.first_name(),
+                person_middle_names:
+                  if(:rand.uniform() < 0.80, do: "", else: Faker.Person.first_name()),
+                person_gender:
+                  Contact.get_valid_genders()
+                  |> Enum.map(fn gender -> gender[:value] end)
+                  |> Enum.random(),
+                person_birthday: Faker.Date.date_of_birth(25..50),
+                postal_addresses: [
+                  Map.from_struct(Sportyweb.SeedHelper.get_random_postal_address())
+                ],
+                emails: [Map.from_struct(Sportyweb.SeedHelper.get_random_email())],
+                phones: [Map.from_struct(Sportyweb.SeedHelper.get_random_phone())]
+              })
+          end
         end
 
         if Enum.any?(club.departments) do
