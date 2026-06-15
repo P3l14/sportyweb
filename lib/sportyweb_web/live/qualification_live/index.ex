@@ -21,19 +21,12 @@ defmodule SportywebWeb.QualificationLive.Index do
       Organization.get_club!(club_id)
 
     contacts = Personal.get_contacts_for_qualification_index(club.id)
-
-    socket
-    |> assign(:member_inventory_year, Date.utc_today().year)
-    |> assign_common_values("Mitgliederqualifikationen", club, :members_qualifications, contacts)
-  end
-
-  defp assign_common_values(socket, page_title, club, club_navigation_current_item, contacts) do
     number_of_contacts = length(contacts)
 
     socket
-    |> assign(:page_title, page_title)
-    |> assign(:club_navigation_current_item, club_navigation_current_item)
-    |> assign(:type, club_navigation_current_item)
+    |> assign(:member_inventory_year, Date.utc_today().year)
+    |> assign(:page_title, "Mitgliederqualifikationen")
+    |> assign(:club_navigation_current_item, :members_qualifications)
     |> assign(:club, club)
     |> assign(:contacts_present, Enum.any?(contacts))
     |> assign(:contacts_total, number_of_contacts)
