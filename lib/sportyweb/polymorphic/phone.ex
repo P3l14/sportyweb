@@ -5,7 +5,7 @@ defmodule Sportyweb.Polymorphic.Phone do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "phones" do
-    field :type, :string, default: "other"
+    field :type, :string, default: "private"
     field :number, :string, default: ""
     field :is_main, :boolean, default: false
 
@@ -43,8 +43,8 @@ defmodule Sportyweb.Polymorphic.Phone do
       get_valid_types() |> Enum.map(fn type -> type[:value] end)
     )
     |> update_change(:number, &String.trim/1)
-    # Empty or contains valid chars
-    |> validate_format(:number, ~r/^$|^[0-9\s\/\(\)\+\-]/)
-    |> validate_length(:number, max: 250)
+    # restricted the input format to numbers and diverse separator charcters
+    |> validate_format(:number, ~r/^[0-9\s\/\(\)\+\-\.]+$/)
+    |> validate_length(:number, max: 100)
   end
 end

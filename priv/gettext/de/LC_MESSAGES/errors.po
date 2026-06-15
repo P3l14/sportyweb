@@ -87,8 +87,8 @@ msgstr[1] ""
 
 msgid "should be at most %{count} character(s)"
 msgid_plural "should be at most %{count} character(s)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Darf höchstens %{count} Zeichen lang sein."
+msgstr[1] "Darf höchstens %{count} Zeichen lang sein."
 
 msgid "should be at most %{count} byte(s)"
 msgid_plural "should be at most %{count} byte(s)"

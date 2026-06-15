@@ -73,18 +73,34 @@ defmodule Sportyweb.Polymorphic.PostalAddress do
     |> update_change(:street_additional_information, &String.trim/1)
     |> update_change(:zipcode, &String.trim/1)
     |> update_change(:city, &String.trim/1)
-    |> validate_length(:street, max: 250)
-    |> validate_length(:street_number, max: 250)
-    |> validate_length(:street_additional_information, max: 250)
-    |> validate_length(:zipcode, max: 15)
-    |> validate_length(:city, max: 250)
+    |> validate_length(:street, max: 100)
+    |> validate_length(:street_number, max: 30)
+    |> validate_length(:street_additional_information, max: 100)
+    |> validate_length(:city, max: 100)
     |> validate_inclusion(
       :country,
       get_valid_countries() |> Enum.map(fn country -> country[:value] end)
     )
+    |> validate_zipcode()
     |> validate_inclusion(
       :type,
       get_valid_types() |> Enum.map(fn type -> type[:value] end)
+    )
+  end
+
+  defp validate_zipcode(%Ecto.Changeset{} = changeset) do
+    zipcode_length =
+      case get_field(changeset, :country) do
+        "DEU" -> 5
+        "AUT" -> 4
+        "CHE" -> 4
+        # high value for default...
+        _ -> 10
+      end
+
+    changeset
+    |> validate_format(:zipcode, ~r/^\d{#{zipcode_length}}$/,
+      message: "Es müssen genau #{zipcode_length} Ziffern erfasst werden."
     )
   end
 end

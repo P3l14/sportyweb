@@ -138,21 +138,25 @@ defmodule Sportyweb.Personal.Qualification do
   @doc false
   def changeset(qualification, attrs) do
     qualification
-    |> cast(attrs, [
-      :type,
-      :dosb_license_type,
-      :dosb_license_level,
-      :dosb_license_number,
-      :dosb_license_number_sports_association,
-      :dosb_license_coach_sport,
-      :dosb_license_sport_instructor_type,
-      :dosb_first_issuance,
-      :dosb_valid_until,
-      :common_type,
-      :common_description,
-      :common_issuance,
-      :contact_id
-    ])
+    |> cast(
+      attrs,
+      [
+        :type,
+        :dosb_license_type,
+        :dosb_license_level,
+        :dosb_license_number,
+        :dosb_license_number_sports_association,
+        :dosb_license_coach_sport,
+        :dosb_license_sport_instructor_type,
+        :dosb_first_issuance,
+        :dosb_valid_until,
+        :common_type,
+        :common_description,
+        :common_issuance,
+        :contact_id
+      ],
+      empty_values: ["", nil]
+    )
     |> validate_required([
       :type,
       :contact_id
@@ -161,10 +165,10 @@ defmodule Sportyweb.Personal.Qualification do
       :type,
       get_valid_types() |> Enum.map(fn type -> type[:value] end)
     )
-    |> validate_required_type_condition()
+    |> validate_type_conditions()
   end
 
-  defp validate_required_type_condition(%Ecto.Changeset{} = changeset) do
+  defp validate_type_conditions(%Ecto.Changeset{} = changeset) do
     # Some fields are only required if the type has a certain value.
     case get_field(changeset, :type) do
       "common" ->

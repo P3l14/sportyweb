@@ -61,6 +61,7 @@ defmodule Sportyweb.Polymorphic.FinancialData do
       required: false,
       with: &Contact.changeset_short_contact/2
     )
+    # change id placeholder for new contact to nil. Contact is then saved in direct_debit_different_account_holder_contact
     |> update_change(:direct_debit_different_account_holder_contact_id, fn id ->
       if id == new_direct_debit_different_account_holder_value() do
         nil
@@ -72,6 +73,7 @@ defmodule Sportyweb.Polymorphic.FinancialData do
       required: false,
       with: &Contact.changeset_short_contact/2
     )
+    # change id placeholder for new contact to nil. Contact is then saved in invoice_different_recipient_contact
     |> update_change(:invoice_different_recipient_contact_id, fn id ->
       if id == new_invoice_different_recipient_value() do
         nil
@@ -80,8 +82,8 @@ defmodule Sportyweb.Polymorphic.FinancialData do
       end
     end)
     |> update_change(:direct_debit_iban, &String.trim/1)
-    |> update_change(:invoice_additional_information, &String.trim/1)
     |> validate_iban()
+    |> update_change(:invoice_additional_information, &String.trim/1)
     |> validate_length(:invoice_additional_information, max: 250)
     |> validate_inclusion(
       :type,
@@ -126,6 +128,7 @@ defmodule Sportyweb.Polymorphic.FinancialData do
         ])
 
       "invoice" ->
+        # type information is sufficient. Invoice_different_recipient is optional.
         changeset
 
       _ ->

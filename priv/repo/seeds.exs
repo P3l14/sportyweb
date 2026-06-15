@@ -93,16 +93,28 @@ defmodule Sportyweb.SeedHelper do
   end
 
   def get_random_postal_address do
+    country =
+      PostalAddress.get_valid_countries()
+      |> Enum.map(fn country -> country[:value] end)
+      |> Enum.random()
+
+    zipcode = Faker.Address.zip()
+
+    zipcode =
+      case country do
+        "DEU" -> zipcode
+        "AUT" -> zipcode |> String.slice(0, 4)
+        "CHE" -> zipcode |> String.slice(0, 4)
+        _ -> zipcode
+      end
+
     %PostalAddress{
       street: Faker.Address.street_name(),
       street_number: Faker.Address.building_number(),
       street_additional_information: "",
-      zipcode: Faker.Address.zip(),
+      zipcode: zipcode,
       city: Faker.Address.city(),
-      country:
-        PostalAddress.get_valid_countries()
-        |> Enum.map(fn country -> country[:value] end)
-        |> Enum.random()
+      country: country
     }
   end
 

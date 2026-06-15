@@ -5,7 +5,7 @@ defmodule Sportyweb.Polymorphic.Email do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "emails" do
-    field :type, :string, default: "other"
+    field :type, :string, default: "private"
     field :address, :string, default: ""
     field :is_main, :boolean, default: false
 
@@ -41,8 +41,8 @@ defmodule Sportyweb.Polymorphic.Email do
     )
     |> update_change(:address, &String.trim/1)
     |> update_change(:address, &String.downcase/1)
-    # Empty or contains "@"
-    |> validate_format(:address, ~r/^$|@/)
+    # generouse pattern which requires that a @ and at least one '.' character afterwards is included in the string.
+    |> validate_format(:address, ~r/^[^@]+@[^.]+\..+$/)
     |> validate_length(:address, max: 250)
   end
 end

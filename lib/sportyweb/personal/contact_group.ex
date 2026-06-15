@@ -34,7 +34,13 @@ defmodule Sportyweb.Personal.ContactGroup do
   @doc false
   def changeset(contact_group, attrs) do
     contact_group
-    |> cast(attrs, [:club_id, :name, :type])
+    |> cast(attrs, [:club_id, :name, :type], empty_values: ["", nil])
     |> validate_required([:club_id, :name, :type])
+    |> validate_inclusion(
+      :type,
+      get_valid_types() |> Enum.map(fn type -> type[:value] end)
+    )
+    |> update_change(:name, &String.trim/1)
+    |> validate_length(:name, max: 100)
   end
 end

@@ -121,12 +121,14 @@ defmodule Sportyweb.Personal.ContactRole do
   def changeset(contact_role, attrs) do
     contact_role
     |> cast(attrs, [:valid_from, :valid_until, :name, :contact_id, :custom_name])
-    |> validate_required([:valid_from, :name])
+    |> validate_required([:valid_from, :name], empty_values: ["", nil])
     |> validate_inclusion(
       :name,
       get_valid_names() |> Enum.map(fn name -> name[:value] end)
     )
     |> validate_custom_name()
+    |> update_change(:custom_name, &String.trim/1)
+    |> validate_length(:custom_name, max: 100)
     |> validate_dates_order(
       :valid_from,
       :valid_until,

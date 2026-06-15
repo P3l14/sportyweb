@@ -1,6 +1,7 @@
 defmodule Sportyweb.Personal.Contact do
   use Ecto.Schema
   import Ecto.Changeset
+  import SportywebWeb.CommonValidations
 
   alias Sportyweb.Legal.Contract
   alias Sportyweb.Organization.Club
@@ -245,6 +246,7 @@ defmodule Sportyweb.Personal.Contact do
       :person_gender,
       get_valid_genders() |> Enum.map(fn gender -> gender[:value] end)
     )
+    |> validate_date_not_in_future(:person_birthday)
     |> validate_required_type_condition(validate_required_type_condition)
     |> set_name()
   end

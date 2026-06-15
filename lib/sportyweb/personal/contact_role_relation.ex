@@ -66,7 +66,7 @@ defmodule Sportyweb.Personal.ContactRoleRelation do
     )
   end
 
-  def validate_at_least_one_relation_present(changeset) do
+  defp validate_at_least_one_relation_present(changeset) do
     if [
          get_field(changeset, :contact_id),
          get_field(changeset, :department_id),
