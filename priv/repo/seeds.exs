@@ -199,6 +199,62 @@ defmodule Sportyweb.SeedHelper do
       dosb_valid_until: Date.add(dosb_first_issuance, 4 * 365)
     })
   end
+
+  def create_random_contracts_for_contact(club, contact) do
+    # Select a random fee that works with this combination of club & contact
+    fee = Finance.list_contract_fee_options(club, contact.id) |> Enum.random()
+
+    Repo.insert!(%Contract{
+      club_id: club.id,
+      contact_id: contact.id,
+      fee_id: fee.id,
+      signing_date: ~D[2021-11-28],
+      start_date: ~D[2022-01-01],
+      termination_date: nil,
+      archive_date: nil,
+      clubs: [club]
+    })
+
+    if Enum.any?(club.departments) do
+      department = club.departments |> Enum.random()
+
+      if :rand.uniform() < 0.3 do
+        # Select a random fee that works with this combination of club & department
+        fee = Finance.list_contract_fee_options(department, contact.id) |> Enum.random()
+
+        Repo.insert!(%Contract{
+          club_id: club.id,
+          contact_id: contact.id,
+          fee_id: fee.id,
+          signing_date: ~D[2021-11-28],
+          start_date: ~D[2022-01-01],
+          termination_date: nil,
+          archive_date: nil,
+          departments: [department]
+        })
+      end
+
+      if Enum.any?(department.groups) do
+        group = department.groups |> Enum.random()
+
+        if :rand.uniform() < 0.3 do
+          # Select a random fee that works with this combination of club & group
+          fee = Finance.list_contract_fee_options(group, contact.id) |> Enum.random()
+
+          Repo.insert!(%Contract{
+            club_id: club.id,
+            contact_id: contact.id,
+            fee_id: fee.id,
+            signing_date: ~D[2021-11-28],
+            start_date: ~D[2022-01-01],
+            termination_date: nil,
+            archive_date: nil,
+            groups: [group]
+          })
+        end
+      end
+    end
+  end
 end
 
 ###################################
@@ -1215,6 +1271,116 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
             valid_from: ~D[2022-04-07]
           })
         end
+      end
+    end
+    # Contact groups with contacts and contracts
+    for _i <- 0..Enum.random(3..7) do
+      family_name = Faker.Person.last_name()
+
+      direct_debit = %{
+        type: "direct_debit",
+        direct_debit_iban: "DE06495352657836424132",
+        # Must be set explicit to nil because otherwise it has the value Ecto not loaded and the insert fails
+        direct_debit_different_account_holder_contact: nil,
+        invoice_different_recipient_contact: nil
+      }
+
+      {:ok, %ContactGroup{} = contact_group} =
+        Personal.create_contact_group(%{
+          club_id: club.id,
+          type: "family",
+          name: "Familie #{family_name}"
+        })
+
+      {:ok, %Contact{} = parent} =
+        Personal.create_contact(%{
+          club_id: club.id,
+          type: "person",
+          person_last_name: family_name,
+          person_first_name: Faker.Person.first_name(),
+          person_middle_names:
+            if(:rand.uniform() < 0.80, do: "", else: Faker.Person.first_name()),
+          person_gender:
+            Contact.get_valid_genders()
+            |> Enum.map(fn gender -> gender[:value] end)
+            |> Enum.random(),
+          person_birthday: Faker.Date.date_of_birth(25..50),
+          postal_addresses: [Map.from_struct(Sportyweb.SeedHelper.get_random_postal_address())],
+          emails: [Map.from_struct(Sportyweb.SeedHelper.get_random_email())],
+          phones: [Map.from_struct(Sportyweb.SeedHelper.get_random_phone())],
+          financial_data: [direct_debit]
+        })
+
+      Sportyweb.SeedHelper.create_random_contracts_for_contact(club, parent)
+
+      Personal.create_contact_group_contact(%{
+        contact_group_id: contact_group.id,
+        contact_id: parent.id
+      })
+
+      # create random children
+      for _i <- 0..Enum.random(1..5) do
+        {:ok, %Contact{} = child} =
+          Personal.create_contact(%{
+            club_id: club.id,
+            type: "person",
+            person_last_name: family_name,
+            person_first_name: Faker.Person.first_name(),
+            person_middle_names:
+              if(:rand.uniform() < 0.80, do: "", else: Faker.Person.first_name()),
+            person_gender:
+              Contact.get_valid_genders()
+              |> Enum.map(fn gender -> gender[:value] end)
+              |> Enum.random(),
+            person_birthday: Faker.Date.date_of_birth(6..17),
+            postal_addresses: [Map.from_struct(Sportyweb.SeedHelper.get_random_postal_address())],
+            emails: [Map.from_struct(Sportyweb.SeedHelper.get_random_email())],
+            phones: [Map.from_struct(Sportyweb.SeedHelper.get_random_phone())],
+            financial_data: [direct_debit]
+          })
+
+        Sportyweb.SeedHelper.create_random_contracts_for_contact(club, child)
+
+        Personal.create_contact_group_contact(%{
+          contact_group_id: contact_group.id,
+          contact_id: child.id
+        })
+
+        Personal.create_legal_guardian_relation(parent.id, child.id, Date.utc_today())
+
+        Personal.create_role_when_not_persent_or_inactive(
+          parent.id,
+          "debit account holder",
+          Date.utc_today()
+        )
+      end
+
+      if :rand.uniform() < 0.5 do
+        {:ok, %Contact{} = other_parent} =
+          Personal.create_contact(%{
+            club_id: club.id,
+            type: "person",
+            person_last_name: family_name,
+            person_first_name: Faker.Person.first_name(),
+            person_middle_names:
+              if(:rand.uniform() < 0.80, do: "", else: Faker.Person.first_name()),
+            person_gender:
+              Contact.get_valid_genders()
+              |> Enum.map(fn gender -> gender[:value] end)
+              |> Enum.random(),
+            person_birthday: Faker.Date.date_of_birth(25..50),
+            postal_addresses: [Map.from_struct(Sportyweb.SeedHelper.get_random_postal_address())],
+            emails: [Map.from_struct(Sportyweb.SeedHelper.get_random_email())],
+            phones: [Map.from_struct(Sportyweb.SeedHelper.get_random_phone())],
+            financial_data: [Map.from_struct(Sportyweb.SeedHelper.get_random_financial_data())]
+          })
+
+        Sportyweb.SeedHelper.create_random_contracts_for_contact(club, other_parent)
+
+        Personal.create_contact_group_contact(%{
+          contact_group_id: contact_group.id,
+          contact_id: other_parent.id
+        })
       end
     end
 
