@@ -25,6 +25,7 @@ defmodule SportywebWeb.ContactLive.Show do
         :phones,
         :postal_addresses,
         :qualifications,
+        :contact_groups,
         financial_data: [
           :direct_debit_different_account_holder_contact,
           :invoice_different_recipient_contact

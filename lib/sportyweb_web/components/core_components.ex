@@ -921,6 +921,14 @@ defmodule SportywebWeb.CoreComponents do
     """
   end
 
+  def link_to(%{target: %Sportyweb.Personal.ContactGroup{}} = assigns) do
+    ~H"""
+    <.link navigate={~p"/contact_groups/#{@target}"} class="text-indigo-600 hover:underline">
+      {SportywebWeb.CommonHelper.format_string_field(@target.name)}{@additional_text}
+    </.link>
+    """
+  end
+
   def link_to(%{target: %Sportyweb.Organization.Department{}} = assigns) do
     ~H"""
     <.link navigate={~p"/departments/#{@target}"} class="text-indigo-600 hover:underline">
