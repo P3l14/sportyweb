@@ -418,7 +418,8 @@ defmodule SportywebWeb.ContactLive.FormComponent do
         socket,
         assign_form_function,
         path_to_contact \\ ["contact"],
-        form_parameter_provider \\ fn parameter -> parameter["contact"] end
+        form_parameter_provider \\ fn parameter -> parameter["contact"] end,
+        path_to_contact_for_put \\ []
       )
       when is_function(assign_form_function) and
              is_list(path_to_contact) and is_function(form_parameter_provider) do
@@ -436,6 +437,14 @@ defmodule SportywebWeb.ContactLive.FormComponent do
 
           target_path = parameter["copy_contact_address_to"] |> String.split("/")
           form_parameter = form_parameter_provider.(parameter)
+
+          # this check supports the use of this hook for the membership contract form. otherwise the button won't work for new personen on finincal data
+          target_path =
+            if get_in(form_parameter, Enum.take(target_path, length(target_path) - 1)) do
+              target_path
+            else
+              path_to_contact_for_put ++ target_path
+            end
 
           form_parameter =
             put_in(

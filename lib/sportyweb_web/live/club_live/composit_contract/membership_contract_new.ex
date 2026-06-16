@@ -5,6 +5,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
   alias Sportyweb.Legal
   alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
+  alias Sportyweb.Personal.ContactGroup
   alias Sportyweb.Organization
   alias Sportyweb.Legal.Contract
   alias Sportyweb.Polymorphic.Email
@@ -67,6 +68,9 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
               </SportywebWeb.ContactLive.FormComponent.contact_grid>
 
               <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
+                <.header level="2" class="col-span-12 md:col-span-12">
+                  Angaben zum gesetzlichen Vertreter
+                </.header>
                 <div class="col-span-12 md:col-span-12">
                   <.input
                     field={@form[:legal_guardian_contact_id]}
@@ -75,6 +79,9 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                     options={@contact_options_for_legal_guardian}
                     prompt="Bitte auswählen"
                   />
+                  <.input_description>
+                    Bei minderjährigen Personen muss ein gesetztlicher Vertreter erfasst werden.
+                  </.input_description>
                 </div>
               </.input_grid>
               <.inputs_for
@@ -111,15 +118,17 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                   allow_multiple={true}
                 >
                   <:additional_address_actions>
-                    <.button
-                      type="button"
-                      name="copy_contact_address_to"
-                      value="legal_guardian_contact/postal_addresses"
-                      class="col-span-12 md:col-span-12"
-                      phx-click={JS.dispatch("change")}
-                    >
-                      Adresse aus Kontakt übernehmen
-                    </.button>
+                    <.input_grid>
+                      <.button
+                        type="button"
+                        name="copy_contact_address_to"
+                        value="legal_guardian_contact/postal_addresses"
+                        class="col-span-12 md:col-span-12"
+                        phx-click={JS.dispatch("change")}
+                      >
+                        Adresse aus Kontakt übernehmen
+                      </.button>
+                    </.input_grid>
                   </:additional_address_actions>
                 </SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.render>
               </.inputs_for>
@@ -127,13 +136,26 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
 
             <.input_grid>
               <.header level="2" class="col-span-12 md:col-span-12">
-                Angabe weiterer Personen bei Familienmitgliedschaften
+                Angaben zu Familienmitgliedschaften
               </.header>
+              <div class="col-span-12 md:col-span-12">
+                <.input
+                  field={@form[:contact_group_id]}
+                  type="select"
+                  label="Familien Kontaktgruppe"
+                  options={@contact_group_options_for_contact}
+                  prompt="Keine Familienkontaktgruppe"
+                />
+              </div>
             </.input_grid>
+            <SportywebWeb.ContactGroupLive.FormComponent.contact_group_name_and_type
+              :if={@form[:contact_group_id].value == "new"}
+              form={@form}
+            />
 
             <.input_grid>
               <.header level="2" class="col-span-12 md:col-span-12">
-                Abteilungen
+                Vereinsmitgliedschaftsvertrag
               </.header>
 
               <div class="col-span-12 md:col-span-6">
@@ -154,6 +176,13 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                 />
               </div>
 
+              <.header
+                :if={@form[:department_selections].value != []}
+                level="2"
+                class="col-span-12 md:col-span-12"
+              >
+                Abteilungen
+              </.header>
               <.inputs_for :let={department_selection} field={@form[:department_selections]}>
                 <div class="col-span-12 md:col-span-6 mt-10">
                   <.input
@@ -241,9 +270,14 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
       notes: [%Note{}]
     }
 
+    contact_group = %ContactGroup{
+      club_id: club.id
+    }
+
     membership_contract_form = %MembershipContractForm{
       signing_date: Date.utc_today(),
       contact: contact,
+      contact_group: contact_group,
       department_selections:
         for(
           department <- club.departments,
@@ -287,12 +321,20 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
       | contact_options_for_contract
     ]
 
+    contact_group_options_for_contact = [
+      [key: "Neue Kontaktgruppe anlegen", value: "new"]
+      | club_id
+        |> Personal.list_contact_groups()
+        |> Enum.map(fn contact_group -> [key: contact_group.name, value: contact_group.id] end)
+    ]
+
     {:noreply,
      socket
      |> assign(:title, "Aufnahmeantragserfassung")
      |> assign(:contact, contact)
      |> assign(:membership_contract_form, membership_contract_form)
      |> assign(:contact_options_for_legal_guardian, contact_options_for_legal_guardian)
+     |> assign(:contact_group_options_for_contact, contact_group_options_for_contact)
      |> assign(:contact_options_for_contract, contact_options_for_contract)
      |> assign_new(:form, fn ->
        to_form(MembershipContractForm.changeset(membership_contract_form))
@@ -317,7 +359,8 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
      |> SportywebWeb.ContactLive.FormComponent.setup_contact_copy_addresses_event_hook(
        &assign_form/2,
        ["membership_contract_form", "contact"],
-       fn parameter -> parameter["membership_contract_form"] end
+       fn parameter -> parameter["membership_contract_form"] end,
+       ["contact"]
      )}
   end
 
@@ -438,6 +481,28 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
           membership_contract.contact_id
         end
 
+      case contact_group_id = membership_contract.contact_group_id do
+        "new" ->
+          contact_group = membership_contract.contact_group
+
+          {:ok, new_contact_group} =
+            Personal.create_contact_group(Map.from_struct(contact_group))
+
+          Personal.create_contact_group_contact(%{
+            contact_id: contact_id,
+            contact_group_id: new_contact_group.id
+          })
+
+        nil ->
+          nil
+
+        _ ->
+          Personal.create_contact_group_contact(%{
+            contact_id: contact_id,
+            contact_group_id: contact_group_id
+          })
+      end
+
       case legal_guardian_id = membership_contract.legal_guardian_contact_id do
         "new" ->
           legal_guardian_contact = membership_contract.legal_guardian_contact
@@ -520,22 +585,6 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
        socket
        |> assign(form: to_form(changeset, action: :insert))}
     end
-
-    # contact_params =
-    #   Enum.into(contact_params, %{
-    #     "club_id" => socket.assigns.contact.club.id
-    #   })
-
-    # case dbg(Personal.create_membership_contact(contact_params)) do
-    #   {:ok, _contact} ->
-    #     {:noreply,
-    #      socket
-    #      |> put_flash(:info, "Kontakt erfolgreich erstellt")
-    #      |> push_navigate(to: ~p"/clubs/#{socket.assigns.contact.club}/contacts")}
-
-    #   {:error, %Ecto.Changeset{} = changeset} ->
-    #     {:noreply, assign(socket, form: to_form(changeset))}
-    # end
   end
 
   defp assign_fees_for_selection(%{assigns: %{club: club}} = socket, %{

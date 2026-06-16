@@ -24,21 +24,7 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
         >
           <.error :if={@error}>{@error}</.error>
           <.input_grids>
-            <.inputs_for :let={contact_group} field={@form[:contact_group]}>
-              <.input_grid>
-                <div class="col-span-12 md:col-span-12">
-                  <.input field={contact_group[:name]} type="text" label="Gruppenname" />
-                </div>
-                <div class="col-span-12 md:col-span-12">
-                  <.input
-                    field={contact_group[:type]}
-                    type="select"
-                    label="Art"
-                    options={ContactGroup.get_valid_types()}
-                  />
-                </div>
-              </.input_grid>
-            </.inputs_for>
+            <.contact_group_name_and_type form={@form} />
             <.header level="2" class="col-span-12 md:col-span-12">
               Mitglieder der Kontaktgruppe
               <.errors_for_lists list_field={@form[:contact_group_contacts]} />
@@ -95,6 +81,28 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
         </.simple_form>
       </.card>
     </div>
+    """
+  end
+
+  attr :form, :map, required: true
+
+  def contact_group_name_and_type(assigns) do
+    ~H"""
+    <.inputs_for :let={contact_group} field={@form[:contact_group]}>
+      <.input_grid>
+        <div class="col-span-12 md:col-span-12">
+          <.input field={contact_group[:name]} type="text" label="Gruppenname" />
+        </div>
+        <div class="col-span-12 md:col-span-12">
+          <.input
+            field={contact_group[:type]}
+            type="select"
+            label="Art"
+            options={ContactGroup.get_valid_types()}
+          />
+        </div>
+      </.input_grid>
+    </.inputs_for>
     """
   end
 
