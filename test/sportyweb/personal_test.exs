@@ -237,9 +237,13 @@ defmodule Sportyweb.PersonalTest do
       assert {:error, %Ecto.Changeset{}} = Personal.create_contact_group_contact(@invalid_attrs)
     end
 
-    test "delete_contact_group_contacts/1 deletes the contact_group" do
+    test "delete_contact_group_contact/1 deletes the contact_group" do
       contact_group_contact = contact_group_contact_fixture()
-      assert {1, nil} = Personal.delete_contact_group_contacts([contact_group_contact.contact_id])
+      assert [] != Personal.get_contact_group_contacts!(contact_group_contact.contact_group_id)
+
+      assert {:ok, %ContactGroupContact{}} =
+               Personal.delete_contact_group_contact(contact_group_contact)
+
       assert [] = Personal.get_contact_group_contacts!(contact_group_contact.contact_group_id)
     end
 
@@ -290,6 +294,89 @@ defmodule Sportyweb.PersonalTest do
       })
 
       assert 0 = length(Personal.list_contacts_for_contact_group_selection(club.id))
+    end
+
+    test "create_contact_group_with_contact_group_contacts/2 success" do
+      club = club_fixture()
+      c1 = contact_fixture(club_id: club.id)
+      c2 = contact_fixture(club_id: club.id)
+
+      assert Personal.list_contact_groups(club.id) == []
+
+      result =
+        Personal.create_contact_group_with_contact_group_contacts(
+          %{
+            club_id: club.id,
+            type: "family",
+            name: "Smith"
+          },
+          %{
+            "0" => %{
+              "contact_id" => c1.id
+            },
+            "1" => %{
+              "contact_id" => c2.id
+            }
+          }
+        )
+
+      assert {:ok, _} = result
+      assert Personal.list_contact_groups(club.id) != []
+    end
+
+    test "create_contact_group_with_contact_group_contacts/2 failure due to invalid type" do
+      club = club_fixture()
+      c1 = contact_fixture(club_id: club.id)
+      c2 = contact_fixture(club_id: club.id)
+
+      assert Personal.list_contact_groups(club.id) == []
+
+      result =
+        Personal.create_contact_group_with_contact_group_contacts(
+          %{
+            club_id: club.id,
+            type: "ungültiger typ",
+            name: "Smith"
+          },
+          %{
+            "0" => %{
+              "contact_id" => c1.id
+            },
+            "1" => %{
+              "contact_id" => c2.id
+            }
+          }
+        )
+
+      assert {:error, :contact_group, _, _} = result
+      assert Personal.list_contact_groups(club.id) == []
+    end
+
+    test "create_contact_group_with_contact_group_contacts/2 failure due double contact id insert" do
+      club = club_fixture()
+      c1 = contact_fixture(club_id: club.id)
+
+      assert Personal.list_contact_groups(club.id) == []
+
+      result =
+        Personal.create_contact_group_with_contact_group_contacts(
+          %{
+            club_id: club.id,
+            type: "family",
+            name: "Smith"
+          },
+          %{
+            "0" => %{
+              "contact_id" => c1.id
+            },
+            "1" => %{
+              "contact_id" => c1.id
+            }
+          }
+        )
+
+      assert {:error, {:contact_group_contact, "1"}, _, _} = result
+      assert Personal.list_contact_groups(club.id) == []
     end
   end
 

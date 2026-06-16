@@ -4,6 +4,7 @@ defmodule Sportyweb.Personal do
   """
 
   import Ecto.Query, warn: false
+  alias Ecto.Multi
   alias Sportyweb.Personal.ContactRoleRelation
   alias Sportyweb.Personal.ContactIdentificationNumber
   alias Sportyweb.Repo
@@ -532,14 +533,20 @@ defmodule Sportyweb.Personal do
     Repo.delete(contact_group)
   end
 
-  def delete_contact_group_contacts(contact_Ids) do
-    query =
-      from(
-        gc in ContactGroupContact,
-        where: gc.contact_id in ^contact_Ids
-      )
+  @doc """
+  Deletes a contact_group_contact.
 
-    Repo.delete_all(query)
+  ## Examples
+
+      iex> delete_contact_group_contact(contact_group_contact)
+      {:ok, %ContactGroupContact{}}
+
+      iex> delete_contact_group_contact(contact_group_contact)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_contact_group_contact(%ContactGroupContact{} = contact_group_contact) do
+    Repo.delete(contact_group_contact)
   end
 
   @doc """
@@ -553,6 +560,109 @@ defmodule Sportyweb.Personal do
   """
   def change_contact_group(%ContactGroup{} = contact_group, attrs \\ %{}) do
     ContactGroup.changeset(contact_group, attrs)
+  end
+
+  @doc """
+  Creates a contact group and the contact group contacts for the group with the supplied form data.
+  Contact group and contact group contacts are inserted in a Ecto.Multi transaction.
+
+
+  """
+  def create_contact_group_with_contact_group_contacts(
+        contact_group_params,
+        contact_group_contact_params
+      ) do
+    multi =
+      Multi.new()
+      |> Multi.run(:contact_group, fn _, _ -> create_contact_group(contact_group_params) end)
+
+    contact_group_contact_params
+    |> Enum.reduce(multi, fn {key, contact_group_contact}, current_multi ->
+      Multi.run(current_multi, {:contact_group_contact, key}, fn _repo,
+                                                                 %{contact_group: contact_group} ->
+        contact_group_contact
+        |> Enum.into(%{
+          "contact_group_id" => contact_group.id
+        })
+        |> create_contact_group_contact()
+      end)
+    end)
+    |> Repo.transaction()
+  end
+
+  @doc """
+  Updates a contact group and the contact group contacts for the group with the supplied form data.
+  Contact group and contact group contacts are updated in a Ecto.Multi transaction.
+  New contact group contacts are added and contact group contacts that are not present anymore are deleted.
+
+
+  """
+  def update_contact_group_with_contact_group_contacts(
+        contact_group_form,
+        %{
+          "contact_group" => contact_group_params,
+          "contact_group_contacts" => contact_group_contact_params
+        }
+      ) do
+    multi =
+      Multi.new()
+      |> Multi.run(:contact_group, fn _, _ ->
+        update_contact_group(contact_group_form.contact_group, contact_group_params)
+      end)
+
+    actual_contact_group_contacts =
+      contact_group_contact_params
+      |> Map.values()
+      |> Enum.map(fn contact_group_contact ->
+        Map.get(contact_group_contact, "contact_id")
+      end)
+
+    previous_contact_group_contacts =
+      contact_group_form.contact_group_contacts
+      |> Enum.map(fn contact_group_contact -> contact_group_contact.contact_id end)
+
+    not_anymore_in_contact_group =
+      previous_contact_group_contacts
+      |> Enum.filter(fn id -> id not in actual_contact_group_contacts end)
+
+    contact_group_contacts_to_delete =
+      contact_group_form.contact_group_contacts
+      |> Enum.filter(fn contact_group_contact ->
+        contact_group_contact.contact_id in not_anymore_in_contact_group
+      end)
+
+    multi =
+      contact_group_contacts_to_delete
+      |> Enum.reduce(multi, fn contact_group_contact, current_multi ->
+        Multi.run(
+          current_multi,
+          {:delete_contact_group_contact, contact_group_contact.contact_id},
+          fn _repo, _ ->
+            delete_contact_group_contact(contact_group_contact)
+          end
+        )
+      end)
+
+    added_to_contact_group =
+      actual_contact_group_contacts
+      |> Enum.filter(fn id -> id not in previous_contact_group_contacts end)
+
+    multi =
+      added_to_contact_group
+      |> Enum.map(fn id ->
+        %{"contact_id" => id, "contact_group_id" => contact_group_form.contact_group.id}
+      end)
+      |> Enum.reduce(multi, fn contact_group_contact, current_multi ->
+        Multi.run(
+          current_multi,
+          {:create_contact_group_contact, Map.get(contact_group_contact, "contact_id")},
+          fn _repo, _ ->
+            create_contact_group_contact(contact_group_contact)
+          end
+        )
+      end)
+
+    Repo.transaction(multi)
   end
 
   alias Sportyweb.Personal.ContactRole

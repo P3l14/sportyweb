@@ -5,6 +5,8 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
   alias Sportyweb.Personal.ContactGroup
   alias SportywebWeb.ContactGroupLive.ContactGroupForm
 
+  attr :error, :string, default: nil
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -20,6 +22,7 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
           phx-change="validate"
           phx-submit="save"
         >
+          <.error :if={@error}>{@error}</.error>
           <.input_grids>
             <.inputs_for :let={contact_group} field={@form[:contact_group]}>
               <.input_grid>
@@ -38,6 +41,7 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
             </.inputs_for>
             <.header level="2" class="col-span-12 md:col-span-12">
               Mitglieder der Kontaktgruppe
+              <.errors_for_lists list_field={@form[:contact_group_contacts]} />
             </.header>
             <.input_grid>
               <.inputs_for :let={contact} field={@form[:contact_group_contacts]}>
@@ -126,13 +130,6 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
     changeset =
       ContactGroupForm.changeset(socket.assigns.contact_group_form, contact_group_form_params)
 
-    # tried to exclude currently selected contacts from selection but lead to removal of the selected values
-    # current_selected_contacts = contact_group_form_params
-    # |>Map.get("contacts")
-    # |>Map.values()
-    # |>Enum.map(fn contact -> contact|>Map.get("id") end)
-    # contact_options = contact_options
-    # |>Enum.reject(fn contact -> contact.id in current_selected_contacts end)
     {:noreply,
      socket
      |> assign(form: to_form(changeset, action: :validate))
@@ -147,86 +144,80 @@ defmodule SportywebWeb.ContactGroupLive.FormComponent do
          %{assigns: %{contact_group_form: contact_group_form}} = socket,
          :edit,
          %{
-           "contact_group" => contact_group_params,
-           "contact_group_contacts" => contact_group_contact_params
-         }
+           "contact_group" => _,
+           "contact_group_contacts" => _
+         } = contact_group_form_params
        ) do
-    case Personal.update_contact_group(contact_group_form.contact_group, contact_group_params) do
-      {:ok, _contact_group} ->
-        actual_contact_group_contacts =
-          contact_group_contact_params
-          |> Map.values()
-          |> Enum.map(fn contact_group_contact ->
-            Map.get(contact_group_contact, "contact_id")
-          end)
+    changeset =
+      ContactGroupForm.changeset(socket.assigns.contact_group_form, contact_group_form_params)
 
-        previous_contact_group_contacts =
-          contact_group_form.contact_group_contacts
-          |> Enum.map(fn contact_group_contact -> contact_group_contact.contact_id end)
+    if changeset.valid? do
+      case Personal.update_contact_group_with_contact_group_contacts(
+             contact_group_form,
+             contact_group_form_params
+           ) do
+        {:ok, _} ->
+          {:noreply,
+           socket
+           |> put_flash(:info, "Kontaktgruppe erfolgreich aktualisiert")
+           |> push_navigate(to: socket.assigns.navigate)}
 
-        not_anymore_in_contact_group =
-          previous_contact_group_contacts
-          |> Enum.filter(fn id -> id not in actual_contact_group_contacts end)
-
-        Personal.delete_contact_group_contacts(not_anymore_in_contact_group)
-
-        added_to_contact_group =
-          actual_contact_group_contacts
-          |> Enum.filter(fn id -> id not in previous_contact_group_contacts end)
-
-        # TODO Fehler auswerten
-        added_to_contact_group
-        |> Enum.map(fn id ->
-          %{"contact_id" => id, "contact_group_id" => contact_group_form.contact_group.id}
-        end)
-        |> Enum.each(fn contact_group_contact ->
-          contact_group_contact |> Personal.create_contact_group_contact()
-        end)
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Kontaktgruppe erfolgreich aktualisiert")
-         |> push_navigate(to: socket.assigns.navigate)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:error, _, %Ecto.Changeset{}, _} ->
+          # Errors can not be easily mappend backword. The validation takes places via the changeset
+          # This message ist the last resort if everything fails, so the user is informed about the crash.
+          {:noreply,
+           socket
+           |> assign(:error, "Beim Aktualisieren der Kontaktgruppe ist ein Fehler aufgetreten!")}
+      end
+    else
+      {:noreply,
+       socket
+       |> assign(form: to_form(changeset, action: :validate))}
     end
   end
 
-  defp save_contact_group(%{assigns: %{contact_group_form: contact_group_form}} = socket, :new, %{
-         "contact_group" => contact_group_params,
-         "contact_group_contacts" => contact_group_contact_params
-       }) do
-    contact_group_params =
-      Enum.into(contact_group_params, %{
-        "club_id" => contact_group_form.contact_group.club_id
-      })
+  defp save_contact_group(
+         %{assigns: %{contact_group_form: contact_group_form}} = socket,
+         :new,
+         contact_group_form_params
+       ) do
+    contact_group_form_params =
+      contact_group_form_params
+      |> put_in(
+        ["contact_group", "club_id"],
+        contact_group_form.contact_group.club_id
+      )
 
-    case Personal.create_contact_group(contact_group_params) do
-      {:ok, contact_group} ->
-        # TODO Fehlerprüfung
-        contact_group_contact_params
-        |> Map.values()
-        |> Enum.map(fn contact_group_contact ->
-          Enum.into(contact_group_contact, %{
-            "contact_group_id" => contact_group.id
-          })
-        end)
-        |> Enum.each(fn contact -> contact |> Personal.create_contact_group_contact() end)
+    changeset =
+      ContactGroupForm.changeset(socket.assigns.contact_group_form, contact_group_form_params)
 
-        # TODO: Fehlerbehandlung. Idee Meldungen konkatinieren und auf Formular darstellen
-        {:noreply,
-         socket
-         |> put_flash(:info, "Kontaktgruppe erfolgreich erstellt")
-         |> push_navigate(to: socket.assigns.navigate)}
+    %{
+      "contact_group" => contact_group_params,
+      "contact_group_contacts" => contact_group_contact_params
+    } = contact_group_form_params
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply,
-         assign(
+    if changeset.valid? do
+      case Personal.create_contact_group_with_contact_group_contacts(
+             contact_group_params,
+             contact_group_contact_params
+           ) do
+        {:ok, _} ->
+          {:noreply,
            socket
-           |> put_flash(:error, "Beim Anlegen der Kontaktgruppe ist ein Fehler aufgetreten!"),
-           form: to_form(changeset)
-         )}
+           |> put_flash(:info, "Kontaktgruppe erfolgreich erstellt")
+           |> push_navigate(to: socket.assigns.navigate)}
+
+        {:error, _, %Ecto.Changeset{}, _} ->
+          # Errors can not be easily mappend backword. The validation takes places via the changeset
+          # This message ist the last resort if everything fails, so the user is informed about the crash.
+          {:noreply,
+           socket
+           |> assign(:error, "Beim Anlegen der Kontaktgruppe ist ein Fehler aufgetreten!")}
+      end
+    else
+      {:noreply,
+       socket
+       |> assign(form: to_form(changeset, action: :validate))}
     end
   end
 end
