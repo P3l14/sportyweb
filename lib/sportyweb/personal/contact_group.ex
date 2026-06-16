@@ -19,7 +19,7 @@ defmodule Sportyweb.Personal.ContactGroup do
 
   def get_valid_types do
     [
-      [key: "Famile", value: "family"]
+      [key: "Familie", value: "family"]
     ]
   end
 
