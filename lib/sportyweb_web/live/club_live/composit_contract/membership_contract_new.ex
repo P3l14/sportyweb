@@ -69,7 +69,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
 
               <.input_grid :if={Contact.underage_person?(contact[:person_birthday].value)}>
                 <.header level="2" class="col-span-12 md:col-span-12">
-                  Angaben zum gesetzlichen Vertreter
+                  Angaben zum Erziehungsberechtigten
                 </.header>
                 <div class="col-span-12 md:col-span-12">
                   <.input
@@ -80,7 +80,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
                     prompt="Bitte auswählen"
                   />
                   <.input_description>
-                    Bei minderjährigen Personen muss ein gesetztlicher Vertreter erfasst werden.
+                    Bei minderjährigen Personen muss ein Erziehungsberechtigter erfasst werden.
                   </.input_description>
                 </div>
               </.input_grid>
@@ -94,7 +94,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
               >
                 <div class="col-span-12 md:col-span-12">
                   <.header level="3" class="col-span-12 md:col-span-12">
-                    Neuer gesetzlicher Vertreter
+                    Neuer Erziehungsberechtigter
                   </.header>
                   <SportywebWeb.ContactLive.FormComponent.contact_name_data_grid
                     form={contact}
