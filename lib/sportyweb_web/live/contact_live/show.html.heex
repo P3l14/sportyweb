@@ -70,6 +70,30 @@
         @contact.contact_roles
       } />
     </:item>
+    <:item :if={@contact.contact_role_relations != []} title="Rollenbeziehung zu">
+      <ul>
+        <li :for={contact_role_relation <- @contact.contact_role_relations}>
+          <.link_to
+            target={contact_role_relation.contact_role.contact}
+            additional_text={" - #{get_key_for_value(Sportyweb.Personal.ContactRole.get_valid_names(), contact_role_relation.contact_role.name)}"}
+          />
+        </li>
+      </ul>
+    </:item>
+    <:item :if={@debit_users != []} title="Bankkontoinhaber bei">
+      <ul>
+        <li :for={debit_user <- @debit_users}>
+          <.link_to target={debit_user} />
+        </li>
+      </ul>
+    </:item>
+    <:item :if={@invoice_users != []} title="Rechnungsempfänger bei">
+      <ul>
+        <li :for={invoice_user <- @invoice_users}>
+          <.link_to target={invoice_user} />
+        </li>
+      </ul>
+    </:item>
     <:item :if={Contact.has_active_membership_contract?(@contact)} title="Aktives Mitglied">
       <.icon name="hero-check-badge" class="inline-block w-[20px] text-green-800" />
     </:item>

@@ -26,18 +26,35 @@ defmodule SportywebWeb.ContactLive.Show do
         :postal_addresses,
         :qualifications,
         :contact_groups,
+        :debit_holder,
+        :invoice_contact,
         financial_data: [
           :direct_debit_different_account_holder_contact,
           :invoice_different_recipient_contact
         ],
         contact_roles: [contact_role_relations: [:contact, :department, :group]],
-        contracts: [:clubs, :departments, :groups, fee: :internal_events]
+        contracts: [:clubs, :departments, :groups, fee: :internal_events],
+        contact_role_relations: [contact_role: :contact]
       ])
+
+    debit_users =
+      contact.debit_holder
+      |> Enum.map(fn financial_data ->
+        Personal.get_contact_for_financial_data(financial_data)
+      end)
+
+    invoice_users =
+      contact.invoice_contact
+      |> Enum.map(fn financial_data ->
+        Personal.get_contact_for_financial_data(financial_data)
+      end)
 
     {:noreply,
      socket
      |> assign(:page_title, "Kontakt: #{contact.name}")
      |> assign(:contact, contact)
+     |> assign(:debit_users, debit_users)
+     |> assign(:invoice_users, invoice_users)
      |> assign(:club, contact.club)
      |> stream(:contracts, contact.contracts)
      |> stream(:qualifications, contact.qualifications)}
