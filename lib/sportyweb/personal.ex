@@ -13,6 +13,8 @@ defmodule Sportyweb.Personal do
   alias Sportyweb.Personal.Contact
   alias Sportyweb.Personal.ContactGroup
   alias Sportyweb.Personal.ContactGroupContact
+  alias Sportyweb.Polymorphic.FinancialData
+  alias Sportyweb.Personal.ContactFinancialData
 
   @doc """
   Returns the list of contacts.
@@ -139,6 +141,17 @@ defmodule Sportyweb.Personal do
       )
 
     Repo.all(query)
+  end
+
+  @doc """
+  Get the contact to a financial_data struct, where the has been saved for usage.
+
+  """
+  def get_contact_for_financial_data(%FinancialData{id: financial_data_id}) do
+    contact_financial_data =
+      Repo.get_by!(ContactFinancialData, financial_data_id: financial_data_id)
+
+    Repo.preload(contact_financial_data, :contact).contact
   end
 
   def find_person_contacts(club_id, person_last_name, person_first_name, person_birthday) do

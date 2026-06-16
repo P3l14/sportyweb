@@ -249,6 +249,7 @@ defmodule Sportyweb.Personal.Contact do
     |> validate_date_not_in_future(:person_birthday)
     |> validate_required_type_condition(validate_required_type_condition)
     |> set_name()
+    |> ensure_identification_number_is_set()
   end
 
   def contact_for_membership_changeset(contact, attrs) do
@@ -263,6 +264,22 @@ defmodule Sportyweb.Personal.Contact do
       requires_financial_data: false,
       validate_required_type_condition: :short
     )
+  end
+
+  # generates contact_identification_number for nested contacts like debit_account_holder and different_invoice_contact
+  defp ensure_identification_number_is_set(changeset) do
+    prepare_changes(changeset, fn change ->
+      if get_field(change, :identification_number) do
+        change
+      else
+        club_id = get_field(change, :club_id)
+
+        contact_identification_number =
+          Sportyweb.Personal.ContactIdentificationNumber.generate_new(club_id)
+
+        put_change(change, :identification_number, contact_identification_number)
+      end
+    end)
   end
 
   defp validate_required_type_condition(changeset, type_option)

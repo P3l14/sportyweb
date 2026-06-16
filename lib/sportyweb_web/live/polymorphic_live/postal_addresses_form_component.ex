@@ -17,12 +17,12 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
       Adressen <.errors_for_lists list_field={@form[:postal_addresses]} />
     </.header>
     {render_slot(@additional_address_actions)}
-    <datalist :if={@zipcode_proposals} id="zipcode_proposals">
+    <datalist :if={@zipcode_proposals} id={"zipcode_proposals_#{@form.id}"}>
       <option :for={zipcode_proposal <- @zipcode_proposals} value={zipcode_proposal |> hd}>
         {Enum.join(zipcode_proposal, " ")}
       </option>
     </datalist>
-    <datalist :if={@street_proposals} id="street_proposals">
+    <datalist :if={@street_proposals} id={"street_proposals_#{@form.id}"}>
       <option :for={street_proposal <- @street_proposals} value={street_proposal}>
         {street_proposal}
       </option>
@@ -68,7 +68,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
               field={postal_address[:zipcode]}
               type="text"
               label="Postleitzahl"
-              list="zipcode_proposals"
+              list={"zipcode_proposals_#{@form.id}"}
             />
           </div>
 
@@ -81,7 +81,7 @@ defmodule SportywebWeb.PolymorphicLive.PostalAddressesFormComponent do
               field={postal_address[:street]}
               type="text"
               label="Straße"
-              list="street_proposals"
+              list={"street_proposals_#{@form.id}"}
             />
           </div>
 

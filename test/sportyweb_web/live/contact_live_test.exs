@@ -114,6 +114,81 @@ defmodule SportywebWeb.ContactLiveTest do
       assert html =~ "some person_last_name, some person_first_name some person_middle_names"
     end
 
+    test "saves new contact with nested debit account holder", %{conn: conn, user: user} do
+      club = club_fixture()
+
+      {:error, _} = live(conn, ~p"/clubs/#{club}/contacts/new")
+
+      conn = conn |> log_in_user(user)
+      {:ok, new_live, html} = live(conn, ~p"/clubs/#{club}/contacts/new")
+
+      assert html =~ "Kontakt erstellen"
+
+      new_live
+      |> form("#contact-form",
+        contact: %{
+          type: "person",
+          person_birthday: ~D[2022-11-05],
+          person_first_name: "Klaus",
+          person_gender: "male",
+          person_last_name: "Kling",
+          contact_roles: %{
+            "0" => %{
+              name: "interested",
+              valid_from: ~D[2026-03-14]
+            }
+          },
+          financial_data: %{
+            "0" =>
+              financial_data_attrs(%{
+                direct_debit_different_account_holder_contact_id: "new"
+              })
+          },
+          postal_addresses: %{
+            "0" => postal_address_attrs()
+          }
+        }
+      )
+      |> render_change()
+
+      {:ok, _, html} =
+        new_live
+        |> form("#contact-form",
+          contact: %{
+            type: "person",
+            person_birthday: ~D[2022-11-05],
+            person_first_name: "Klaus",
+            person_gender: "male",
+            person_last_name: "Kling",
+            contact_roles: %{
+              "0" => %{
+                name: "interested",
+                valid_from: ~D[2026-03-14]
+              }
+            },
+            financial_data: %{
+              "0" =>
+                financial_data_attrs(%{
+                  direct_debit_different_account_holder_contact_id: "new",
+                  direct_debit_different_account_holder_contact: %{
+                    type: "person",
+                    person_first_name: "Karl",
+                    person_last_name: "Kling"
+                  }
+                })
+            },
+            postal_addresses: %{
+              "0" => postal_address_attrs()
+            }
+          }
+        )
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/contacts")
+
+      assert html =~ "Kontakt erfolgreich erstellt"
+      assert html =~ "Kling, Klaus"
+    end
+
     test "cancels save new contact", %{conn: conn, user: user} do
       club = club_fixture()
 
@@ -263,7 +338,12 @@ defmodule SportywebWeb.ContactLiveTest do
 
     defp prepare_create_data(%{club: club}) do
       fee =
-        fee_fixture(%{club_id: club.id, club: [club], is_for_contact_group_contacts_only: false})
+        fee_fixture(%{
+          club_id: club.id,
+          club: [club],
+          minimum_age_in_years: 4,
+          is_for_contact_group_contacts_only: false
+        })
 
       department = department_fixture(%{club_id: club.id})
 
@@ -271,6 +351,7 @@ defmodule SportywebWeb.ContactLiveTest do
         fee_fixture(%{
           club_id: club.id,
           type: "department",
+          minimum_age_in_years: 4,
           departments: [department],
           is_for_contact_group_contacts_only: false
         })
@@ -278,6 +359,9 @@ defmodule SportywebWeb.ContactLiveTest do
       Organization.create_department_fee(department, department_fee)
 
       %{
+        fee: fee,
+        department: department,
+        department_fee: department_fee,
         membership_contract_form_1: %{
           "contact_id" => MembershipContractForm.new_contact_value()
         },
@@ -424,6 +508,154 @@ defmodule SportywebWeb.ContactLiveTest do
         |> element("#membership-form a", "Abbrechen")
         |> render_click()
         |> follow_redirect(conn, ~p"/clubs/#{club}/contacts")
+    end
+
+    test "saves new membership contract with nested debit account holder and legal guardian", %{
+      conn: conn,
+      user: user,
+      club: club,
+      fee: fee,
+      department: department,
+      department_fee: department_fee,
+      membership_contract_form_1: membership_contract_form_1
+    } do
+      {:error, _} = live(conn, ~p"/clubs/#{club}/contracts/new_membership")
+
+      conn = conn |> log_in_user(user)
+      {:ok, new_live, html} = live(conn, ~p"/clubs/#{club}/contracts/new_membership")
+
+      assert html =~ "Aufnahmeantragserfassung"
+
+      assert new_live
+             |> form("#membership-form", membership_contract_form: @invalid_attrs)
+             |> render_change() =~ "can&#39;t be blank"
+
+      # send data with selected value for new contact to display input fields for contact
+      new_live
+      |> form("#membership-form", membership_contract_form: membership_contract_form_1)
+      |> render_change()
+
+      new_live
+      |> form("#membership-form",
+        membership_contract_form: %{
+          contact_id: MembershipContractForm.new_contact_value(),
+          contact: %{
+            type: "person",
+            person_birthday: Faker.Date.date_of_birth(8),
+            person_first_name: "Maxi",
+            person_gender: "male",
+            person_last_name: "Mustermann",
+            financial_data: %{
+              "0" =>
+                financial_data_attrs(%{
+                  direct_debit_different_account_holder_contact_id: "new"
+                })
+            },
+            postal_addresses: %{
+              "0" => postal_address_attrs()
+            }
+          }
+        }
+      )
+      |> render_change(%{_target: ["membership_contract_form", "contact", "person_birthday"]})
+
+      new_live
+      |> form("#membership-form",
+        membership_contract_form: %{
+          contact_id: MembershipContractForm.new_contact_value(),
+          contact: %{
+            type: "person",
+            person_birthday: Faker.Date.date_of_birth(8),
+            person_first_name: "Maxi",
+            person_gender: "male",
+            person_last_name: "Mustermann",
+            financial_data: %{
+              "0" =>
+                financial_data_attrs(%{
+                  direct_debit_different_account_holder_contact_id: "new",
+                  direct_debit_different_account_holder_contact: %{
+                    type: "person",
+                    person_first_name: "Karl",
+                    person_last_name: "Kling"
+                  }
+                })
+            },
+            postal_addresses: %{
+              "0" => postal_address_attrs()
+            }
+          },
+          legal_guardian_contact_id: "new",
+          club_fee_id: fee.id,
+          department_selections: %{
+            "0" => %{
+              checked: "true",
+              id: department.id
+            }
+          },
+          signing_date: "2026-03-29",
+          start_date: "2026-03-29"
+        }
+      )
+      |> render_change()
+
+      new_live
+      |> form("#membership-form",
+        membership_contract_form: %{
+          contact_id: MembershipContractForm.new_contact_value(),
+          contact: %{
+            type: "person",
+            person_birthday: Faker.Date.date_of_birth(8),
+            person_first_name: "Maxi",
+            person_gender: "male",
+            person_last_name: "Mustermann",
+            financial_data: %{
+              "0" =>
+                financial_data_attrs(%{
+                  direct_debit_different_account_holder_contact_id: "new",
+                  direct_debit_different_account_holder_contact: %{
+                    type: "person",
+                    person_first_name: "Karl",
+                    person_last_name: "Kling"
+                  }
+                })
+            },
+            postal_addresses: %{
+              "0" => postal_address_attrs()
+            }
+          },
+          legal_guardian_contact_id: "new",
+          legal_guardian_contact: %{
+            type: "person",
+            person_first_name: "Marius",
+            person_birthday: Faker.Date.date_of_birth(30),
+            person_last_name: "Mustermann"
+          },
+          club_fee_id: fee.id,
+          department_selections: %{
+            "0" => %{
+              checked: "true",
+              fee_id: department_fee.id,
+              id: department.id
+            }
+          },
+          signing_date: "2026-03-29",
+          start_date: "2026-03-29"
+        }
+      )
+      |> render_change()
+
+      # send data with checked department selection to enable fee selection in form submission
+      new_live
+      |> form("#membership-form", membership_contract_form: membership_contract_form_1)
+      |> render_change()
+
+      {:ok, _, html} =
+        new_live
+        |> form("#membership-form", membership_contract_form: membership_contract_form_1)
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/members")
+
+      assert html =~ "Aufnahmeantrag erfolgreich erfasst."
     end
   end
 end

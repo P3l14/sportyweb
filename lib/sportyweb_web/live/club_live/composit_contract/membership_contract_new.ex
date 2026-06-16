@@ -474,7 +474,14 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
           if membership_contract.contact.id do
             membership_contract.contact.id
           else
-            {:ok, added_contact} = Personal.create_contact_internal(membership_contract.contact)
+            contact_map = Map.get(membership_contract_form, "contact")
+            contact_map = Map.put(contact_map, "club_id", club.id)
+
+            # Ensuring the save of a changeset so that inlined contacts on financial data structs receive
+            # a generated identification number.
+            {:ok, added_contact} =
+              Personal.create_contact(contact_map)
+
             added_contact.id
           end
         else
@@ -506,7 +513,15 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
       case legal_guardian_id = membership_contract.legal_guardian_contact_id do
         "new" ->
           legal_guardian_contact = membership_contract.legal_guardian_contact
-          {:ok, _} = Personal.create_contact_internal(legal_guardian_contact)
+
+          {:ok, added_legal_guardian_contact} =
+            Personal.create_contact_internal(legal_guardian_contact)
+
+          Personal.create_legal_guardian_relation(
+            added_legal_guardian_contact.id,
+            contact_id,
+            membership_contract.signing_date
+          )
 
         nil ->
           nil
