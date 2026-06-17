@@ -256,6 +256,24 @@ defmodule Sportyweb.SeedHelper do
       end
     end
   end
+
+  @doc """
+  Utility function to create a contact without a contract and a contact role in the seeds.exs file, to keep the
+  actual testdata creation pattern.
+
+  Contracts and contact roles are created after the contact creation.
+
+
+  """
+  def create_contact_for_test(attrs) do
+    Sportyweb.Personal.create_contact(attrs, fn contact, contact_attrs ->
+      Sportyweb.Personal.Contact.changeset(contact, contact_attrs,
+        requires_contact_roles: false,
+        requires_postal_addresses: true,
+        requires_financial_data: true
+      )
+    end)
+  end
 end
 
 ###################################
@@ -1054,11 +1072,10 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
     end)
 
     # Contacts & Contracts
-
     for _i <- 0..Enum.random(20..50) do
       # Use the context function instead of Repo.insert!() to invoke the changeset which sets the name.
       {:ok, %Contact{} = contact} =
-        Personal.create_contact(%{
+        Sportyweb.SeedHelper.create_contact_for_test(%{
           club_id: club.id,
           type: if(:rand.uniform() < 0.8, do: "person", else: "organization"),
           organization_name:
@@ -1293,10 +1310,7 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
 
       direct_debit = %{
         type: "direct_debit",
-        direct_debit_iban: "DE06495352657836424132",
-        # Must be set explicit to nil because otherwise it has the value Ecto not loaded and the insert fails
-        direct_debit_different_account_holder_contact: nil,
-        invoice_different_recipient_contact: nil
+        direct_debit_iban: "DE06495352657836424132"
       }
 
       {:ok, %ContactGroup{} = contact_group} =
@@ -1307,7 +1321,7 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
         })
 
       {:ok, %Contact{} = parent} =
-        Personal.create_contact(%{
+        Sportyweb.SeedHelper.create_contact_for_test(%{
           club_id: club.id,
           type: "person",
           person_last_name: family_name,
@@ -1332,10 +1346,13 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
         contact_id: parent.id
       })
 
+      direct_debit_children =
+        Enum.into(direct_debit, %{direct_debit_different_account_holder_contact_id: parent.id})
+
       # create random children
       for _i <- 0..Enum.random(1..5) do
         {:ok, %Contact{} = child} =
-          Personal.create_contact(%{
+          Sportyweb.SeedHelper.create_contact_for_test(%{
             club_id: club.id,
             type: "person",
             person_last_name: family_name,
@@ -1350,7 +1367,7 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
             postal_addresses: [Map.from_struct(Sportyweb.SeedHelper.get_random_postal_address())],
             emails: [Map.from_struct(Sportyweb.SeedHelper.get_random_email())],
             phones: [Map.from_struct(Sportyweb.SeedHelper.get_random_phone())],
-            financial_data: [direct_debit]
+            financial_data: [direct_debit_children]
           })
 
         Sportyweb.SeedHelper.create_random_contracts_for_contact(club, child)
@@ -1371,7 +1388,7 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
 
       if :rand.uniform() < 0.5 do
         {:ok, %Contact{} = other_parent} =
-          Personal.create_contact(%{
+          Sportyweb.SeedHelper.create_contact_for_test(%{
             club_id: club.id,
             type: "person",
             person_last_name: family_name,
