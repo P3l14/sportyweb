@@ -1021,4 +1021,25 @@ defmodule SportywebWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  @doc """
+  Renders a list of errors with a heading
+
+  """
+  attr :error_messages, :list, required: true
+
+  def error_list(assigns) do
+    ~H"""
+    <div :if={Enum.any?(@error_messages)} class="mt-5">
+      <.header level="2">
+        Fehler
+      </.header>
+      <ol class="list-disc ml-5">
+        <li :for={error_message <- @error_messages}>
+          {error_message}
+        </li>
+      </ol>
+    </div>
+    """
+  end
 end

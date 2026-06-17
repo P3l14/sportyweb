@@ -30,16 +30,7 @@ defmodule SportywebWeb.ContactLive.InventoryList do
           </.input_grid>
         </.input_grids>
       </.simple_form>
-      <div :if={Enum.any?(@error_messages)} class="mt-5">
-        <.header level="2">
-          Fehler
-        </.header>
-        <ol class="list-disc ml-5">
-          <li :for={error_message <- @error_messages}>
-            {error_message}
-          </li>
-        </ol>
-      </div>
+      <.error_list error_messages={@error_messages} />
 
       <.link
         :if={@show_download_button}
