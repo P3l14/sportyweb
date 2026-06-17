@@ -37,6 +37,14 @@ defmodule Sportyweb.Personal.ContactRole do
     get_valid_names() |> Enum.filter(fn entry -> entry[:requires_membership] == nil end)
   end
 
+  def get_valid_names_for_type("organization", false) do
+    get_valid_names() |> Enum.filter(fn entry -> entry[:allowed_for_organization] end)
+  end
+
+  def get_valid_names_for_type(_, is_member) do
+    get_valid_names(is_member)
+  end
+
   def get_valid_names do
     [
       [
@@ -44,8 +52,8 @@ defmodule Sportyweb.Personal.ContactRole do
         value: "executive director",
         requires_membership: true
       ],
-      [key: "Erster Vorstandsvorsitzende", value: "first chairman", requires_membership: true],
-      [key: "Zweiter Vorstandsvorsitzende", value: "second chairman", requires_membership: true],
+      [key: "1. Vorstandsvorsitzende", value: "first chairman", requires_membership: true],
+      [key: "2. Vorstandsvorsitzende", value: "second chairman", requires_membership: true],
       [
         key: "weitere Vorstandsrolle",
         value: "board role",
@@ -72,13 +80,18 @@ defmodule Sportyweb.Personal.ContactRole do
       [key: "Erziehungsberechtigter", value: "legal guardian", has_role_relation: :contact],
       [key: "Interessent", value: "interested"],
       [key: "Kursteilnehmer", value: "participants"],
-      [key: "Lieferant", value: "supplier"],
-      [key: "Spender", value: "donor"],
-      [key: "Sponsor", value: "sponsor"],
+      [key: "Lieferant", value: "supplier", allowed_for_organization: true],
+      [key: "Spender", value: "donor", allowed_for_organization: true],
+      [key: "Sponsor", value: "sponsor", allowed_for_organization: true],
       [key: "Veranstaltungsbesucher", value: "visitor"],
-      [key: "Bankkontoinhaber", value: "debit account holder"],
-      [key: "Rechnungsempfänger", value: "invoice recipient"],
-      [key: "weitere Rolle", value: "other role", custom_input: true]
+      [key: "Bankkontoinhaber", value: "debit account holder", allowed_for_organization: true],
+      [key: "Rechnungsempfänger", value: "invoice recipient", allowed_for_organization: true],
+      [
+        key: "weitere Rolle",
+        value: "other role",
+        custom_input: true,
+        allowed_for_organization: true
+      ]
     ]
   end
 

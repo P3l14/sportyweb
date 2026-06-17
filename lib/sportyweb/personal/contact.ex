@@ -249,6 +249,7 @@ defmodule Sportyweb.Personal.Contact do
     |> validate_date_not_in_future(:person_birthday)
     |> validate_required_type_condition(validate_required_type_condition)
     |> set_name()
+    |> validate_contact_roles()
     |> ensure_identification_number_is_set()
   end
 
@@ -342,5 +343,92 @@ defmodule Sportyweb.Personal.Contact do
       end
 
     changeset |> Ecto.Changeset.change(name: String.trim(name))
+  end
+
+  defp validate_contact_roles(%Ecto.Changeset{} = changeset) do
+    case get_change(changeset, :contact_roles) do
+      nil ->
+        changeset
+
+      contact_roles ->
+        contact_role_names =
+          contact_roles
+          |> Enum.map(fn contact_role ->
+            contact_role |> get_field(:name)
+          end)
+
+        changeset =
+          if get_change(changeset, :type) == "organization" do
+            allowed_roles_on_organization =
+              Enum.map(ContactRole.get_valid_names_for_type("organization", false), fn entry ->
+                entry[:value]
+              end)
+
+            contact_role_names
+            |> Enum.filter(fn role_name ->
+              role_name != nil and role_name not in allowed_roles_on_organization
+            end)
+            |> Enum.reduce(changeset, fn role_name, local_changeset ->
+              local_changeset
+              |> add_error(
+                :contact_roles,
+                "Die Rolle '#{ContactRole.get_role_relation_entry(role_name)[:key]}' ist bei Organisationen nicht zulässig."
+              )
+            end)
+          else
+            changeset
+          end
+
+        Enum.reduce(contact_role_names, changeset, fn
+          "debit account holder" = role, local_changeset ->
+            validate_required_postal_address_for_contact_roles(local_changeset, role)
+
+          "invoice recipient" = role, local_changeset ->
+            validate_required_postal_address_for_contact_roles(local_changeset, role)
+
+          "legal guardian" = role, local_changeset ->
+            local_changeset =
+              if get_change(local_changeset, :person_birthday) do
+                local_changeset
+              else
+                local_changeset
+                |> add_error(
+                  :person_birthday,
+                  "Bei Kontakten mit der Rolle 'Erziehungsberechtigter' muss ein Geburtsdatum erfasst werden."
+                )
+              end
+
+            if get_change(local_changeset, :person_birthday) &&
+                 underage_person?(get_change(local_changeset, :person_birthday)) do
+              local_changeset
+              |> add_error(
+                :contact_roles,
+                "Erziehungsberechtigte können nur volljährige Personen sein."
+              )
+            else
+              local_changeset
+            end
+
+            validate_required_postal_address_for_contact_roles(local_changeset, role)
+
+          _, local_changeset ->
+            local_changeset
+        end)
+    end
+  end
+
+  defp validate_required_postal_address_for_contact_roles(local_changeset, role_name) do
+    if get_change(local_changeset, :postal_addresses) &&
+         Enum.any?(get_change(local_changeset, :postal_addresses), fn address_changeset ->
+           address_changeset.valid?
+         end) do
+      local_changeset
+    else
+      local_changeset
+      |> add_error(
+        :postal_addresses,
+        "Bei Kontakten mit der Rolle '#{ContactRole.get_role_relation_entry(role_name)[:key]}' muss eine Adresse erfasst sein."
+      )
+    end
   end
 end

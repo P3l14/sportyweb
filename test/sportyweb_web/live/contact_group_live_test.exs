@@ -68,6 +68,7 @@ defmodule SportywebWeb.ContactGroupLiveTest do
 
     test "saves new contact", %{conn: conn, user: user, contact_group: contact_group} do
       c1 = contact_fixture(club_id: contact_group.club_id)
+      c2 = contact_fixture(club_id: contact_group.club_id)
       url = ~p"/clubs/#{contact_group.club_id}/contact_groups/new"
       {:error, _} = live(conn, url)
 
@@ -81,28 +82,18 @@ defmodule SportywebWeb.ContactGroupLiveTest do
              |> form("#contact_group-form", contact_group_form: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
-      # Attempts to use the add button to add a new entry. Didn't worked out so far :/
+      # Attempts to use the add button to add a new entry does not work. Passing the data in form does not work as well. Use render_change instead.
       # new_live
       # |> element("button[value=\"new\"]")
       # |> render_click()
       # |> render_change()
-
-      # new_live
-      # |> form("#contact_group-form",
-      #   contact_group_form: %{
-      #     contact_group: %{
-      #       type: "family",
-      #       name: "Brown"
-      #     },
-      #     contact_group_contacts: %{
-      #       "0" => %{
-      #         contact_id: c1.id
-      #       }
-      #     },
-      #     contacts_sort: ["0", "new"]
-      #   }
-      # )
-      # |> render_change()
+      new_live
+      |> element("#contact_group-form")
+      |> render_change(%{
+        contact_group_form: %{
+          contacts_sort: ["0", "new"]
+        }
+      })
 
       {:ok, _, html} =
         new_live
@@ -115,6 +106,9 @@ defmodule SportywebWeb.ContactGroupLiveTest do
             contact_group_contacts: %{
               "0" => %{
                 contact_id: c1.id
+              },
+              "1" => %{
+                contact_id: c2.id
               }
             }
           }

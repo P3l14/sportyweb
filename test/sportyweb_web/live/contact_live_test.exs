@@ -151,6 +151,21 @@ defmodule SportywebWeb.ContactLiveTest do
       )
       |> render_change()
 
+      new_live
+      |> element("#contact-form")
+      |> render_change(%{
+        contact: %{
+          financial_data: %{
+            "0" => %{
+              direct_debit_different_account_holder_contact_id: "new",
+              direct_debit_different_account_holder_contact: %{
+                postal_adresses_sort: ["new"]
+              }
+            }
+          }
+        }
+      })
+
       {:ok, _, html} =
         new_live
         |> form("#contact-form",
@@ -173,7 +188,10 @@ defmodule SportywebWeb.ContactLiveTest do
                   direct_debit_different_account_holder_contact: %{
                     type: "person",
                     person_first_name: "Karl",
-                    person_last_name: "Kling"
+                    person_last_name: "Kling",
+                    postal_addresses: %{
+                      "0" => postal_address_attrs()
+                    }
                   }
                 })
             },
@@ -599,6 +617,27 @@ defmodule SportywebWeb.ContactLiveTest do
       |> render_change()
 
       new_live
+      |> element("#membership-form")
+      |> render_change(%{
+        membership_contract_form: %{
+          contact: %{
+            financial_data: %{
+              "0" => %{
+                direct_debit_different_account_holder_contact_id: "new",
+                direct_debit_different_account_holder_contact: %{
+                  postal_adresses_sort: ["new"]
+                }
+              }
+            }
+          },
+          legal_guardian_contact_id: "new",
+          legal_guardian_contact: %{
+            postal_adresses_sort: ["new"]
+          }
+        }
+      })
+
+      new_live
       |> form("#membership-form",
         membership_contract_form: %{
           contact_id: MembershipContractForm.new_contact_value(),
@@ -615,7 +654,10 @@ defmodule SportywebWeb.ContactLiveTest do
                   direct_debit_different_account_holder_contact: %{
                     type: "person",
                     person_first_name: "Karl",
-                    person_last_name: "Kling"
+                    person_last_name: "Kling",
+                    postal_addresses: %{
+                      "0" => postal_address_attrs()
+                    }
                   }
                 })
             },
@@ -628,7 +670,10 @@ defmodule SportywebWeb.ContactLiveTest do
             type: "person",
             person_first_name: "Marius",
             person_birthday: Faker.Date.date_of_birth(30),
-            person_last_name: "Mustermann"
+            person_last_name: "Mustermann",
+            postal_addresses: %{
+              "0" => postal_address_attrs()
+            }
           },
           club_fee_id: fee.id,
           department_selections: %{

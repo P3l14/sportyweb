@@ -8,7 +8,7 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
   def render(assigns) do
     ~H"""
     <.header level="2" class="col-span-12 md:col-span-12">
-      Rollen
+      Rollen <.errors_for_lists list_field={@form[:contact_roles]} />
     </.header>
 
     <.inputs_for :let={contact_role} field={@form[:contact_roles]}>
@@ -89,7 +89,6 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
   defp provide_contact_role_options(contact) do
     valid_names = ContactRole.get_valid_names(contact)
 
-    # Used Keywords as group names to preserve order of the grups (Vereinsrollen first). Order is changed when one entry gets to long.
     valid_names
     |> Enum.group_by(fn entry ->
       if entry[:requires_membership] do

@@ -1233,28 +1233,10 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
               )
           })
         end
-
-        if :rand.uniform() < 0.3 do
-          role_name =
-            ContactRole.get_valid_names(true)
-            |> Enum.map(fn role -> role[:value] end)
-            |> Enum.random()
-
-          Personal.create_contact_role(%{
-            contact_id: contact_with_loaded_contracts.id,
-            name: role_name,
-            custom_name:
-              if(ContactRole.has_custom_input?(role_name),
-                do: Sportyweb.SeedHelper.get_random_custom_board_role(),
-                else: ""
-              ),
-            valid_from: ~D[2022-01-01]
-          })
-        end
       else
         # every contact that is not a member needs a role to define its purpose
         role_name =
-          ContactRole.get_valid_names(false)
+          ContactRole.get_valid_names_for_type(contact_with_loaded_contracts.type, false)
           |> Enum.map(fn role -> role[:value] end)
           |> Enum.random()
 

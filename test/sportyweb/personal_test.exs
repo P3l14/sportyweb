@@ -646,6 +646,8 @@ defmodule Sportyweb.PersonalTest do
         club_id: club_fixture().id,
         person_last_name: "Schmidt",
         person_first_name: "Selona",
+        person_birthday: Faker.Date.date_of_birth(25),
+        postal_addresses: [Sportyweb.PolymorphicFixtures.postal_address_attrs()],
         contact_roles: [
           %{
             valid_from: ~D[2026-03-14],
