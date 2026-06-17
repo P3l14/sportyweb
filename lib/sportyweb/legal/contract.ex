@@ -91,7 +91,7 @@ defmodule Sportyweb.Legal.Contract do
     |> validate_required([
       :club_id,
       :contact_id,
-      :fee_id,
+      # :fee_id,
       :signing_date,
       :start_date
     ])

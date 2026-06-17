@@ -65,7 +65,7 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
                 </.header>
                 <SportywebWeb.ContactLive.FormComponent.contact_name_data_grid
                   form={contact}
-                  contact_form_type={:other}
+                  contact_form_type={:different_contact_financial_data}
                 />
               </div>
               <input type="hidden" name={"#{contact.name}[club_id]"} value={@form[:club_id].value} />
@@ -148,7 +148,7 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
                 </.header>
                 <SportywebWeb.ContactLive.FormComponent.contact_name_data_grid
                   form={contact}
-                  contact_form_type={:other}
+                  contact_form_type={:different_contact_financial_data}
                 />
               </div>
               <input type="hidden" name={"#{contact.name}[club_id]"} value={@form[:club_id].value} />

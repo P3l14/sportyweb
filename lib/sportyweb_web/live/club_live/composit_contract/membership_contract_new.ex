@@ -298,19 +298,6 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
         )
     }
 
-    contact_options_for_legal_guardian =
-      club.id
-      |> Personal.list_contacts_for_contact_role_legal_gurdian_selection()
-      |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
-
-    contact_options_for_legal_guardian = [
-      [
-        key: "Neuen Kontakt anlegen",
-        value: :new
-      ]
-      | contact_options_for_legal_guardian
-    ]
-
     contact_options_for_contract =
       club.id
       |> Personal.list_contract_contact_options(club)
@@ -333,7 +320,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
      |> assign(:title, "Aufnahmeantragserfassung")
      |> assign(:contact, contact)
      |> assign(:membership_contract_form, membership_contract_form)
-     |> assign(:contact_options_for_legal_guardian, contact_options_for_legal_guardian)
+     |> assign_contact_options_for_legal_guardian(club.id)
      |> assign(:contact_group_options_for_contact, contact_group_options_for_contact)
      |> assign(:contact_options_for_contract, contact_options_for_contract)
      |> assign_new(:form, fn ->
@@ -364,6 +351,33 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
      )}
   end
 
+  defp assign_contact_options_for_legal_guardian(socket, club_id, additional_entry \\ nil) do
+    contact_options_for_legal_guardian =
+      club_id
+      |> Personal.list_contacts_for_contact_role_legal_gurdian_selection()
+      |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
+
+    contact_options_for_legal_guardian =
+      if additional_entry do
+        [
+          additional_entry
+          | contact_options_for_legal_guardian
+        ]
+      else
+        contact_options_for_legal_guardian
+      end
+
+    contact_options_for_legal_guardian = [
+      [
+        key: "Neuen Kontakt anlegen",
+        value: :new
+      ]
+      | contact_options_for_legal_guardian
+    ]
+
+    assign(socket, :contact_options_for_legal_guardian, contact_options_for_legal_guardian)
+  end
+
   def assign_form(socket, membership_contract_form) do
     changeset =
       MembershipContractForm.changeset(
@@ -387,6 +401,80 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
      socket
      |> assign_form(params)
      |> assign(:propably_duplicate_contacts, [])}
+  end
+
+  @impl true
+  def handle_event(
+        "validate",
+        %{
+          "_target" =>
+            [
+              "membership_contract_form",
+              "contact",
+              "financial_data",
+              "0",
+              "direct_debit_different_account_holder_contact_id"
+            ] = target,
+          "membership_contract_form" => membership_contract_form
+        } = form_parameter,
+        socket
+      ) do
+    additional_entry_for_legal_guardian =
+      case get_in(form_parameter, target) do
+        "new" ->
+          [
+            key: "Neuen abweichenden Bankkontoinhaber verwenden",
+            value: :new_direct_debit_different_account_holder_contact
+          ]
+
+        _ ->
+          nil
+      end
+
+    {:noreply,
+     socket
+     |> assign_contact_options_for_legal_guardian(
+       socket.assigns.club.id,
+       additional_entry_for_legal_guardian
+     )
+     |> assign_form(membership_contract_form)}
+  end
+
+  @impl true
+  def handle_event(
+        "validate",
+        %{
+          "_target" =>
+            [
+              "membership_contract_form",
+              "contact",
+              "financial_data",
+              "0",
+              "invoice_different_recipient_contact_id"
+            ] = target,
+          "membership_contract_form" => membership_contract_form
+        } = form_parameter,
+        socket
+      ) do
+    additional_entry_for_legal_guardian =
+      case get_in(form_parameter, target) do
+        "new" ->
+          [
+            key: "Neuen abweichenden Rechnungsempfänger verwenden",
+            value: :new_invoice_different_recipient_contact
+          ]
+
+        _ ->
+          nil
+      end
+
+    {:noreply,
+     socket
+     |> assign_contact_options_for_legal_guardian(
+       socket.assigns.club.id,
+       additional_entry_for_legal_guardian
+     )
+     |> assign_form(membership_contract_form)}
   end
 
   @impl true
@@ -519,6 +607,30 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
 
           Personal.create_legal_guardian_relation(
             added_legal_guardian_contact.id,
+            contact_id,
+            membership_contract.signing_date
+          )
+
+        "new_direct_debit_different_account_holder_contact" ->
+          contact = Personal.get_contact!(contact_id, [:financial_data])
+
+          legal_guardian_id =
+            List.first(contact.financial_data).direct_debit_different_account_holder_contact_id
+
+          Personal.create_legal_guardian_relation(
+            legal_guardian_id,
+            contact_id,
+            membership_contract.signing_date
+          )
+
+        "new_invoice_different_recipient_contact" ->
+          contact = Personal.get_contact!(contact_id, [:financial_data])
+
+          legal_guardian_id =
+            List.first(contact.financial_data).invoice_different_recipient_contact
+
+          Personal.create_legal_guardian_relation(
+            legal_guardian_id,
             contact_id,
             membership_contract.signing_date
           )
