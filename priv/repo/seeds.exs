@@ -1272,7 +1272,7 @@ Organization.list_clubs(departments: [:fees, groups: :fees])
         # create another role
         if :rand.uniform() < 0.3 do
           role_name =
-            ContactRole.get_valid_names(true)
+            ContactRole.get_valid_names_for_type(contact_with_loaded_contracts.type, false)
             |> Enum.map(fn role -> role[:value] end)
             |> Enum.random()
 
