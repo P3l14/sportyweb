@@ -164,9 +164,9 @@ defmodule Sportyweb.Personal.Contact do
 
   @doc false
   def changeset(contact, attrs, opts \\ []) do
-    requires_contact_roles = Keyword.get(opts, :requires_contact_roles, false)
-    requires_postal_addresses = Keyword.get(opts, :requires_postal_addresses, true)
-    requires_financial_data = Keyword.get(opts, :requires_financial_data, true)
+    requires_contact_roles = Keyword.get(opts, :requires_contact_roles, true)
+    requires_postal_addresses = Keyword.get(opts, :requires_postal_addresses, false)
+    requires_financial_data = Keyword.get(opts, :requires_financial_data, false)
     validate_required_type_condition = Keyword.get(opts, :validate_required_type_condition, :full)
 
     contact
@@ -254,7 +254,11 @@ defmodule Sportyweb.Personal.Contact do
   end
 
   def contact_for_membership_changeset(contact, attrs) do
-    changeset(contact, attrs)
+    changeset(contact, attrs,
+      requires_contact_roles: false,
+      requires_postal_addresses: true,
+      requires_financial_data: true
+    )
   end
 
   @doc false

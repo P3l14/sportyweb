@@ -34,7 +34,8 @@ defmodule Sportyweb.PersonalTest do
                :financial_data,
                :notes,
                :phones,
-               :postal_addresses
+               :postal_addresses,
+               :contact_roles
              ]) == [contact]
     end
 
@@ -51,7 +52,8 @@ defmodule Sportyweb.PersonalTest do
                :financial_data,
                :notes,
                :phones,
-               :postal_addresses
+               :postal_addresses,
+               :contact_roles
              ]) == contact
     end
 
@@ -72,7 +74,13 @@ defmodule Sportyweb.PersonalTest do
         financial_data: [financial_data_attrs()],
         notes: [note_attrs()],
         phones: [phone_attrs()],
-        postal_addresses: [postal_address_attrs()]
+        postal_addresses: [postal_address_attrs()],
+        contact_roles: [
+          %{
+            valid_from: Date.add(Date.utc_today(), -1 * 365),
+            name: "interested"
+          }
+        ]
       }
 
       assert {:ok, %Contact{} = contact} = Personal.create_contact(valid_attrs)
@@ -125,7 +133,8 @@ defmodule Sportyweb.PersonalTest do
                  :financial_data,
                  :phones,
                  :notes,
-                 :postal_addresses
+                 :postal_addresses,
+                 :contact_roles
                ])
     end
 
@@ -389,7 +398,7 @@ defmodule Sportyweb.PersonalTest do
 
     test "list_contact_roles/0 returns all contact_roles" do
       contact_role = contact_role_fixture()
-      assert Personal.list_contact_roles() == [contact_role]
+      assert Personal.list_contact_roles() |> Enum.at(1) == contact_role
     end
 
     test "get_contact_role!/1 returns the contact_role with given id" do
@@ -560,10 +569,10 @@ defmodule Sportyweb.PersonalTest do
       legal_guardian = contact_fixture()
       underage = contact_fixture()
       today = Date.utc_today()
-      assert [] = Personal.list_contact_roles()
+      assert 2 = length(Personal.list_contact_roles())
       assert [] = Personal.list_contact_role_relations()
       Personal.create_legal_guardian_relation(legal_guardian.id, underage.id, today)
-      assert 1 = length(Personal.list_contact_roles())
+      assert 3 = length(Personal.list_contact_roles())
       assert 1 = length(Personal.list_contact_role_relations())
     end
 
@@ -588,10 +597,10 @@ defmodule Sportyweb.PersonalTest do
 
       underage = contact_fixture()
       today = Date.utc_today()
-      assert 1 = length(Personal.list_contact_roles())
+      assert 4 = length(Personal.list_contact_roles())
       assert 1 = length(Personal.list_contact_role_relations())
       Personal.create_legal_guardian_relation(role.contact_id, underage.id, today)
-      assert 1 = length(Personal.list_contact_roles())
+      assert 4 = length(Personal.list_contact_roles())
       assert 2 = length(Personal.list_contact_role_relations())
     end
 

@@ -31,7 +31,13 @@ defmodule Sportyweb.PersonalFixtures do
         emails: [email_attrs()],
         phones: [phone_attrs()],
         financial_data: [financial_data_attrs()],
-        notes: [note_attrs()]
+        notes: [note_attrs()],
+        contact_roles: [
+          %{
+            valid_from: Date.add(Date.utc_today(), -1 * 365),
+            name: "interested"
+          }
+        ]
       })
       |> Sportyweb.Personal.create_contact()
 

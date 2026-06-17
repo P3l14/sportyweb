@@ -568,7 +568,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
             # Ensuring the save of a changeset so that inlined contacts on financial data structs receive
             # a generated identification number.
             {:ok, added_contact} =
-              Personal.create_contact(contact_map)
+              Personal.create_membership_contact(contact_map)
 
             added_contact.id
           end

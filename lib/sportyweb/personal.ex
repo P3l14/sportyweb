@@ -376,6 +376,10 @@ defmodule Sportyweb.Personal do
     create_contact(attrs, &Contact.changeset_short_contact/2)
   end
 
+  def create_membership_contact(attrs \\ %{}) do
+    create_contact(attrs, &Contact.contact_for_membership_changeset/2)
+  end
+
   @doc """
   Saves an internally created and already validated contact to the database
 
