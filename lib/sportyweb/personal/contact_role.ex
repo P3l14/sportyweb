@@ -74,6 +74,9 @@ defmodule Sportyweb.Personal.ContactRole do
         requires_membership: true,
         has_role_relation: :group
       ],
+      [key: "Vereinsmitarbeiter", value: "club staff", custom_input: true],
+      [key: "Trainer", value: "coach",  has_role_relation: :department],
+      [key: "Übungsleiter", value: "sport instructor",  has_role_relation: :department],
       [key: "Kassenprüfer", value: "cash auditor", requires_membership: true],
       [key: "Schriftführer", value: "secretary", requires_membership: true],
       [key: "Jugendleiter", value: "youth leader", requires_membership: true],
