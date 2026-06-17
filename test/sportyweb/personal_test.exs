@@ -604,6 +604,69 @@ defmodule Sportyweb.PersonalTest do
       assert 2 = length(Personal.list_contact_role_relations())
     end
 
+    test "delete_contact/1 fails on legal_guardian" do
+      legal_guardian = contact_fixture()
+      underage = contact_fixture(person_birthday: Faker.Date.date_of_birth(10))
+      Personal.create_legal_guardian_relation(legal_guardian.id, underage.id, Date.utc_today())
+      legal_guardian = Personal.get_contact!(legal_guardian.id)
+
+      assert {:error,
+              [
+                "Der Kontakt ist noch bei anderen Kontakten als Erziehungsberechtigter gespeichert! Ein Löschen ist erst möglich, wenn diese Beziehung vorher gelöscht wurde."
+              ]} = Personal.delete_contact(legal_guardian)
+    end
+
+    test "delete_contact/1 fails on different debit owner" do
+      debit_holder =
+        contact_fixture(
+          contact_roles: [
+            %{
+              valid_from: ~D[2026-03-14],
+              valid_until: ~D[2026-03-14],
+              name: "debit account holder"
+            }
+          ]
+        )
+
+      contact_fixture(
+        financial_data: [
+          %{
+            type: "direct_debit",
+            direct_debit_iban: "DE06495352657836424132",
+            direct_debit_different_account_holder_contact_id: debit_holder.id
+          }
+        ]
+      )
+
+      assert {:error,
+              [
+                "Der Kontakt ist noch bei anderen Kontakten als abweichender Bankkontoinhaber gespeichert! Ein Löschen ist erst möglich, wenn diese Beziehung vorher gelöscht wurde."
+              ]} = Personal.delete_contact(debit_holder)
+    end
+
+    test "delete_contact/1 fails on different invoice recipient" do
+      debit_holder =
+        contact_fixture(
+          contact_roles: [
+            %{valid_from: ~D[2026-03-14], valid_until: ~D[2026-03-14], name: "invoice recipient"}
+          ]
+        )
+
+      contact_fixture(
+        financial_data: [
+          %{
+            type: "invoice",
+            invoice_different_recipient_contact_id: debit_holder.id
+          }
+        ]
+      )
+
+      assert {:error,
+              [
+                "Der Kontakt ist noch bei anderen Kontakten als abweichender Rechnungsempfänger gespeichert! Ein Löschen ist erst möglich, wenn diese Beziehung vorher gelöscht wurde."
+              ]} = Personal.delete_contact(debit_holder)
+    end
+
     test "is_in_use/2 valid today" do
       two_years_ago = Date.add(Date.utc_today(), -2 * 365)
 

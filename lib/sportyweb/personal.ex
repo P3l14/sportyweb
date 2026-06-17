@@ -5,6 +5,7 @@ defmodule Sportyweb.Personal do
 
   import Ecto.Query, warn: false
   alias Ecto.Multi
+  alias Sportyweb.Personal.ContactRole
   alias Sportyweb.Personal.ContactRoleRelation
   alias Sportyweb.Personal.ContactIdentificationNumber
   alias Sportyweb.Repo
@@ -427,7 +428,54 @@ defmodule Sportyweb.Personal do
 
   """
   def delete_contact(%Contact{} = contact) do
-    Repo.delete(contact)
+    contact =
+      Repo.preload(contact, [
+        :debit_holder,
+        :invoice_contact,
+        contact_roles: :contact_role_relations
+      ])
+
+    legal_guardian_role =
+      contact.contact_roles
+      |> Enum.find(fn role -> role.name == "legal guardian" and ContactRole.is_in_use?(role) end)
+
+    error_list = []
+
+    error_list =
+      if legal_guardian_role && Enum.any?(legal_guardian_role.contact_role_relations) do
+        new_error =
+          "Der Kontakt ist noch bei anderen Kontakten als Erziehungsberechtigter gespeichert! Ein Löschen ist erst möglich, wenn diese Beziehung vorher gelöscht wurde."
+
+        [new_error | error_list]
+      else
+        error_list
+      end
+
+    error_list =
+      if Enum.any?(contact.debit_holder) do
+        new_error =
+          "Der Kontakt ist noch bei anderen Kontakten als abweichender Bankkontoinhaber gespeichert! Ein Löschen ist erst möglich, wenn diese Beziehung vorher gelöscht wurde."
+
+        [new_error | error_list]
+      else
+        error_list
+      end
+
+    error_list =
+      if Enum.any?(contact.invoice_contact) do
+        new_error =
+          "Der Kontakt ist noch bei anderen Kontakten als abweichender Rechnungsempfänger gespeichert! Ein Löschen ist erst möglich, wenn diese Beziehung vorher gelöscht wurde."
+
+        [new_error | error_list]
+      else
+        error_list
+      end
+
+    if error_list == [] do
+      Repo.delete(contact)
+    else
+      {:error, error_list}
+    end
   end
 
   @doc """

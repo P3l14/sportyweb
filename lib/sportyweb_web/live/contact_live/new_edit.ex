@@ -78,11 +78,19 @@ defmodule SportywebWeb.ContactLive.NewEdit do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     contact = Personal.get_contact!(id)
-    {:ok, _} = Personal.delete_contact(contact)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Kontakt erfolgreich gelöscht")
-     |> push_navigate(to: "/clubs/#{contact.club_id}/contacts")}
+    case Personal.delete_contact(contact) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Kontakt erfolgreich gelöscht")
+         |> push_navigate(to: "/clubs/#{contact.club_id}/contacts")}
+
+      {:error, error_messages} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, error_messages)
+         |> push_navigate(to: "/contacts/#{id}")}
+    end
   end
 end
