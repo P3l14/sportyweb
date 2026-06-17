@@ -55,7 +55,9 @@ defmodule SportywebWeb.ClubLive.MembershipContractForm do
   defp validate_used_contact_id(changeset) do
     contact_id = get_change(changeset, :contact_id)
 
-    if contact_id not in ["new", "", nil] do
+    if contact_id in ["new", "", nil] do
+      changeset
+    else
       contact = Personal.get_contact!(contact_id, [:postal_addresses, :financial_data])
       contact_changeset = Contact.contact_for_membership_changeset(contact, %{})
 
@@ -68,8 +70,6 @@ defmodule SportywebWeb.ClubLive.MembershipContractForm do
           "Beim ausgewählten Kontakt fehlen noch Informationen wie das Geburtsdatum, das Geschlecht, die Adresse und/oder die Zahlungsinformationen. Diese müssen vor einer Verwendung über 'Kontakt bearbeiten' nach erfasst werden."
         )
       end
-    else
-      changeset
     end
   end
 

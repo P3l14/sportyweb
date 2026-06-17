@@ -492,7 +492,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
        |> assign_form(membership_contract_form)
        |> reset_fees_for_selection()}
     else
-      contact = Personal.get_contact!(contact_id, :contact_groups) |> dbg()
+      contact = Personal.get_contact!(contact_id, :contact_groups)
 
       {:noreply,
        socket
