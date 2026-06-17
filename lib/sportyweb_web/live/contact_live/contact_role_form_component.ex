@@ -88,7 +88,10 @@ defmodule SportywebWeb.ContactLive.ContactRoleFormComponent do
 
   defp provide_contact_role_options(contact) do
     valid_names = ContactRole.get_valid_names(contact)
+    group_by_role_type(valid_names)
+  end
 
+  def group_by_role_type(valid_names) do
     valid_names
     |> Enum.group_by(fn entry ->
       if entry[:requires_membership] do

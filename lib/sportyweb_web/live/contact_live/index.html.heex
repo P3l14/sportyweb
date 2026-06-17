@@ -50,7 +50,10 @@
                 field={f[:role]}
                 type="select"
                 label="Rolle"
-                options={ContactRole.get_valid_names()}
+                options={
+                  ContactRole.get_valid_names(@live_action == :index_member)
+                  |> SportywebWeb.ContactLive.ContactRoleFormComponent.group_by_role_type()
+                }
                 prompt="Alle"
                 phx-debounce="1000"
               />
