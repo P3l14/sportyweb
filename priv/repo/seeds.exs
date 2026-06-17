@@ -628,6 +628,7 @@ _club_3 =
   Repo.insert!(%Club{
     name: "FC St. Pauli",
     association_number: Faker.format("#######"),
+    affiliated_sports_federation: Faker.format("##"),
     reference_number: "-",
     description:
       "A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart.",
