@@ -492,7 +492,7 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
        |> assign_form(membership_contract_form)
        |> reset_fees_for_selection()}
     else
-      contact = Personal.get_contact!(contact_id, :contact_groups)
+      contact = Personal.get_contact!(contact_id, :contact_groups) |> dbg()
 
       {:noreply,
        socket
@@ -749,6 +749,14 @@ defmodule SportywebWeb.ClubLive.MembershipContract do
   defp assign_fees_for_selection(
          socket,
          %{"type" => "person"}
+       ) do
+    socket
+    |> reset_fees_for_selection()
+  end
+
+  defp assign_fees_for_selection(
+         socket,
+         %Contact{person_birthday: nil}
        ) do
     socket
     |> reset_fees_for_selection()

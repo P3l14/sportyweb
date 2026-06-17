@@ -3,6 +3,7 @@ defmodule SportywebWeb.ClubLive.MembershipContractForm do
   import Ecto.Changeset
   import SportywebWeb.CommonValidations
   alias SportywebWeb.ClubLive.DepartmentSelection
+  alias Sportyweb.Personal
   alias Sportyweb.Personal.Contact
 
   @primary_key false
@@ -47,5 +48,47 @@ defmodule SportywebWeb.ClubLive.MembershipContractForm do
     |> cast_embed(:contact_group)
     |> cast_embed(:legal_guardian_contact, with: &Contact.changeset_short_contact/2)
     |> cast_embed(:department_selections)
+    |> validate_used_contact_id()
+    |> validate_legal_guardian()
+  end
+
+  defp validate_used_contact_id(changeset) do
+    contact_id = get_change(changeset, :contact_id)
+
+    if contact_id not in ["new", "", nil] do
+      contact = Personal.get_contact!(contact_id, [:postal_addresses, :financial_data])
+      contact_changeset = Contact.contact_for_membership_changeset(contact, %{})
+
+      if contact_changeset.valid? do
+        changeset
+      else
+        changeset
+        |> add_error(
+          :contact_id,
+          "Beim ausgewählten Kontakt fehlen noch Informationen wie das Geburtsdatum, das Geschlecht, die Adresse und/oder die Zahlungsinformationen. Diese müssen vor einer Verwendung über 'Kontakt bearbeiten' nach erfasst werden."
+        )
+      end
+    else
+      changeset
+    end
+  end
+
+  defp validate_legal_guardian(changeset) do
+    if contact = get_change(changeset, :contact) do
+      # only check for empty value. When a new contact is selected then there are rules on its own.
+      if get_change(contact, :person_birthday) &&
+           Contact.underage_person?(get_change(contact, :person_birthday)) &&
+           get_change(changeset, :legal_guardian_contact_id) == nil do
+        changeset
+        |> add_error(
+          :legal_guardian_contact_id,
+          "Es muss ein Erziehungsberechtigter ausgewählt werden."
+        )
+      else
+        changeset
+      end
+    else
+      changeset
+    end
   end
 end
