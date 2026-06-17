@@ -21,32 +21,27 @@ defmodule SportywebWeb.ContactLive.Index do
     |> redirect(to: "/clubs")
   end
 
-  defp apply_action(socket, :index, %{"club_id" => club_id}) do
+  defp apply_action(socket, :index = live_action, %{"club_id" => club_id}) do
     club =
       Organization.get_club!(club_id,
-        departments: [:groups],
-        contacts: [:contact_roles, contracts: [:departments, :groups]]
+        departments: [:groups]
       )
 
-    contacts =
-      club.contacts
-      |> Enum.filter(fn contact -> Enum.empty?(contact.contracts) end)
+    # A member is a person with a contract. The contract must not be active.
+    contacts = Personal.filter_contacts(club_id, "", "", "", get_mode(live_action))
 
     socket
     |> assign_common_values("Kontakte", club, :contacts, contacts)
   end
 
-  defp apply_action(socket, :index_member, %{"club_id" => club_id}) do
+  defp apply_action(socket, :index_member = live_action, %{"club_id" => club_id}) do
     club =
       Organization.get_club!(club_id,
-        departments: [:groups],
-        contacts: [:contact_roles, contracts: [:departments, :groups]]
+        departments: [:groups]
       )
 
     # A member is a person with a contract. The contract must not be active.
-    contacts =
-      club.contacts
-      |> Enum.filter(fn contact -> !Enum.empty?(contact.contracts) end)
+    contacts = Personal.filter_contacts(club_id, "", "", "", get_mode(live_action))
 
     socket
     |> assign(:member_inventory_year, Date.utc_today().year)
@@ -70,22 +65,33 @@ defmodule SportywebWeb.ContactLive.Index do
   @impl true
   def handle_event(
         "search",
-        %{"search" => %{"name" => name, "type" => type, "role" => role}},
+        %{
+          "search" => %{
+            "name" => name,
+            "type" => type,
+            "role" => role,
+            "include_archived" => include_archived
+          }
+        },
         socket
       ) do
-    mode =
-      if socket.assigns.live_action == :index_member do
-        :only_members
-      else
-        :only_contacts
-      end
+    mode = get_mode(socket.assigns.live_action)
 
-    filtered_contacts = Personal.filter_contacts(socket.assigns.club.id, name, type, role, mode)
+    filtered_contacts =
+      Personal.filter_contacts(socket.assigns.club.id, name, type, role, mode, include_archived)
 
     {:noreply,
      socket
      |> assign(:contacts_shown, length(filtered_contacts))
      |> stream(:contacts, filtered_contacts, reset: true)}
+  end
+
+  defp get_mode(:index_member) do
+    :only_members
+  end
+
+  defp get_mode(:index) do
+    :only_contacts
   end
 
   attr :streams, :map, required: true
@@ -104,6 +110,12 @@ defmodule SportywebWeb.ContactLive.Index do
         {format_string_field(contact.name)}
         <%= if Contact.has_active_membership_contract?(contact) do %>
           <.icon name="hero-check-badge" class="ml-1 inline-block w-[20px] text-green-800" />
+        <% end %>
+        <%= if Contact.has_only_archived_membership_contract?(contact) do %>
+          <.icon name="hero-archive-box" class="ml-1 inline-block w-[20px] text-red-800" />
+        <% end %>
+        <%= if not Contact.has_active_membership_contract?(contact) and Contact.has_only_archived_contact_roles?(contact) do %>
+          <.icon name="hero-archive-box" class="ml-1 inline-block w-[20px] text-red-800" />
         <% end %>
       </:col>
       <:col :let={{_id, contact}} label="Art">

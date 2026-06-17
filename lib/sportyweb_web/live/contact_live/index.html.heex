@@ -55,6 +55,16 @@
                 phx-debounce="1000"
               />
             </div>
+            <div class="col-span-12 md:col-span-12">
+              <.input
+                field={f[:include_archived]}
+                type="checkbox"
+                label="auch inaktive Kontakte und Mitglieder anzeigen"
+              />
+              <.input_description>
+                Inaktiv bedeutet bei Kontakten, dass diese keine heute gültige Rolle mehr besitzen und bei Mitglieder, dass diese keinen heute gültigen Mitgliedschaftsvertrag besitzen.
+              </.input_description>
+            </div>
             <div class="col-span-12 md:col-span-3 ml-10">
               <.button type="reset">Filter zurücksetzen</.button>
             </div>
@@ -64,9 +74,17 @@
     </search>
   </details>
 </.card>
+
 <.card class="mt-5">
   <p>Gesamt: {@contacts_total} davon werden aktuell angezeigt: {@contacts_shown}</p>
 </.card>
+<div class="mt-4 flex align-middle">
+  <div :if={@live_action == :index_member}>
+    <.icon name="hero-check-badge" class="mr-1 inline-block w-[20px] text-green-800" /> Mitglied
+  </div>
+  <.icon name="hero-archive-box" class="ml-1 inline-block w-[20px] text-red-800" />
+  Nicht mehr gültig
+</div>
 <.card class="mt-5">
   <%= if Enum.any?(@streams.contacts.inserts) do %>
     <.contact_table streams={@streams} live_action={@live_action} club={@club} type={@type} />
@@ -82,7 +100,3 @@
     <% end %>
   <% end %>
 </.card>
-
-<div :if={@live_action == :index_member} class="mt-4 flex align-middle">
-  <.icon name="hero-check-badge" class="mr-1 inline-block w-[20px] text-green-800" /> Mitglied
-</div>

@@ -194,7 +194,7 @@ defmodule Sportyweb.Personal do
 
 
   """
-  def filter_contacts(club_id, name, type, role, mode \\ :all) do
+  def filter_contacts(club_id, name, type, role, mode \\ :all, include_archived \\ "false") do
     query =
       from(
         c in Contact,
@@ -202,7 +202,7 @@ defmodule Sportyweb.Personal do
         left_join: cr in assoc(c, :contact_roles),
         left_join: contract in assoc(c, :contracts),
         preload: [contact_roles: cr, contracts: contract],
-        order_by: c.name
+        order_by: [c.name]
       )
 
     query =
@@ -227,13 +227,37 @@ defmodule Sportyweb.Personal do
         query
       end
 
+    date = Date.utc_today()
+
     query =
       cond do
         mode == :only_contacts ->
-          query |> where([c, cr, contract], is_nil(contract.id))
+          query = query |> where([c, cr, contract], is_nil(contract.id))
+
+          if include_archived == "false" do
+            query
+            |> where(
+              [c, cr, contract],
+              cr.valid_from <= ^date and
+                (is_nil(cr.valid_until) or cr.valid_until >= ^date)
+            )
+          else
+            query
+          end
 
         mode == :only_members ->
-          query |> where([c, cr, contract], not is_nil(contract.id))
+          query = query |> where([c, cr, contract], not is_nil(contract.id))
+
+          if include_archived == "false" do
+            query
+            |> where(
+              [c, cr, contract],
+              contract.start_date <= ^date and
+                (is_nil(contract.archive_date) or contract.archive_date >= ^date)
+            )
+          else
+            query
+          end
 
         mode == :all ->
           query

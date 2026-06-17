@@ -150,6 +150,20 @@ defmodule Sportyweb.Personal.Contact do
     end)
   end
 
+  def has_only_archived_membership_contract?(%Contact{} = contact) do
+    contact.contracts != [] and
+      Enum.all?(contact.contracts, fn contract ->
+        Contract.is_archived?(contract, Date.utc_today())
+      end)
+  end
+
+  def has_only_archived_contact_roles?(%Contact{} = contact) do
+    contact.contact_roles != [] and
+      Enum.all?(contact.contact_roles, fn contract ->
+        ContactRole.is_archived?(contract, Date.utc_today())
+      end)
+  end
+
   def get_departments(%Contact{} = contact) do
     contact.contracts
     |> Enum.filter(fn contract -> Contract.is_in_use?(contract) end)
@@ -189,6 +203,7 @@ defmodule Sportyweb.Personal.Contact do
     )
     |> validate_required([:type])
     |> cast_assoc(:debit_holder, required: false)
+    |> cast_assoc(:invoice_contact, required: false)
     |> cast_assoc(:contact_groups, required: false)
     |> cast_assoc(:contact_roles,
       required: requires_contact_roles,

@@ -3,6 +3,7 @@ defmodule Sportyweb.Personal.ContactRole do
   import Ecto.Changeset
   import SportywebWeb.CommonValidations
   alias Sportyweb.Personal.Contact
+  alias Sportyweb.Personal.ContactRole
   alias Sportyweb.Personal.ContactRoleRelation
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -117,9 +118,13 @@ defmodule Sportyweb.Personal.ContactRole do
     :contact_roles_drop
   end
 
-  def is_in_use?(contact_role, %Date{} = date \\ Date.utc_today()) do
+  def is_in_use?(%ContactRole{} = contact_role, %Date{} = date \\ Date.utc_today()) do
     Date.compare(date, contact_role.valid_from) != :lt &&
       (is_nil(contact_role.valid_until) || Date.compare(date, contact_role.valid_until) == :lt)
+  end
+
+  def is_archived?(%ContactRole{} = contact_role, %Date{} = date \\ Date.utc_today()) do
+    contact_role.valid_until && Date.compare(date, contact_role.valid_until) != :lt
   end
 
   def has_relations?(role_name) do

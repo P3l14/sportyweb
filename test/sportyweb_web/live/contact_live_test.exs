@@ -293,8 +293,8 @@ defmodule SportywebWeb.ContactLiveTest do
       contact_roles: %{
         "0" => %{
           name: "interested",
-          valid_from: ~D[2026-03-14],
-          valid_until: ~D[2026-03-14]
+          valid_from: Date.add(Date.utc_today(), -365),
+          valid_until: Date.add(Date.utc_today(), 365)
         }
       }
     }
