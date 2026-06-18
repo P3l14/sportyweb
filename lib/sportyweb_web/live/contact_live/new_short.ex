@@ -1,4 +1,4 @@
-defmodule SportywebWeb.ContactLive.NewEditShort do
+defmodule SportywebWeb.ContactLive.NewShort do
   use SportywebWeb, :live_view
 
   alias Sportyweb.Personal
@@ -51,32 +51,6 @@ defmodule SportywebWeb.ContactLive.NewEditShort do
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
-
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    contact =
-      Personal.get_contact!(id, [
-        :club,
-        :emails,
-        :financial_data,
-        :phones,
-        :postal_addresses,
-        :notes,
-        :contact_roles
-      ])
-
-    socket
-    |> assign(:title, "Kontakt bearbeiten")
-    |> assign(:contact, contact)
-    |> assign_form()
-    |> assign(:club, contact.club)
-    |> SportywebWeb.PolymorphicLive.FinancialDataFormComponent.setup_validation_and_proposal_event_hook(
-      &assign_form/2
-    )
-    |> SportywebWeb.PolymorphicLive.PostalAddressesFormComponent.setup_validation_and_proposal_event_hook(
-      &assign_form/2
-    )
-    |> SportywebWeb.ContactLive.FormComponent.setup_contact_duplicate_check_event_hook()
   end
 
   defp apply_action(socket, :new, %{"club_id" => club_id}) do

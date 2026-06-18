@@ -145,7 +145,7 @@ defmodule SportywebWeb.Router do
       live "/clubs/:club_id/members", ContactLive.Index, :index_member
 
       live "/clubs/:club_id/contacts/new", ContactLive.NewEdit, :new
-      live "/clubs/:club_id/contacts/new_short", ContactLive.NewEditShort, :new
+      live "/clubs/:club_id/contacts/new_short", ContactLive.NewShort, :new
       live "/contacts/:id/edit", ContactLive.NewEdit, :edit
 
       live "/contacts/:id", ContactLive.Show, :show
