@@ -205,11 +205,7 @@ defmodule Sportyweb.Personal.Contact do
     |> cast_assoc(:debit_holder, required: false)
     |> cast_assoc(:invoice_contact, required: false)
     |> cast_assoc(:contact_groups, required: false)
-    |> cast_assoc(:contact_roles,
-      required: requires_contact_roles,
-      sort_param: ContactRole.get_changeset_sort_param(),
-      drop_param: ContactRole.get_changeset_drop_param()
-    )
+    |> cast_assoc_contact_roles(requires_contact_roles)
     |> cast_assoc(:contact_role_relations,
       required: false
     )
@@ -449,5 +445,23 @@ defmodule Sportyweb.Personal.Contact do
         "Bei Kontakten mit der Rolle '#{ContactRole.get_role_relation_entry(role_name)[:key]}' muss eine Adresse erfasst sein."
       )
     end
+  end
+
+  defp cast_assoc_contact_roles(changeset, requires_contact_roles) do
+    # Assert that a contact with membership contract does not need a role when the contact data is edited.
+    has_no_contracts =
+      if Ecto.assoc_loaded?(changeset.data.contracts) do
+        get_field(changeset, :contracts) == []
+      else
+        # when contract association not loaded assume that there are non, so that a role is required.
+        true
+      end
+
+    changeset
+    |> cast_assoc(:contact_roles,
+      required: requires_contact_roles and has_no_contracts,
+      sort_param: ContactRole.get_changeset_sort_param(),
+      drop_param: ContactRole.get_changeset_drop_param()
+    )
   end
 end

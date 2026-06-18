@@ -702,5 +702,76 @@ defmodule SportywebWeb.ContactLiveTest do
 
       assert html =~ "Aufnahmeantrag erfolgreich erfasst."
     end
+
+    setup [:create_club, :prepare_create_data]
+
+    test "edit contact data of member without the need to add a contact role", %{
+      conn: conn,
+      user: user,
+      club: club,
+      membership_contract_form_1: membership_contract_form_1,
+      membership_contract_form_2: membership_contract_form_2,
+      membership_contract_form_3: membership_contract_form_3,
+      membership_contract_form_4: membership_contract_form_4
+    } do
+      {:error, _} = live(conn, ~p"/clubs/#{club}/contracts/new_membership")
+
+      conn = conn |> log_in_user(user)
+      {:ok, new_live, _html} = live(conn, ~p"/clubs/#{club}/contracts/new_membership")
+
+      # send data with selected value for new contact to display input fields for contact
+      new_live
+      |> form("#membership-form", membership_contract_form: membership_contract_form_1)
+      |> render_change()
+
+      new_live
+      |> form("#membership-form", membership_contract_form: membership_contract_form_2)
+      |> render_change(%{_target: ["membership_contract_form", "contact", "person_birthday"]})
+
+      # send data with checked department selection to enable fee selection in form submission
+      new_live
+      |> form("#membership-form", membership_contract_form: membership_contract_form_3)
+      |> render_change()
+
+      {:ok, members_live, html} =
+        new_live
+        |> form("#membership-form", membership_contract_form: membership_contract_form_4)
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/clubs/#{club}/members")
+
+      assert html =~ "Aufnahmeantrag erfolgreich erfasst."
+
+      #     {:ok, new_live, html} =
+      # contact_live
+      # |> element("a[href='#{new_url}']")
+      # |> render_click()
+      # |> follow_redirect(conn, new_url)
+
+      {:ok, show_live, _} =
+        members_live
+        |> element("a", "Anzeigen")
+        |> render_click()
+        |> follow_redirect(conn)
+
+      assert html =~ "Mustermann, Max"
+
+      {:ok, edit_live, _} =
+        show_live
+        |> element("a[href$='edit']")
+        |> render_click()
+        |> follow_redirect(conn)
+
+      {:ok, _, html} =
+        edit_live
+        |> form("#contact-form",
+          contact: %{
+            person_middle_names: "Markus Marius Michael Maxim Marlon Maik"
+          }
+        )
+        |> render_submit()
+        |> follow_redirect(conn)
+
+      assert html =~ "Mustermann, Max Markus Marius Michael Maxim Marlon Maik"
+    end
   end
 end
