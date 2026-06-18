@@ -433,10 +433,15 @@ defmodule Sportyweb.Personal.Contact do
   end
 
   defp validate_required_postal_address_for_contact_roles(local_changeset, role_name) do
-    if get_change(local_changeset, :postal_addresses) &&
-         Enum.any?(get_change(local_changeset, :postal_addresses), fn address_changeset ->
-           address_changeset.valid?
-         end) do
+    # postal_adresses are present when in the field postal_addresses are adresses with an id (saved adresses are present) or when a new adress is added and valid.
+    if (get_field(local_changeset, :postal_addresses) &&
+          Enum.any?(get_field(local_changeset, :postal_addresses), fn postal_address ->
+            postal_address.id
+          end)) ||
+         (get_change(local_changeset, :postal_addresses) &&
+            Enum.any?(get_change(local_changeset, :postal_addresses), fn address_changeset ->
+              address_changeset.valid?
+            end)) do
       local_changeset
     else
       local_changeset
