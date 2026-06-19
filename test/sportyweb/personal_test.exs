@@ -219,6 +219,7 @@ defmodule Sportyweb.PersonalTest do
     import Sportyweb.PersonalFixtures
     import Sportyweb.OrganizationFixtures
     import Sportyweb.PolymorphicFixtures
+    import Sportyweb.FinanceFixtures
 
     @invalid_attrs %{contact_group_id: nil}
 
@@ -258,10 +259,11 @@ defmodule Sportyweb.PersonalTest do
 
     test "list_contacts_for_contact_group_selection/2 only show contact not assigned to a group" do
       club = club_fixture()
-      contact_group = contact_group_fixture(name: "Familie Mayer")
+      contact_group = contact_group_fixture(club_id: club.id, name: "Familie Mayer")
+      fee = fee_fixture(club_id: club.id)
 
       contact_1 =
-        contact_fixture(%{
+        contact_with_contract_fixture(%{
           club_id: club.id,
           person_first_name: "Max",
           person_last_name: "Mustermann",
@@ -271,11 +273,12 @@ defmodule Sportyweb.PersonalTest do
           financial_data: [financial_data_attrs()],
           notes: [note_attrs()],
           phones: [phone_attrs()],
-          postal_addresses: [postal_address_attrs()]
+          postal_addresses: [postal_address_attrs()],
+          fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
         })
 
       contact_2 =
-        contact_fixture(%{
+        contact_with_contract_fixture(%{
           club_id: club.id,
           person_first_name: "Maria",
           person_last_name: "Mustermann",
@@ -285,7 +288,8 @@ defmodule Sportyweb.PersonalTest do
           financial_data: [financial_data_attrs()],
           notes: [note_attrs()],
           phones: [phone_attrs()],
-          postal_addresses: [postal_address_attrs()]
+          postal_addresses: [postal_address_attrs()],
+          fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
         })
 
       assert 2 = length(Personal.list_contacts_for_contact_group_selection(club.id))

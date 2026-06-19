@@ -46,12 +46,17 @@ defmodule Sportyweb.Personal do
 
     query =
       from(c in Contact,
+        where: c.type == "person",
+        inner_join: contract in assoc(c, :contracts),
         where:
           c.club_id == ^club_id and
             (c.id not in subquery(contacts_already_assigend_to_a_group) or
                c.id in ^contact_ids_of_group),
+        distinct: c.id,
         order_by: c.name
       )
+
+    query = Contact.Query.order_by_name(query)
 
     Repo.all(query)
   end

@@ -4,6 +4,8 @@ defmodule SportywebWeb.ContactGroupLiveTest do
   import Phoenix.LiveViewTest
   import Sportyweb.AccountsFixtures
   import Sportyweb.PersonalFixtures
+  import Sportyweb.FinanceFixtures
+  import Sportyweb.OrganizationFixtures
   import Sportyweb.RBAC.RoleFixtures
   import Sportyweb.RBAC.UserRoleFixtures
 
@@ -23,28 +25,45 @@ defmodule SportywebWeb.ContactGroupLiveTest do
   end
 
   defp create_contact_group(_) do
-    contact_group = contact_group_fixture()
-    contact = contact_fixture(club_id: contact_group.club_id)
+    club = club_fixture()
+    contact_group = contact_group_fixture(club_id: club.id)
+    fee = fee_fixture(club_id: club.id)
+
+    contact =
+      contact_with_contract_fixture(%{
+        club_id: club.id,
+        fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+      })
 
     contact_group_contact =
       contact_group_contact_fixture(contact_group_id: contact_group.id, contact_id: contact.id)
 
-    contact_group2 = contact_group_fixture(name: "Familie Müller", club_id: contact_group.club_id)
+    contact_group2 = contact_group_fixture(name: "Familie Müller", club_id: club.id)
 
     contact_group_contact_fixture(
       contact_group_id: contact_group2.id,
-      contact_id: contact_fixture(club_id: contact_group.club_id).id
+      contact_id:
+        contact_with_contract_fixture(%{
+          club_id: club.id,
+          fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+        }).id
     )
 
     contact_group_contact_fixture(
       contact_group_id: contact_group2.id,
-      contact_id: contact_fixture(club_id: contact_group.club_id).id
+      contact_id:
+        contact_with_contract_fixture(%{
+          club_id: club.id,
+          fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+        }).id
     )
 
     %{
       contact_group: contact_group,
       contact_group2: contact_group2,
-      contact_group_contact: contact_group_contact
+      contact_group_contact: contact_group_contact,
+      club: club,
+      fee: fee
     }
   end
 
@@ -66,9 +85,25 @@ defmodule SportywebWeb.ContactGroupLiveTest do
   describe "New/Edit" do
     setup [:create_contact_group]
 
-    test "saves new contact", %{conn: conn, user: user, contact_group: contact_group} do
-      c1 = contact_fixture(club_id: contact_group.club_id)
-      c2 = contact_fixture(club_id: contact_group.club_id)
+    test "saves new contact", %{
+      conn: conn,
+      user: user,
+      contact_group: contact_group,
+      fee: fee,
+      club: club
+    } do
+      c1 =
+        contact_with_contract_fixture(%{
+          club_id: club.id,
+          fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+        })
+
+      c2 =
+        contact_with_contract_fixture(%{
+          club_id: club.id,
+          fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+        })
+
       url = ~p"/clubs/#{contact_group.club_id}/contact_groups/new"
       {:error, _} = live(conn, url)
 
@@ -177,9 +212,16 @@ defmodule SportywebWeb.ContactGroupLiveTest do
     test "updates contact group / failure due addong the same contact twice to the same group", %{
       conn: conn,
       user: user,
-      contact_group2: contact_group
+      contact_group2: contact_group,
+      club: club,
+      fee: fee
     } do
-      contact = contact_fixture(club_id: contact_group.club_id)
+      contact =
+        contact_with_contract_fixture(%{
+          club_id: club.id,
+          fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+        })
+
       url = ~p"/contact_groups/#{contact_group.id}/edit"
       conn = conn |> log_in_user(user)
       {:ok, edit_live, html} = live(conn, url)
@@ -213,10 +255,22 @@ defmodule SportywebWeb.ContactGroupLiveTest do
     test "updates contact group / change", %{
       conn: conn,
       user: user,
-      contact_group2: contact_group
+      contact_group2: contact_group,
+      club: club,
+      fee: fee
     } do
-      contact = contact_fixture(club_id: contact_group.club_id)
-      contact2 = contact_fixture(club_id: contact_group.club_id)
+      contact =
+        contact_with_contract_fixture(%{
+          club_id: club.id,
+          fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+        })
+
+      contact2 =
+        contact_with_contract_fixture(%{
+          club_id: club.id,
+          fee_contract_target_object_list: [%{fee: fee, contract_target_object: club}]
+        })
+
       url = ~p"/contact_groups/#{contact_group.id}/edit"
       conn = conn |> log_in_user(user)
       {:ok, edit_live, html} = live(conn, url)
