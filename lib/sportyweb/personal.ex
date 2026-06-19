@@ -44,6 +44,8 @@ defmodule Sportyweb.Personal do
     contacts_already_assigend_to_a_group =
       from(cgc in ContactGroupContact, select: cgc.contact_id)
 
+    date = Date.utc_today()
+
     query =
       from(c in Contact,
         where: c.type == "person",
@@ -52,6 +54,9 @@ defmodule Sportyweb.Personal do
           c.club_id == ^club_id and
             (c.id not in subquery(contacts_already_assigend_to_a_group) or
                c.id in ^contact_ids_of_group),
+        where:
+          contract.start_date <= ^date and
+            (is_nil(contract.archive_date) or contract.archive_date >= ^date),
         distinct: c.id,
         order_by: c.name
       )
