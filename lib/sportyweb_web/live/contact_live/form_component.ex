@@ -260,23 +260,39 @@ defmodule SportywebWeb.ContactLive.FormComponent do
   end
 
   def assign_contacts_for_different_holder_or_recipient(socket, club_id) do
-    contacts_for_different_holder_or_recipient =
+    contacts_for_different_holder =
       club_id
-      |> Personal.list_contacts()
+      |> Personal.list_contacts_with_role("debit account holder")
       |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
 
-    contacts_for_different_holder_or_recipient = [
+    contacts_for_different_holder = [
       [
         key: "Neuen Kontakt anlegen",
         value: FinancialData.new_direct_debit_different_account_holder_value()
       ]
-      | contacts_for_different_holder_or_recipient
+      | contacts_for_different_holder
+    ]
+
+    contacts_for_different_recipient =
+      club_id
+      |> Personal.list_contacts_with_role("invoice recipient")
+      |> Enum.map(fn contact -> [key: contact.name, value: contact.id] end)
+
+    contacts_for_different_recipient = [
+      [
+        key: "Neuen Kontakt anlegen",
+        value: FinancialData.new_direct_debit_different_account_holder_value()
+      ]
+      | contacts_for_different_recipient
     ]
 
     socket
     |> assign(
       :contacts_for_different_holder_or_recipient,
-      contacts_for_different_holder_or_recipient
+      %{
+        "debit account holder" => contacts_for_different_holder,
+        "invoice recipient" => contacts_for_different_recipient
+      }
     )
   end
 

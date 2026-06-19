@@ -6,7 +6,7 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
 
   attr :form, :map, required: true
   attr :allow_multiple, :boolean, required: false, default: false
-  attr :contacts_for_different_holder_or_recipient, :list, required: false, default: []
+  attr :contacts_for_different_holder_or_recipient, :map, required: false, default: %{}
 
   def render(assigns) do
     ~H"""
@@ -45,7 +45,9 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
               <.input
                 field={financial_data[:direct_debit_different_account_holder_contact_id]}
                 type="select"
-                options={@contacts_for_different_holder_or_recipient}
+                options={
+                  Map.get(@contacts_for_different_holder_or_recipient, "debit account holder", [])
+                }
                 prompt="identisch mit nutzendem Kontakt - kein abweichender Bankkontoinhaber"
                 label="abweichender Bankkontoinhaber"
               />
@@ -128,7 +130,9 @@ defmodule SportywebWeb.PolymorphicLive.FinancialDataFormComponent do
               <.input
                 field={financial_data[:invoice_different_recipient_contact_id]}
                 type="select"
-                options={@contacts_for_different_holder_or_recipient}
+                options={
+                  Map.get(@contacts_for_different_holder_or_recipient, "invoice recipient", [])
+                }
                 prompt="identisch mit nutzendem Kontakt - kein abweichender Rechnungsempfänger"
                 label="abweichender Rechnungsempfänger"
               />

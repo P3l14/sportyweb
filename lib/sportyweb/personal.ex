@@ -31,6 +31,25 @@ defmodule Sportyweb.Personal do
     Repo.all(query)
   end
 
+  def list_contacts_with_role(club_id, role) do
+    date = Date.utc_today()
+
+    query =
+      from(
+        c in Contact,
+        inner_join: contact_role in assoc(c, :contact_roles),
+        where: c.club_id == ^club_id,
+        where: contact_role.name == ^role,
+        where:
+          contact_role.valid_from <= ^date and
+            (is_nil(contact_role.valid_until) or contact_role.valid_until >= ^date),
+        distinct: c.id
+      )
+
+    query = Contact.Query.order_by_name(query)
+    Repo.all(query)
+  end
+
   @doc """
   Returns the list of contacts.
 
