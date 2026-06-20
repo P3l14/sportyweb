@@ -97,7 +97,7 @@ defmodule Sportyweb.Personal.Qualification do
 
   def get_valid_common_types do
     [
-      [key: "Erste Hilfekurs", value: "first aid"],
+      [key: "Erste-Hilfe-Kurs", value: "first aid"],
       [key: "Ausbildung", value: "apprenticeship"],
       [key: "Akademischer Abschluss", value: "academic"],
       [key: "sonstige", value: "misc"]
