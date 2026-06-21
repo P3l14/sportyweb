@@ -402,14 +402,17 @@ department =
     notes: [%Note{}]
   })
 
-Repo.insert!(%Group{
-  department: department,
-  name: "1. Damenmannschaft",
-  creation_date: ~D[1905-03-01],
-  emails: [Sportyweb.SeedHelper.get_random_email()],
-  phones: [Sportyweb.SeedHelper.get_random_phone()],
-  notes: [Sportyweb.SeedHelper.get_random_note()]
-})
+club_1_department_football_women = department
+
+club_1_group_football_women =
+  Repo.insert!(%Group{
+    department: department,
+    name: "1. Damenmannschaft",
+    creation_date: ~D[1905-03-01],
+    emails: [Sportyweb.SeedHelper.get_random_email()],
+    phones: [Sportyweb.SeedHelper.get_random_phone()],
+    notes: [Sportyweb.SeedHelper.get_random_note()]
+  })
 
 Repo.insert!(%Group{
   department: department,
@@ -1687,4 +1690,98 @@ Repo.insert!(%Contract{
   termination_date: nil,
   archive_date: nil,
   groups: [club_1_group_football_men]
+})
+
+# specific test case for qualification surveilance
+
+{:ok, %Contact{} = qualification_surveilance_case_contact} =
+  Sportyweb.SeedHelper.create_contact_for_test(%{
+    club_id: club_1.id,
+    type: "person",
+    person_last_name: "Mustermann",
+    person_first_name: "Manuela",
+    person_middle_name: "",
+    person_gender: "female",
+    person_birthday: Faker.Date.date_of_birth(25..50),
+    postal_addresses: [Map.from_struct(Sportyweb.SeedHelper.get_random_postal_address())],
+    emails: [Map.from_struct(Sportyweb.SeedHelper.get_random_email())],
+    phones: [Map.from_struct(Sportyweb.SeedHelper.get_random_phone())],
+    financial_data: [Map.from_struct(Sportyweb.SeedHelper.get_random_financial_data())],
+    contact_roles: [
+      %{
+        valid_from: ~D[2023-01-01],
+        name: "coach",
+        contact_role_relations: [
+          %{
+            department_id: club_1_department_football_women.id,
+            valid_from: ~D[2023-01-01]
+          }
+        ]
+      }
+    ]
+  })
+
+fee =
+  Finance.list_contract_fee_options(club_1, qualification_surveilance_case_contact.id)
+  |> Enum.random()
+
+Repo.insert!(%Contract{
+  club_id: club_1.id,
+  contact_id: qualification_surveilance_case_contact.id,
+  fee_id: fee.id,
+  signing_date: ~D[2021-11-28],
+  start_date: ~D[2022-01-01],
+  termination_date: nil,
+  archive_date: nil,
+  clubs: [club_1]
+})
+
+# Select a random fee that works with this combination of club & department
+fee =
+  Finance.list_contract_fee_options(
+    Repo.preload(club_1_department_football_women, :fees),
+    qualification_surveilance_case_contact.id
+  )
+  |> Enum.random()
+
+Repo.insert!(%Contract{
+  club_id: club_1.id,
+  contact_id: qualification_surveilance_case_contact.id,
+  fee_id: fee.id,
+  signing_date: ~D[2021-11-28],
+  start_date: ~D[2022-01-01],
+  termination_date: nil,
+  archive_date: nil,
+  departments: [club_1_department_football_women]
+})
+
+# Select a random fee that works with this combination of club & group
+fee =
+  Finance.list_contract_fee_options(
+    Repo.preload(club_1_group_football_men, :fees),
+    qualification_surveilance_case_contact.id
+  )
+  |> Enum.random()
+
+Repo.insert!(%Contract{
+  club_id: club_1.id,
+  contact_id: qualification_surveilance_case_contact.id,
+  fee_id: fee.id,
+  signing_date: ~D[2021-11-28],
+  start_date: ~D[2022-01-01],
+  termination_date: nil,
+  archive_date: nil,
+  groups: [club_1_group_football_women]
+})
+
+Personal.create_qualification(%{
+  contact_id: qualification_surveilance_case_contact.id,
+  type: "dosb license",
+  dosb_license_type: "coach professional",
+  dosb_license_level: "C",
+  dosb_license_number: "XXxX-Y-Z-1.234.567",
+  dosb_license_number_sports_association: "9013371337",
+  dosb_license_coach_sport: "Fußball",
+  dosb_first_issuance: ~D[2023-01-01],
+  dosb_valid_until: ~D[2027-12-31]
 })
