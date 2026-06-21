@@ -175,8 +175,8 @@ defmodule Sportyweb.SeedHelper do
       type: "dosb license",
       dosb_license_type: dosb_license_type,
       dosb_license_level: dosb_license_level,
-      dosb_license_number: Faker.format("##-##-###-???"),
-      dosb_license_number_sports_association: Faker.format("######"),
+      dosb_license_number: Faker.format("????-?-?-#.###.###"),
+      dosb_license_number_sports_association: Faker.format("########"),
       dosb_license_coach_sport:
         if(Qualification.requires_dosb_license_coach_sport?(dosb_license_type),
           do: Sportyweb.SeedHelper.get_random_dosb_license_coach_sport(),
