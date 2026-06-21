@@ -3,6 +3,9 @@ defmodule SportywebWeb.ContractLive.Edit do
 
   alias Sportyweb.Legal.Contract
   alias Sportyweb.Legal
+  alias Sportyweb.Organization.Club
+  alias Sportyweb.Organization.Department
+  alias Sportyweb.Organization.Group
 
   @impl true
   def render(assigns) do
@@ -25,7 +28,7 @@ defmodule SportywebWeb.ContractLive.Edit do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :club_navigation_current_item, :structure)}
+    {:ok, assign(socket, :club_navigation_current_item, :fees)}
   end
 
   @impl true
@@ -37,18 +40,59 @@ defmodule SportywebWeb.ContractLive.Edit do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     contract =
-      Legal.get_contract!(id, [:contact, :fee, :clubs, departments: [:fees], groups: [:fees]])
+      Legal.get_contract!(id, [
+        :club,
+        :contact,
+        :fee,
+        :clubs,
+        departments: [:fees],
+        groups: [:fees]
+      ])
 
     contract_object = contract |> Contract.get_object()
     contract_object = Sportyweb.Repo.preload(contract_object, :contracts)
-    # club = department.club
 
     socket
-    |> assign(:page_title, "Mitgliedschaftsvertrag bearbeiten")
+    |> assign(:page_title, page_title(contract_object))
     |> assign(:contract, contract)
     |> assign(:contract_object, contract_object)
+    |> assign(:club, contract.club)
+    |> assign(:club_navigation_current_item, club_navigation_current_item(contract_object))
+  end
 
-    # |> assign(:department, department)
-    # |> assign(:club, club)
+  defp page_title(contract_object)
+
+  defp page_title(%Club{}) do
+    "Mitgliedschaftsvertrag bearbeiten (Verein)"
+  end
+
+  defp page_title(%Department{name: name}) do
+    "Mitgliedschaftsvertrag bearbeiten (Abteilung: #{name})"
+  end
+
+  defp page_title(%Group{name: name}) do
+    "Mitgliedschaftsvertrag bearbeiten (Gruppe: #{name})"
+  end
+
+  defp page_title(_contract_object) do
+    "Vertrag bearbeiten"
+  end
+
+  defp club_navigation_current_item(contract_object)
+
+  defp club_navigation_current_item(%Club{}) do
+    :members
+  end
+
+  defp club_navigation_current_item(%Department{}) do
+    :members
+  end
+
+  defp club_navigation_current_item(%Group{}) do
+    :members
+  end
+
+  defp club_navigation_current_item(_contract_object) do
+    :fees
   end
 end
