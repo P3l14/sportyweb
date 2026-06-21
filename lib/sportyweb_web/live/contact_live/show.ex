@@ -9,6 +9,7 @@ defmodule SportywebWeb.ContactLive.Show do
   alias Sportyweb.Polymorphic.Email
   alias Sportyweb.Polymorphic.Phone
   import SportywebWeb.QualificationLive.Show
+  import SportywebWeb.ContactLive.Index
 
   @impl true
   def mount(_params, _session, socket) do

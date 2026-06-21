@@ -108,15 +108,7 @@ defmodule SportywebWeb.ContactLive.Index do
     >
       <:col :let={{_id, contact}} label="Name">
         {format_string_field(contact.name)}
-        <%= if Contact.has_active_membership_contract?(contact) do %>
-          <.icon name="hero-check-badge" class="ml-1 inline-block w-[20px] text-green-800" />
-        <% end %>
-        <%= if Contact.has_only_archived_membership_contract?(contact) do %>
-          <.icon name="hero-archive-box" class="ml-1 inline-block w-[20px] text-red-800" />
-        <% end %>
-        <%= if not Contact.has_active_membership_contract?(contact) and Contact.has_only_archived_contact_roles?(contact) do %>
-          <.icon name="hero-archive-box" class="ml-1 inline-block w-[20px] text-red-800" />
-        <% end %>
+        <.show_status_icon_for_contact contact={contact} />
       </:col>
       <:col :let={{_id, contact}} label="Art">
         {get_key_for_value(Contact.get_valid_types(), contact.type)}
@@ -170,6 +162,36 @@ defmodule SportywebWeb.ContactLive.Index do
         <.link navigate={~p"/contacts/#{contact}"}>Anzeigen</.link>
       </:action>
     </.table>
+    """
+  end
+
+  @doc """
+  Renders a status icon for a contact. A check badge for active members and an archive box when there is no active contract and no active role
+
+
+  """
+  attr :contact, Contact, required: true
+
+  def show_status_icon_for_contact(assigns) do
+    ~H"""
+    <.icon
+      :if={Contact.has_active_membership_contract?(@contact)}
+      name="hero-check-badge"
+      class="ml-1 inline-block w-[20px] text-green-800"
+    />
+    <.icon
+      :if={Contact.has_only_archived_membership_contract?(@contact)}
+      name="hero-archive-box"
+      class="ml-1 inline-block w-[20px] text-red-800"
+    />
+    <.icon
+      :if={
+        not Contact.has_active_membership_contract?(@contact) and
+          Contact.has_only_archived_contact_roles?(@contact)
+      }
+      name="hero-archive-box"
+      class="ml-1 inline-block w-[20px] text-red-800"
+    />
     """
   end
 end
