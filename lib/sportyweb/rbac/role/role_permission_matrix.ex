@@ -18,12 +18,16 @@ defmodule Sportyweb.RBAC.Role.RolePermissionMatrix do
         Name: "Vereinsadministration",
         Info:
           "verfügt über die vollen lesenden und schreibenden Zugriffe auf alle Ressourcen und Operationen im jeweiligen Verein.",
-        ClubLive: [:edit],
+        # ClubLive :terminate is the action for the termination form for the membership contracts of a contact
+        ClubLive: [:edit, :terminate],
         RoleLive: [:index, :new, :edit, :show],
         EventLive: [:index, :new, :edit, :show],
         DepartmentLive: [:index, :new, :edit, :show],
         GroupLive: [:index, :new, :edit, :show],
-        ContactLive: [:index, :new, :edit, :show],
+        ContactLive: [:index, :new, :edit, :show, :search, :index_member],
+        ContactGroupLive: [:index, :new, :edit, :show],
+        ContractLive: [:index, :new, :edit, :show],
+        QualificationLive: [:index, :new, :edit, :show],
         LocationLive: [:index, :new, :edit, :show],
         EquipmentLive: [:index, :new, :edit, :show],
         FeeLive: [:index, :new, :edit, :show]
@@ -32,12 +36,16 @@ defmodule Sportyweb.RBAC.Role.RolePermissionMatrix do
         Name: "Geschäftsführung",
         Info:
           "verfügt über die vollen lesenden und schreibenden Zugriffe auf alle Ressourcen und Operationen, die im Kontext der Vereinsführung stehen. Dabei wird primär auf die Themenbereiche Vereinsverwaltung, Finanzen, Kommunikation und Sponsoring abgestellt. Für alle anderen Inhalte sind lediglich Leserechte gewährt.",
-        ClubLive: [:edit],
+        # ClubLive :terminate is the action for the termination form for the membership contracts of a contact
+        ClubLive: [:edit, :terminate],
         RoleLive: [:index, :new, :edit, :show],
         EventLive: [:index, :show],
         DepartmentLive: [:index, :new, :show],
         GroupLive: [:index, :new, :show],
-        ContactLive: [:index, :new, :edit, :show],
+        ContactLive: [:index, :new, :edit, :show, :search, :index_member],
+        ContactGroupLive: [:index, :new, :edit, :show],
+        ContractLive: [:index, :new, :edit, :show],
+        QualificationLive: [:index, :new, :edit, :show],
         LocationLive: [:index, :show],
         EquipmentLive: [:index, :show],
         FeeLive: [:index, :new, :edit, :show]
@@ -71,7 +79,12 @@ defmodule Sportyweb.RBAC.Role.RolePermissionMatrix do
         Name: "Öffentlichkeitsarbeit",
         Info:
           "verfügt über die notwendigen lesenden und schreibenden Zugriffe auf alle Ressourcen und Operationen, die im Kontext der Öffentlichkeitsarbeit stehen.",
-        ContactLive: [:index, :new, :edit, :show]
+        ContactLive: [:index, :new, :edit, :show, :search, :index_member],
+        ContactGroupLive: [:index, :new, :edit, :show],
+        # ClubLive :terminate is the action for the termination form for the membership contracts of a contact
+        ClubLive: [:terminate],
+        ContractLive: [:index, :new, :edit, :show],
+        QualificationLive: [:index, :new, :edit, :show]
       },
       jugendleitung: %{
         Name: "Jugendleitung",
@@ -89,7 +102,12 @@ defmodule Sportyweb.RBAC.Role.RolePermissionMatrix do
         Name: "Mitgliederverwaltung",
         Info:
           "verfügt über die notwendigen lesenden und schreibenden Zugriffe auf alle Ressourcen und Operationen, die im Kontext der Verwaltung von Mitgliedern stehen.",
-        ContactLive: [:index, :new, :edit, :show]
+        ContactLive: [:index, :new, :edit, :show, :search, :index_member],
+        ContactGroupLive: [:index, :new, :edit, :show],
+        # ClubLive :terminate is the action for the termination form for the membership contracts of a contact
+        ClubLive: [:new, :terminate],
+        ContractLive: [:index, :new, :edit, :show],
+        QualificationLive: [:index, :new, :edit, :show]
       }
     ]
   end

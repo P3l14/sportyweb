@@ -6,6 +6,7 @@ defmodule Sportyweb.RBAC.Policy do
   alias Sportyweb.Calendar
   alias Sportyweb.Finance
   alias Sportyweb.Personal
+  alias Sportyweb.Legal
 
   alias Sportyweb.RBAC.UserRole
   alias Sportyweb.RBAC.Role.RolePermissionMatrix, as: RPM
@@ -55,6 +56,8 @@ defmodule Sportyweb.RBAC.Policy do
 
   # <--- Policy check for club and department role permissions ---> #
   def permit?(_user, :index, :ClubLive, _params), do: true
+
+  # calls to SportywebWeb.ClubLive.ContractNew are also handled by this function which leads to probems... other live actions or module names should be considered when using the policy module at full scale
   def permit?(_user, :new, :ClubLive, _params), do: false
 
   def permit?(user, action, view, params)
@@ -64,12 +67,20 @@ defmodule Sportyweb.RBAC.Policy do
              :LocationLive,
              :EventLive,
              :ContactLive,
+             :ContactGroupLive,
+             :ContractLive,
+             :QualificationLive,
              :FeeLive
            ] do
     club_id =
-      if Map.has_key?(params, "club_id"),
-        do: params["club_id"],
-        else: params["id"] |> get_associated_id(view)
+      if view == :QualificationLive and not Map.has_key?(params, "id") and
+           Map.has_key?(params, "contact_id") do
+        params["contact_id"] |> get_associated_id(:ContactLive)
+      else
+        if Map.has_key?(params, "club_id"),
+          do: params["club_id"],
+          else: params["id"] |> get_associated_id(view)
+      end
 
     is_allowed?(user.id, action, club_id, view)
   end
@@ -162,13 +173,35 @@ defmodule Sportyweb.RBAC.Policy do
 
   defp get_associated_id(id, view) do
     case view do
-      :DepartmentLive -> id |> Organization.get_department!() |> Map.get(:club_id)
-      :GroupLive -> id |> Organization.get_group!() |> Map.get(:department_id)
-      :EventLive -> id |> Calendar.get_event!() |> Map.get(:club_id)
-      :ContactLive -> id |> Personal.get_contact!() |> Map.get(:club_id)
-      :LocationLive -> id |> Asset.get_location!() |> Map.get(:club_id)
-      :EquipmentLive -> id |> Asset.get_equipment!() |> Map.get(:location_id)
-      :FeeLive -> id |> Finance.get_fee!() |> Map.get(:club_id)
+      :DepartmentLive ->
+        id |> Organization.get_department!() |> Map.get(:club_id)
+
+      :GroupLive ->
+        id |> Organization.get_group!() |> Map.get(:department_id)
+
+      :EventLive ->
+        id |> Calendar.get_event!() |> Map.get(:club_id)
+
+      :ContactLive ->
+        id |> Personal.get_contact!() |> Map.get(:club_id)
+
+      :ContactGroupLive ->
+        id |> Personal.get_contact_group!() |> Map.get(:club_id)
+
+      :QualificationLive ->
+        id |> Personal.get_qualification!(:contact) |> Map.get(:contact) |> Map.get(:club_id)
+
+      :ContractLive ->
+        id |> Legal.get_contract!() |> Map.get(:club_id)
+
+      :LocationLive ->
+        id |> Asset.get_location!() |> Map.get(:club_id)
+
+      :EquipmentLive ->
+        id |> Asset.get_equipment!() |> Map.get(:location_id)
+
+      :FeeLive ->
+        id |> Finance.get_fee!() |> Map.get(:club_id)
     end
   end
 
@@ -199,6 +232,10 @@ defmodule Sportyweb.RBAC.Policy do
       :EquipmentLive -> get_redirect_path_new_show(view, %{"location_id" => associated_id})
       _ -> get_redirect_path_new_show(view, %{"club_id" => associated_id})
     end
+  end
+
+  defp get_redirect_path_new_show(_view, %{"contact_id" => contact_id}) do
+    ~p"/contacts/#{contact_id}"
   end
 
   defp get_redirect_path_new_show(view, %{"club_id" => club_id}) do
