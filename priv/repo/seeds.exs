@@ -1584,7 +1584,11 @@ Repo.insert!(%Contract{
 
 # Select a random fee that works with this combination of club & department
 fee =
-  Finance.list_contract_fee_options(Repo.preload(club_1_department_football_men, :fees), termination_case_contact.id) |> Enum.random()
+  Finance.list_contract_fee_options(
+    Repo.preload(club_1_department_football_men, :fees),
+    termination_case_contact.id
+  )
+  |> Enum.random()
 
 Repo.insert!(%Contract{
   club_id: club_1.id,
@@ -1598,11 +1602,85 @@ Repo.insert!(%Contract{
 })
 
 # Select a random fee that works with this combination of club & group
-fee = Finance.list_contract_fee_options(Repo.preload(club_1_group_football_men,:fees), termination_case_contact.id) |> Enum.random()
+fee =
+  Finance.list_contract_fee_options(
+    Repo.preload(club_1_group_football_men, :fees),
+    termination_case_contact.id
+  )
+  |> Enum.random()
 
 Repo.insert!(%Contract{
   club_id: club_1.id,
   contact_id: termination_case_contact.id,
+  fee_id: fee.id,
+  signing_date: ~D[2021-11-28],
+  start_date: ~D[2022-01-01],
+  termination_date: nil,
+  archive_date: nil,
+  groups: [club_1_group_football_men]
+})
+
+# specific test case for input of new qualification
+
+{:ok, %Contact{} = new_qualification_case_contact} =
+  Sportyweb.SeedHelper.create_contact_for_test(%{
+    club_id: club_1.id,
+    type: "person",
+    person_last_name: "Mustermann",
+    person_first_name: "Michael",
+    person_middle_name: "",
+    person_gender: "male",
+    person_birthday: Faker.Date.date_of_birth(25..50),
+    postal_addresses: [Map.from_struct(Sportyweb.SeedHelper.get_random_postal_address())],
+    emails: [Map.from_struct(Sportyweb.SeedHelper.get_random_email())],
+    phones: [Map.from_struct(Sportyweb.SeedHelper.get_random_phone())],
+    financial_data: [Map.from_struct(Sportyweb.SeedHelper.get_random_financial_data())]
+  })
+
+fee =
+  Finance.list_contract_fee_options(club_1, new_qualification_case_contact.id) |> Enum.random()
+
+Repo.insert!(%Contract{
+  club_id: club_1.id,
+  contact_id: new_qualification_case_contact.id,
+  fee_id: fee.id,
+  signing_date: ~D[2021-11-28],
+  start_date: ~D[2022-01-01],
+  termination_date: nil,
+  archive_date: nil,
+  clubs: [club_1]
+})
+
+# Select a random fee that works with this combination of club & department
+fee =
+  Finance.list_contract_fee_options(
+    Repo.preload(club_1_department_football_men, :fees),
+    new_qualification_case_contact.id
+  )
+  |> Enum.random()
+
+Repo.insert!(%Contract{
+  club_id: club_1.id,
+  contact_id: new_qualification_case_contact.id,
+  fee_id: fee.id,
+  signing_date: ~D[2021-11-28],
+  start_date: ~D[2022-01-01],
+  termination_date: nil,
+  archive_date: nil,
+  departments: [club_1_department_football_men]
+})
+
+# Select a random fee that works with this combination of club & group
+fee =
+  Finance.list_contract_fee_options(
+    Repo.preload(club_1_group_football_men, :fees),
+    new_qualification_case_contact.id
+  )
+  |> Enum.random()
+
+Repo.insert!(%Contract{
+  club_id: club_1.id,
+  contact_id: new_qualification_case_contact.id,
   fee_id: fee.id,
   signing_date: ~D[2021-11-28],
   start_date: ~D[2022-01-01],
